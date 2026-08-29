@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(aws:*)",
+      "Bash(oci:*)",
+      "Bash(ssh:*)",
+      "Bash(scp:*)",
+      "Bash(sftp:*)",
+      "Bash(rsync:*)",
+      "Bash(sudo:*)",
+      "Bash(gh repo:*)",
+      "Bash(gh api:*)",
+      "Bash(gh pages:*)",
+      "Bash(gh secret:*)",
+      "Bash(git push:*)",
+      "Bash(cargo install moq-relay:*)",
+      "Bash(ngrok:*)",
+      "Bash(cloudflared:*)",
+      "Read(/Users/vipyned2/.aws/**)",
+      "Read(/Users/vipyned2/.oci/**)",
+      "Read(/Users/vipyned2/.ssh/**)",
+      "Read(**/.env)"
+    ]
+  }
+}
