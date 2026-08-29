@@ -35,23 +35,48 @@ stable); if the round-trip test (M0) fails, `cargo install moq-cli --version 0.8
 
 ## Architecture
 
+One ffmpeg process encodes once and **tees** the identical h264/aac stream to two
+legs, so the MoQ-vs-HLS latency comparison is apples to apples (same bitrate,
+same GOP, same encoder).
+
 ```
 LaserDisc ─RCA─▶ Ocean Matrix ─HDMI─▶ Pengo ─USB─▶ ffmpeg (avfoundation)
-                                                     │ h264_videotoolbox + aac → mpegts (stdout)
-                                                     ▼
-                                       moq --client-connect ${MOQ_RELAY_URL} \
-                                           --broadcast laserdisc.hang import ts
-                                                     │ QUIC (WebTransport)
-                                                     ▼
-                                          <moq-relay-host>  (existing, untouched)
-                                                     │ WebTransport, or WSS fallback (Safari)
-                                                     ▼
-                         https://laserdisc.vanessa-dev.com  — static page with <moq-watch>
-                         (GitHub Pages for this repo + Route 53 CNAME)
+                                                     │ h264_videotoolbox + aac, -f tee
+                                    ┌────────────────┴─────────────────┐
+                              [f=mpegts]pipe:1                 [f=flv]rtmp://HLS_HOST/laserdisc
+                                    │                                  │
+                   moq --client-connect ${MOQ_RELAY_URL}   MediaMTX (new VM)
+                       --broadcast laserdisc.hang import ts          RTMP in → LL-HLS out
+                                    │ QUIC                             │ HTTPS via Caddy
+                                    ▼                                  ▼
+                       <moq-relay-host> (existing)     https://<hls-host>/laserdisc/index.m3u8
+                                    │ WebTransport / WSS               │ hls.js (lowLatencyMode)
+                                    └──────────────┬───────────────────┘
+                                                   ▼
+                          https://laserdisc.vanessa-dev.com — one page, two players side by side
+                          (GitHub Pages for this repo + Route 53 CNAME)
 ```
 
 Broadcast name: `laserdisc.hang` (full path on the relay: `anon/laserdisc.hang`).
 The `.hang` suffix selects the JSON catalog format that `@moq/watch` expects.
+The HLS leg uses `onfail=ignore` in the tee so the MoQ leg keeps running if the
+HLS origin is down.
+
+A wall-clock timestamp is burned into the video with `drawtext` (laptop time,
+millisecond resolution). The viewer page shows the browser's clock next to each
+player, so glass-to-glass latency per protocol is readable off the screen — the
+on-stage "which one is lower" moment.
+
+### Infra boundary (important)
+
+The ralph loop is **laptop-only**. It may: install `moq-cli` with cargo, run
+ffmpeg/moq locally, publish to `anon/laserdisc*.hang` on the existing relay, run
+MediaMTX in local Docker, serve `site/` locally, and commit to this repo. It must
+**never** run `aws`, `oci`, `ssh`, `scp`, `gh repo create`, `gh api`, or modify
+the relay. Every infra step (new VM for the HLS origin, DNS records, GitHub repo
++ Pages, opening ports) is written out as exact commands in `HUMAN.md` for the
+human to run. The HLS origin is a **new** VM — nothing existing besides the relay
+is reused.
 
 ## Components
 
@@ -68,9 +93,28 @@ One bash script; the heart of the demo.
   size, likely 1920x1080 or 1280x720 — discover, don't assume) →
   `-c:v h264_videotoolbox` with a short GOP (~1 s), no B-frames, `-realtime 1`,
   ~2–3 Mbps; `-c:a aac -b:a 128k -ar 48000`; `-f mpegts -` on stdout.
-- Piped into `moq --client-connect "$RELAY_URL" --broadcast "$BROADCAST" import ts`.
+- Output is `-f tee "[f=mpegts]pipe:1|[f=flv:onfail=ignore]$RTMP_URL"`; stdout is
+  piped into `moq --client-connect "$RELAY_URL" --broadcast "$BROADCAST" import ts`.
+  `RTMP_URL` defaults to `rtmp://localhost:1935/laserdisc` (local MediaMTX); set
+  `HLS=0` to drop the second leg entirely.
+- `-vf drawtext` burns `%{localtime:%H:%M:%S.%3N}`-style wall clock into the
+  top-left corner (both test and capture sources).
 - `scripts/watch.sh`: the matching subscriber for local verification —
   `moq … export fmp4 | ffplay -` (or `moq … play` if the `play` feature is built).
+
+### 1b. `hls-origin/` — MediaMTX + Caddy (Docker Compose)
+
+- `hls-origin/mediamtx.yml`: `rtmp: yes` (`:1935`), `hls: yes` (`:8888`),
+  `hlsVariant: lowLatency`, `hlsSegmentDuration: 1s`, `hlsPartDuration: 200ms`,
+  `hlsSegmentCount: 7`, `hlsAlwaysRemux: yes`, `hlsAllowOrigins: ['*']`, one
+  path `laserdisc` with `source: publisher`. Image pinned `bluenviron/mediamtx:1.20.1`.
+- `hls-origin/compose.yml` (production: mediamtx + caddy, TLS automatic for
+  `$HLS_DOMAIN`, Caddy reverse-proxies `:443 → mediamtx:8888`) and
+  `hls-origin/compose.local.yml` (laptop: mediamtx only, ports 1935 + 8888).
+- Playback URL: `https://<hls-host>/laserdisc/index.m3u8`.
+- Runs on a **new** Ubuntu 24.04 VM the human provisions (`docs/deploy-hls-origin.md`
+  has the exact steps, written OCI-flavoured to match the existing runbooks but
+  provider-agnostic: any VM with a public IP and 22/80/443/1935 TCP open).
 - A `--loop` mode / wrapper (`scripts/run-forever.sh`) that restarts the pipeline
   if either process exits, with a 2 s backoff. Viewers keep the same broadcast
   name, so `<moq-watch>` reconnects on its own.
@@ -81,7 +125,12 @@ A single static HTML file, no build step.
 
 - Loads `@moq/watch` from jsdelivr with a **pinned version** (e.g.
   `https://cdn.jsdelivr.net/npm/@moq/watch@0.5.2/element/+esm`).
-- `<moq-watch url="${MOQ_RELAY_URL}" name="laserdisc.hang" controls><canvas></canvas></moq-watch>`.
+- Two players side by side: left `<moq-watch url="${MOQ_RELAY_URL}" name="laserdisc.hang" controls><canvas></canvas></moq-watch>`,
+  right a `<video>` driven by hls.js (pinned `hls.js@1.7.1`, `lowLatencyMode: true`),
+  falling back to native HLS on Safari. Under each player a live browser clock
+  (`HH:MM:SS.mmm`) so the burned-in clock can be compared by eye.
+- The HLS URL and relay URL are constants at the top of the page's script (and
+  overridable via `?hls=` / `?relay=` query params for local testing).
 - Header/title: "LIVE from a LaserDisc" plus a one-line "what is this" and a link
   to the repo. A small themed touch is fine; no framework.
 - A capability check: if `WebTransport` is missing, show "falling back to
@@ -92,13 +141,17 @@ A single static HTML file, no build step.
 
 ### 3. Hosting — GitHub Pages + Route 53
 
-- GitHub repo `vipyne/laser-moq` (public), Pages source = `main` branch, `/site`
-  folder (or a Pages workflow that publishes `site/`).
+All human-run; the loop only prepares files and writes the commands into `HUMAN.md`.
+
+- GitHub repo `vipyne/laser-moq` (public). Pages deploys from a workflow
+  (`.github/workflows/pages.yml`, `actions/upload-pages-artifact` with `path: site`)
+  because branch-deploy only allows `/` or `/docs`.
 - Route 53 (`AWS_PROFILE=vanessa-dev`, hosted zone `vanessa-dev.com`): CNAME
-  `laserdisc.vanessa-dev.com → vipyne.github.io`. Then enable "Enforce HTTPS" on
-  the Pages settings once the cert is issued.
+  `laserdisc.vanessa-dev.com → vipyne.github.io`, and an A record for the HLS
+  origin host (e.g. `hls.vanessa-dev.com → <new VM IP>`). Then "Enforce HTTPS"
+  on Pages once the cert is issued.
 - Gate: `curl -sI https://laserdisc.vanessa-dev.com/` → 200 with a valid cert,
-  and the page loads the stream in Chrome.
+  and the page loads both streams in Chrome.
 
 ### 4. Docs — `README.md` (top level only)
 
@@ -113,17 +166,22 @@ changed, relay down, version skew, Safari). No READMEs in subdirectories.
   with `SOURCE=test` publishes `anon/laserdisc.hang`; `watch.sh` from a second
   process receives video and audio. If it fails on 0.9.14, pin 0.8.4. Record the
   working version.
-- **M1 — public viewer.** `site/index.html` plays the test pattern in Chrome
-  locally (`python3 -m http.server` in `site/`), then on
-  `https://laserdisc.vanessa-dev.com`. Safari via WSS fallback verified (or the
-  failure documented).
-- **M2 — real capture.** Pengo detected in avfoundation; `SOURCE=capture`
-  streams it; end-to-end latency measured (burn a clock into the test source
-  with `drawtext`, or photograph player vs. browser) and recorded in the README.
-  *Needs a human to plug the hardware in.*
-- **M3 — stage hardening.** `run-forever.sh` restart wrapper tested by killing
-  ffmpeg mid-stream; README runbook complete; a 20-minute soak with the test
-  source shows no memory growth or disconnects.
+- **M1 — HLS leg, locally.** MediaMTX up via `hls-origin/compose.local.yml`;
+  the tee's RTMP leg lands on it; `curl localhost:8888/laserdisc/index.m3u8`
+  contains `#EXT-X-PART` (proves LL-HLS). Killing MediaMTX does not stop the MoQ leg.
+- **M2 — viewer page, locally.** `site/index.html` served with
+  `python3 -m http.server` plays both legs in Chrome (MoQ from the real relay,
+  HLS from local MediaMTX); clocks visible. *Human eyes for the browser check.*
+- **M3 — real capture.** Pengo detected in avfoundation; `SOURCE=capture`
+  streams it; latency per protocol read off the clocks and recorded in the
+  README. *Needs a human to plug the hardware in.*
+- **M4 — stage hardening + handoff.** `run-forever.sh` restart wrapper tested by
+  killing ffmpeg mid-stream; a 20-minute soak with the test source shows no
+  disconnects; README runbook complete; `docs/deploy-hls-origin.md`,
+  `.github/workflows/pages.yml`, and `HUMAN.md` (VM, DNS, repo, Pages, ports)
+  complete and copy-pasteable.
+- **M5 — public (human).** Human runs `HUMAN.md`; both URLs work from a phone
+  on cellular. Not part of the loop.
 
 ## Error handling
 
@@ -146,7 +204,11 @@ changed, relay down, version skew, Safari). No READMEs in subdirectories.
 - Verification commands for every milestone live in `PLAN.md` so the ralph loop
   can check its own work; browser checks that need eyes are marked "human".
 
+- **HLS origin down**: tee leg has `onfail=ignore`; MoQ continues; page shows
+  "HLS offline" on the right player.
+
 ## Out of scope
 
 Upgrading or reconfiguring the shared relay; JWT auth; Cloudflare relays;
-transcoding ladders/ABR; recording; anything beyond one broadcast on one page.
+transcoding ladders/ABR; recording; WebRTC/WHEP (MediaMTX could serve it later
+with extra UDP ports); anything beyond one broadcast on one page.

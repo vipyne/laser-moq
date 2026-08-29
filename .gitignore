@@ -2,3 +2,4 @@
 *.log
 .env
 .claude/ralph-loop.local.md
+logs/
