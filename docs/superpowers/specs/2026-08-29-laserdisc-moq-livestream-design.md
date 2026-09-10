@@ -74,7 +74,7 @@ ffmpeg/moq locally, publish to `anon/laserdisc*.hang` on the existing relay, run
 MediaMTX in local Docker, serve `site/` locally, and commit to this repo. It must
 **never** run `aws`, `oci`, `ssh`, `scp`, `gh repo create`, `gh api`, or modify
 the relay. Every infra step (new VM for the HLS origin, DNS records, GitHub repo
-+ Pages, opening ports) is written out as exact commands in `HUMAN.md` for the
++ Pages, opening ports) is written out as exact commands in `ralph/HUMAN.md` for the
 human to run. The HLS origin is a **new** VM — nothing existing besides the relay
 is reused.
 
@@ -141,7 +141,7 @@ A single static HTML file, no build step.
 
 ### 3. Hosting — GitHub Pages + Route 53
 
-All human-run; the loop only prepares files and writes the commands into `HUMAN.md`.
+All human-run; the loop only prepares files and writes the commands into `ralph/HUMAN.md`.
 
 - GitHub repo `vipyne/laser-moq` (public). Pages deploys from a workflow
   (`.github/workflows/pages.yml`, `actions/upload-pages-artifact` with `path: site`)
@@ -178,9 +178,9 @@ changed, relay down, version skew, Safari). No READMEs in subdirectories.
 - **M4 — stage hardening + handoff.** `run-forever.sh` restart wrapper tested by
   killing ffmpeg mid-stream; a 20-minute soak with the test source shows no
   disconnects; README runbook complete; `docs/deploy-hls-origin.md`,
-  `.github/workflows/pages.yml`, and `HUMAN.md` (VM, DNS, repo, Pages, ports)
+  `.github/workflows/pages.yml`, and `ralph/HUMAN.md` (VM, DNS, repo, Pages, ports)
   complete and copy-pasteable.
-- **M5 — public (human).** Human runs `HUMAN.md`; both URLs work from a phone
+- **M5 — public (human).** Human runs `ralph/HUMAN.md`; both URLs work from a phone
   on cellular. Not part of the loop.
 
 ## Error handling
@@ -201,7 +201,7 @@ changed, relay down, version skew, Safari). No READMEs in subdirectories.
 
 - M0/M1/M3 are fully automatable without hardware (test source).
 - Each script has a `--help` and exits non-zero with a message on bad input.
-- Verification commands for every milestone live in `PLAN.md` so the ralph loop
+- Verification commands for every milestone live in `ralph/plan.md` so the ralph loop
   can check its own work; browser checks that need eyes are marked "human".
 
 - **HLS origin down**: tee leg has `onfail=ignore`; MoQ continues; page shows

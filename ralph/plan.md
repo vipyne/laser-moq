@@ -1,6 +1,6 @@
 # LaserDisc over MoQ (vs LL-HLS) Implementation Plan
 
-> **For agentic workers:** This plan is executed by a **ralph loop** (`ralph.sh` + `PROMPT.md`), one task per iteration, laptop-only. Steps use checkbox (`- [ ]`) syntax; tick them in this file as you go. REQUIRED SUB-SKILL when run interactively instead: superpowers:executing-plans.
+> **For agentic workers:** This plan is executed by a **ralph loop** (`ralph/ralph.sh` + `ralph/PROMPT.md`), one task per iteration, laptop-only. Steps use checkbox (`- [ ]`) syntax; tick them in this file as you go. REQUIRED SUB-SKILL when run interactively instead: superpowers:executing-plans.
 
 **Goal:** Livestream a LaserDisc's analog signal from a Mac to a public URL over Media over QUIC, with an identical LL-HLS stream beside it so viewers can see which protocol has lower latency.
 
@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- **Laptop-only.** NEVER run `aws`, `oci`, `ssh`, `scp`, `rsync` to a remote, `gh repo create`, `gh api`, `gh pages`, or anything that changes infrastructure. Write those commands into `HUMAN.md` instead.
+- **Laptop-only.** NEVER run `aws`, `oci`, `ssh`, `scp`, `rsync` to a remote, `gh repo create`, `gh api`, `gh pages`, or anything that changes infrastructure. Write those commands into `ralph/HUMAN.md` instead.
 - **Relay is read/publish-only.** Relay URL is exactly `${MOQ_RELAY_URL}`. Publish only to broadcast names matching `laserdisc*.hang`. Never change the relay's config, version, or box.
 - **Pinned versions:** `@moq/watch@0.5.2`, `hls.js@1.7.1`, `bluenviron/mediamtx:1.20.1`. `moq-cli`: try latest (0.9.14 on 2026-08-29); if Task 1's round-trip fails, `cargo install moq-cli --version 0.8.4 --locked` (same release day as the relay's `moq-relay 0.13.5`).
 - **One README, top level only.** Never create `README.md` in a subdirectory (use `NOTES.md`, `deploy-*.md`, etc.).
@@ -22,7 +22,7 @@
 - **Verified tee line:** `-map 0:v -map 1:a -f tee "[f=mpegts]pipe:1|[f=flv:onfail=ignore]$RTMP_URL"`.
 - Tests are plain bash scripts in `tests/`, run by `tests/run.sh`; every test exits non-zero on failure and prints `PASS <name>` / `FAIL <name>`.
 - Commit after every task with a message starting `feat:`, `fix:`, `docs:`, or `test:`.
-- Hardware-gated tasks (Task 7) and human-only steps: if the prerequisite is absent, append a dated entry to `HUMAN.md` describing exactly what is needed and move on. Do not loop on them.
+- Hardware-gated tasks (Task 7) and human-only steps: if the prerequisite is absent, append a dated entry to `ralph/HUMAN.md` describing exactly what is needed and move on. Do not loop on them.
 
 ---
 
@@ -45,16 +45,16 @@
 | `.github/workflows/pages.yml` | Publish `site/` to GitHub Pages. |
 | `tests/run.sh`, `tests/test-*.sh`, `tests/fixtures/` | Bash tests. |
 | `docs/deploy-hls-origin.md` | Human runbook for the new HLS VM. |
-| `HUMAN.md` | Everything the human must do (infra, DNS, hardware, browser checks). |
+| `ralph/HUMAN.md` | Everything the human must do (infra, DNS, hardware, browser checks). |
 | `README.md` | Top-level docs + stage runbook + measured latencies. |
-| `PROGRESS.md` | Ralph loop's own running notes (what worked, what failed, versions). |
+| `ralph/PROGRESS.md` | Ralph loop's own running notes (what worked, what failed, versions). |
 
 ---
 
 ### Task 1: `moq-cli` install + `publish.sh` test source → relay round-trip (M0)
 
 **Files:**
-- Create: `scripts/publish.sh`, `scripts/overlay.filter`, `scripts/watch.sh`, `tests/run.sh`, `tests/test-roundtrip.sh`, `PROGRESS.md`
+- Create: `scripts/publish.sh`, `scripts/overlay.filter`, `scripts/watch.sh`, `tests/run.sh`, `tests/test-roundtrip.sh`, `ralph/PROGRESS.md`
 
 **Interfaces:**
 - Produces: `scripts/publish.sh` honouring env vars `SOURCE` (`test`|`capture`, default `capture`), `RELAY_URL`, `BROADCAST` (default `laserdisc.hang`), `HLS` (`1`|`0`, default `1`), `RTMP_URL` (default `rtmp://localhost:1935/laserdisc`), `VIDEO_DEV`, `AUDIO_DEV`, `SIZE` (default `1280x720`), `FPS` (default `30`). Exits 2 with a usage message on `-h`/`--help` or bad `SOURCE`.
@@ -66,7 +66,7 @@ Run:
 cargo install moq-cli --locked
 moq --version
 ```
-Expected: prints a version (0.9.x). Write the version to `PROGRESS.md` under a `## Versions` heading. If `cargo install` fails on Rust version, note it — rustc 1.97 is installed and moq-cli needs ≥1.91, so this should not happen.
+Expected: prints a version (0.9.x). Write the version to `ralph/PROGRESS.md` under a `## Versions` heading. If `cargo install` fails on Rust version, note it — rustc 1.97 is installed and moq-cli needs ≥1.91, so this should not happen.
 
 - [ ] **Step 2: Write the failing test**
 
@@ -182,12 +182,12 @@ exec moq --client-connect "$RELAY_URL" --broadcast "$BROADCAST" export fmp4 | ff
 Run: `chmod +x scripts/*.sh && bash tests/test-roundtrip.sh`
 Expected: `codecs: aac h264` then exit 0.
 
-If it fails with a protocol/handshake error in `sub.log`/`pub.log` (not a script bug): `cargo install moq-cli --version 0.8.4 --locked --force`, re-run, and record the outcome in `PROGRESS.md` (`## Versions`: which moq-cli talks to relay 0.13.5). If both fail, record the exact error and stop this task; do not loop.
+If it fails with a protocol/handshake error in `sub.log`/`pub.log` (not a script bug): `cargo install moq-cli --version 0.8.4 --locked --force`, re-run, and record the outcome in `ralph/PROGRESS.md` (`## Versions`: which moq-cli talks to relay 0.13.5). If both fail, record the exact error and stop this task; do not loop.
 
 - [ ] **Step 8: Commit**
 
 ```bash
-git add scripts tests PROGRESS.md
+git add scripts tests ralph/PROGRESS.md
 git commit -m "feat: publish test source to relay via moq-cli, round-trip test"
 ```
 
@@ -532,7 +532,7 @@ Run (leave running in the background, or just note the command):
 ```bash
 (cd site && python3 -m http.server 8000)
 ```
-Append to `HUMAN.md` under `## Browser checks`:
+Append to `ralph/HUMAN.md` under `## Browser checks`:
 ```
 - [ ] With `SOURCE=test HLS=1 scripts/publish.sh` and local MediaMTX running (`docker compose -f hls-origin/compose.local.yml up -d`),
       open http://localhost:8000/?hls=http://localhost:8888/laserdisc/index.m3u8 in Chrome.
@@ -543,7 +543,7 @@ Append to `HUMAN.md` under `## Browser checks`:
 - [ ] **Step 7: Commit**
 
 ```bash
-git add site tests/test-site.sh HUMAN.md
+git add site tests/test-site.sh ralph/HUMAN.md
 git commit -m "feat: viewer page with MoQ and LL-HLS side by side"
 ```
 
@@ -616,12 +616,12 @@ done
 SOURCE=test HLS=0 BROADCAST=laserdisc-soak.hang timeout 1200 scripts/run-forever.sh; \
 grep -c 'exited rc' logs/publish-*.log | tail -1
 ```
-Expected: the last log shows exactly one `start #1` and the exit is from `timeout` (rc 124/143), i.e. no unplanned restarts. Record the result in `PROGRESS.md` (`## Soak`). If restarts occurred, paste the ffmpeg/moq error lines into `PROGRESS.md` and fix what is fixable (e.g. add `-rw_timeout`/retry flags); do not spend more than one iteration on it.
+Expected: the last log shows exactly one `start #1` and the exit is from `timeout` (rc 124/143), i.e. no unplanned restarts. Record the result in `ralph/PROGRESS.md` (`## Soak`). If restarts occurred, paste the ffmpeg/moq error lines into `ralph/PROGRESS.md` and fix what is fixable (e.g. add `-rw_timeout`/retry flags); do not spend more than one iteration on it.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add scripts/run-forever.sh tests/test-run-forever.sh PROGRESS.md
+git add scripts/run-forever.sh tests/test-run-forever.sh ralph/PROGRESS.md
 git commit -m "feat: restart wrapper for the publisher, soak results"
 ```
 
@@ -631,7 +631,7 @@ git commit -m "feat: restart wrapper for the publisher, soak results"
 
 **Files:**
 - Create: `hls-origin/compose.yml`, `hls-origin/Caddyfile`, `hls-origin/env.example`, `.github/workflows/pages.yml`, `docs/deploy-hls-origin.md`, `README.md`
-- Modify: `HUMAN.md`
+- Modify: `ralph/HUMAN.md`
 
 - [ ] **Step 1: `hls-origin/compose.yml`**
 
@@ -721,7 +721,7 @@ jobs:
 5. **Publish from the laptop:** `RTMP_URL=rtmp://hls.vanessa-dev.com:1935/laserdisc SOURCE=test scripts/publish.sh`; Gate: `curl -sf https://hls.vanessa-dev.com/laserdisc/index.m3u8 | head`.
 6. **Day-to-day:** logs, restart, park/terminate (OCI `instance action STOP/START`).
 
-- [ ] **Step 4: `HUMAN.md`** — rewrite as the single ordered checklist the human works through (keep any browser-check / hardware entries earlier tasks appended, folding them into the right place):
+- [ ] **Step 4: `ralph/HUMAN.md`** — rewrite as the single ordered checklist the human works through (keep any browser-check / hardware entries earlier tasks appended, folding them into the right place):
 
 ```markdown
 # HUMAN.md — things only you can do
@@ -754,7 +754,7 @@ Ordered. Each item has the exact command(s). The ralph loop never runs these.
 ```
 Include the Route 53 change-batch JSON for the CNAME (copy the shape from `<internal deploy-oci runbook>` §2, `"Type": "CNAME"`, `"Value": "vipyne.github.io"`).
 
-- [ ] **Step 5: `README.md`** (top level; the only README). Sections: **What this is** (2 sentences, link to the old talk idea), **Architecture** (the ASCII diagram from the spec), **Hardware chain**, **Install** (`cargo install moq-cli --locked` + the version that worked, from `PROGRESS.md`), **Run** (`SOURCE=test` quick start; `SOURCE=capture`; env var table from `publish.sh`), **Stage runbook** (numbered: plug in → `scripts/list-devices.sh` → `docker`/HLS origin up → `scripts/run-forever.sh` → open URL → if it dies: Ctrl-C and rerun; viewers auto-reconnect), **Measured latency** (table with MoQ / LL-HLS columns, filled with "TBD by human" only here — this is the one allowed placeholder because the number requires eyes), **Tests** (`tests/run.sh`, which need network/docker), **Troubleshooting** (device index moved → use names; relay down → `HUMAN.md` §2 of relay notes: `oci compute instance list`, `ssh ubuntu@<moq-relay-ip> docker ps`; version skew → pin 0.8.4; Safari → WebSocket fallback; HLS offline → MoQ keeps going), **Layout** (file table from this plan).
+- [ ] **Step 5: `README.md`** (top level; the only README). Sections: **What this is** (2 sentences, link to the old talk idea), **Architecture** (the ASCII diagram from the spec), **Hardware chain**, **Install** (`cargo install moq-cli --locked` + the version that worked, from `ralph/PROGRESS.md`), **Run** (`SOURCE=test` quick start; `SOURCE=capture`; env var table from `publish.sh`), **Stage runbook** (numbered: plug in → `scripts/list-devices.sh` → `docker`/HLS origin up → `scripts/run-forever.sh` → open URL → if it dies: Ctrl-C and rerun; viewers auto-reconnect), **Measured latency** (table with MoQ / LL-HLS columns, filled with "TBD by human" only here — this is the one allowed placeholder because the number requires eyes), **Tests** (`tests/run.sh`, which need network/docker), **Troubleshooting** (device index moved → use names; relay down → `ralph/HUMAN.md` §2 of relay notes: `oci compute instance list`, `ssh ubuntu@<moq-relay-ip> docker ps`; version skew → pin 0.8.4; Safari → WebSocket fallback; HLS offline → MoQ keeps going), **Layout** (file table from this plan).
 
 - [ ] **Step 6: Run the full suite, then commit**
 
@@ -769,17 +769,17 @@ git commit -m "docs: HLS origin deploy runbook, Pages workflow, HUMAN.md, README
 ### Task 7: Real capture (M3) — hardware-gated
 
 **Files:**
-- Modify: `scripts/publish.sh` (only if the Pengo needs different `-pixel_format`/`-video_size`), `README.md` (Measured latency), `PROGRESS.md`
+- Modify: `scripts/publish.sh` (only if the Pengo needs different `-pixel_format`/`-video_size`), `README.md` (Measured latency), `ralph/PROGRESS.md`
 
 - [ ] **Step 1: Detect hardware**
 
 Run: `scripts/list-devices.sh | grep -i "${VIDEO_DEV:-pengo}"`
-If nothing matches: append to `HUMAN.md` §3 "Pengo not detected on <date>; plug in and rerun the loop", write `blocked: hardware` next to this task's heading in this file, and **stop this task** (the loop moves on / finishes).
+If nothing matches: append to `ralph/HUMAN.md` §3 "Pengo not detected on <date>; plug in and rerun the loop", write `blocked: hardware` next to this task's heading in this file, and **stop this task** (the loop moves on / finishes).
 
 - [ ] **Step 2: Probe the card's real modes**
 
 Run: `ffmpeg -hide_banner -f avfoundation -framerate 30 -video_size 1280x720 -i "$(scripts/resolve-device.sh Pengo Pengo)" -t 1 -f null - 2>&1 | tail -20`
-If avfoundation rejects the size/pixel format, it prints the supported list — set `SIZE`/`-pixel_format` accordingly in `publish.sh` defaults and note it in `PROGRESS.md`.
+If avfoundation rejects the size/pixel format, it prints the supported list — set `SIZE`/`-pixel_format` accordingly in `publish.sh` defaults and note it in `ralph/PROGRESS.md`.
 
 - [ ] **Step 3: Stream it**
 
@@ -787,10 +787,10 @@ Run: `SOURCE=capture HLS=1 scripts/publish.sh` (with local MediaMTX up) and `scr
 
 - [ ] **Step 4: Record and commit**
 
-Append to `HUMAN.md` §5: read the two latencies off the page and fill README "Measured latency". Commit: `git commit -am "feat: capture defaults for the Pengo card"`.
+Append to `ralph/HUMAN.md` §5: read the two latencies off the page and fill README "Measured latency". Commit: `git commit -am "feat: capture defaults for the Pengo card"`.
 
 ---
 
 ## Completion
 
-The loop is **complete** when Tasks 1–6 are fully checked, `bash tests/run.sh` passes, and Task 7 is either checked or marked `blocked: hardware` with a `HUMAN.md` entry. Then output `<promise>LASER_MOQ_COMPLETE</promise>`.
+The loop is **complete** when Tasks 1–6 are fully checked, `bash tests/run.sh` passes, and Task 7 is either checked or marked `blocked: hardware` with a `ralph/HUMAN.md` entry. Then output `<promise>LASER_MOQ_COMPLETE</promise>`.
