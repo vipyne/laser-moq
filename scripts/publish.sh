@@ -38,6 +38,6 @@ echo "publish: source=$SOURCE relay=$RELAY_URL broadcast=$BROADCAST hls=$HLS rtm
 exec ffmpeg -hide_banner -loglevel warning -nostats "${INPUT[@]}" \
   -filter_script:v "$HERE/overlay.filter" \
   -c:v h264_videotoolbox -realtime 1 -b:v 2500k -g 30 -bf 0 -profile:v main -pix_fmt yuv420p \
-  -c:a aac -b:a 128k -ar 48000 -ac 2 \
+  -c:a aac -b:a 128k -ar 48000 -ac 2 -flags +global_header \
   "${MAP[@]}" -f tee "$TEE" \
   | moq --client-connect "$RELAY_URL" --broadcast "$BROADCAST" import ts

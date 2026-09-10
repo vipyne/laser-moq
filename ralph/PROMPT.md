@@ -30,6 +30,9 @@ your memory is the repo. Read, do ONE task, verify, commit, stop.
 - NEVER run `aws`, `oci`, `ssh`, `scp`, `rsync` to a host, `gh repo create`, `gh api`,
   `gh pages`, `sudo`, or anything that touches infrastructure. Write the exact command
   into `ralph/HUMAN.md` under the right section instead.
+- NEVER push to GitHub: no `git push`, no `git remote add`, no `gh` of any kind.
+  Commit locally only. The human reviews the commits and pushes (gate in
+  `ralph/HUMAN.md` §1).
 - NEVER change the relay (`<moq-relay-host>`), its config, its version, or its box.
 - Only publish to the relay under broadcast names matching `laserdisc*.hang`.
 - Never create a `README.md` in a subdirectory. One README, top level.

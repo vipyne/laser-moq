@@ -1,0 +1,24 @@
+# MediaMTX: RTMP in from ffmpeg, Low-Latency HLS out.
+logLevel: info
+api: no
+metrics: no
+rtsp: no
+webrtc: no
+srt: no
+
+rtmp: yes
+rtmpAddress: :1935
+
+hls: yes
+hlsAddress: :8888
+hlsAllowOrigins: ['*']
+hlsAlwaysRemux: yes          # prepare the playlist even with zero viewers
+hlsVariant: lowLatency
+hlsSegmentCount: 7
+hlsSegmentDuration: 1s
+hlsPartDuration: 200ms
+hlsMuxerCloseAfter: 60s
+
+paths:
+  laserdisc:
+    source: publisher
