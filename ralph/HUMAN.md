@@ -37,6 +37,7 @@ AWS_PROFILE=vanessa-dev aws route53 change-resource-record-sets --hosted-zone-id
 - [ ] Gate: `curl -sf https://hls.vanessa-dev.com/laserdisc/index.m3u8 | head -3` while `SOURCE=test RTMP_URL=rtmp://hls.vanessa-dev.com:1935/laserdisc scripts/publish.sh` runs.
 
 ## 3. Hardware
+- Pengo not detected on 2026-09-10 (`scripts/list-devices.sh` shows no match); plug in and rerun the loop so Task 7 (capture probe + defaults) can run.
 - [ ] Plug LaserDisc → Ocean Matrix → Pengo → Mac. `scripts/list-devices.sh` must show the Pengo in BOTH video and audio lists. Note the exact name and set `VIDEO_DEV`/`AUDIO_DEV` if it isn't "Pengo".
 - [ ] `SOURCE=capture scripts/watch.sh` in one terminal, `SOURCE=capture HLS=0 scripts/publish.sh` in another → picture.
 

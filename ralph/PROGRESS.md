@@ -62,3 +62,7 @@ Append-only. Newest at the bottom. Each iteration adds a dated entry.
 - `README.md`: all plan sections; ASCII diagram copied from the spec; env table matches publish.sh defaults; moq-cli version recorded as 0.11.0; "Measured latency" left TBD-by-human (the one allowed placeholder).
 - `bash tests/run.sh` → PASS all 5; post-suite leak check clean (no ffmpeg/moq, no containers).
 - Next: Task 7 (capture — hardware-gated; Pengo not expected to be plugged in).
+
+### 2026-09-10 — Task 7 blocked: hardware
+- `scripts/list-devices.sh | grep -i pengo` → no match (card not plugged in). Marked Task 7 `blocked: hardware` in the plan and noted it in `ralph/HUMAN.md` §3. Steps 2–4 (mode probe, capture stream, latency numbers) wait for the card; plug it in and rerun the loop.
+- Completion condition met: Tasks 1–6 fully checked, `bash tests/run.sh` PASS all 5, Task 7 blocked with a HUMAN.md entry. Everything left is in `ralph/HUMAN.md` (push + Pages, HLS VM, hardware, browser checks, latency numbers).
