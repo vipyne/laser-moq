@@ -201,7 +201,7 @@ git commit -m "feat: publish test source to relay via moq-cli, round-trip test"
 **Interfaces:**
 - Produces: `scripts/resolve-device.sh <video-substring> <audio-substring>` → prints `V:A` (avfoundation indices) and exits 0; exits 1 with a message listing devices if either is not found. Env `AVF_LIST_FILE` overrides the live `ffmpeg -list_devices` output (for tests). Numeric arguments are passed through unchanged.
 
-- [ ] **Step 1: Write the fixture** `tests/fixtures/avfoundation-list.txt` (this is real ffmpeg 7.1 output shape; the Pengo lines are what a UVC card looks like):
+- [x] **Step 1: Write the fixture** `tests/fixtures/avfoundation-list.txt` (this is real ffmpeg 7.1 output shape; the Pengo lines are what a UVC card looks like):
 
 ```
 [AVFoundation indev @ 0x120606f00] AVFoundation video devices:
@@ -215,7 +215,7 @@ git commit -m "feat: publish test source to relay via moq-cli, round-trip test"
 [AVFoundation indev @ 0x120606f00] [2] USB3.0 Capture: Pengo
 ```
 
-- [ ] **Step 2: Write the failing test** `tests/test-resolve-device.sh`:
+- [x] **Step 2: Write the failing test** `tests/test-resolve-device.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -232,12 +232,12 @@ scripts/resolve-device.sh Nope Pengo >/dev/null 2>&1 && { echo "expected failure
 exit 0
 ```
 
-- [ ] **Step 3: Run the test to verify it fails**
+- [x] **Step 3: Run the test to verify it fails**
 
 Run: `bash tests/test-resolve-device.sh`
 Expected: FAIL — `scripts/resolve-device.sh: No such file or directory`.
 
-- [ ] **Step 4: Write `scripts/list-devices.sh`**
+- [x] **Step 4: Write `scripts/list-devices.sh`**
 
 ```bash
 #!/usr/bin/env bash
@@ -245,7 +245,7 @@ Expected: FAIL — `scripts/resolve-device.sh: No such file or directory`.
 ffmpeg -hide_banner -f avfoundation -list_devices true -i "" 2>&1 | grep -E '^\[AVFoundation' || true
 ```
 
-- [ ] **Step 5: Write `scripts/resolve-device.sh`**
+- [x] **Step 5: Write `scripts/resolve-device.sh`**
 
 ```bash
 #!/usr/bin/env bash
@@ -274,12 +274,12 @@ fi
 echo "$v:$a"
 ```
 
-- [ ] **Step 6: Run the test to verify it passes**
+- [x] **Step 6: Run the test to verify it passes**
 
 Run: `chmod +x scripts/*.sh && bash tests/test-resolve-device.sh && echo OK`
 Expected: `OK`.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/resolve-device.sh scripts/list-devices.sh tests
