@@ -407,7 +407,7 @@ git commit -m "feat: LL-HLS leg via local MediaMTX, tee resilience test"
 **Interfaces:**
 - Consumes: relay `${MOQ_RELAY_URL}`, broadcast `laserdisc.hang`, HLS URL (default `https://hls.vanessa-dev.com/laserdisc/index.m3u8`, overridable with `?hls=` and `?relay=`/`?name=` query params).
 
-- [ ] **Step 1: Write the failing test** `tests/test-site.sh` (static checks — the browser check is human):
+- [x] **Step 1: Write the failing test** `tests/test-site.sh` (static checks — the browser check is human):
 
 ```bash
 #!/usr/bin/env bash
@@ -426,13 +426,13 @@ grep -q 'id="clock-moq"' $f && grep -q 'id="clock-hls"' $f        || { echo "clo
 exit 0
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `bash tests/test-site.sh` → `missing site/index.html`.
 
-- [ ] **Step 3: Write `site/CNAME`** containing exactly `laserdisc.vanessa-dev.com` (no trailing newline required).
+- [x] **Step 3: Write `site/CNAME`** containing exactly `laserdisc.vanessa-dev.com` (no trailing newline required).
 
-- [ ] **Step 4: Write `site/index.html`**
+- [x] **Step 4: Write `site/index.html`**
 
 ```html
 <!doctype html>
@@ -523,11 +523,11 @@ Run: `bash tests/test-site.sh` → `missing site/index.html`.
 </html>
 ```
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [x] **Step 5: Run the test to verify it passes**
 
 Run: `bash tests/test-site.sh && echo OK` → `OK`.
 
-- [ ] **Step 6: Serve locally and record the human check**
+- [x] **Step 6: Serve locally and record the human check**
 
 Run (leave running in the background, or just note the command):
 ```bash
@@ -541,7 +541,7 @@ Append to `ralph/HUMAN.md` under `## Browser checks`:
 - [ ] Same URL in Safari: MoQ via WebSocket fallback should connect; HLS via native player.
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add site tests/test-site.sh ralph/HUMAN.md
