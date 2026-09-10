@@ -40,3 +40,9 @@ Append-only. Newest at the bottom. Each iteration adds a dated entry.
 - Note: MediaMTX 1.20.1 also starts a MoQ listener (:8892/:8893) by default — harmless, left as is.
 - `bash tests/test-hls.sh` → `LL-HLS ok` + `publisher survived HLS origin loss` (EXT-X-PART with 200ms parts confirmed). `bash tests/run.sh` → PASS all 3. Cleaned up ffmpeg/moq leaks and `docker compose down` after.
 - Committing the human's pending edits to ralph/{HUMAN,PROMPT,plan}.md and .claude/settings.json along with this (per `git add -A` rule). Next: Task 4 (viewer page).
+
+### 2026-09-10 — Task 4 complete
+- Wrote `tests/test-site.sh` first (failed as expected: `missing site/index.html`), then `site/CNAME` (exactly `laserdisc.vanessa-dev.com`, no trailing newline) and `site/index.html` verbatim from the plan. `bash tests/test-site.sh && echo OK` → `OK`. No deviations.
+- Appended the two browser checks to `ralph/HUMAN.md` §4 (Chrome with `?hls=http://localhost:8888/laserdisc/index.m3u8`, then Safari). Did not leave a `python3 -m http.server` running — the serve command is in the HUMAN.md entry instead (unattended loop shouldn't leave servers up).
+- Full suite `bash tests/run.sh` → PASS all 4 (hls, resolve-device, roundtrip, site). Cleaned up the leaked ffmpeg/moq from roundtrip (Task 1 quirk) and confirmed `docker compose down`.
+- Next: Task 5 (`run-forever.sh` + soak — the soak step alone is a 20-minute `timeout 1200` run; budget for it).
