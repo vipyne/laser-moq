@@ -27,3 +27,8 @@ Append-only. Newest at the bottom. Each iteration adds a dated entry.
 - `bash tests/test-roundtrip.sh` → `codecs: aac h264`, exit 0. `bash tests/run.sh` → PASS.
 - moq 0.11.0 CLI matches the plan's invocation exactly (`moq --client-connect URL --broadcast NAME import ts` / `export ts`); no script changes needed.
 - **Quirk:** `tests/test-roundtrip.sh`'s `trap kill $PUB` kills the publish.sh shell but orphans the `ffmpeg | moq` pipeline children — each test run leaks one ffmpeg + one moq. Clean up after running tests: `pkill -f 'ffmpeg .*testsrc2'; pkill -f 'moq --client-connect'`. (Left the test as written per plan; consider fixing if it causes trouble in Task 3/5.)
+
+### 2026-09-10 — Task 2 complete
+- Wrote `tests/fixtures/avfoundation-list.txt`, `tests/test-resolve-device.sh` (failed as expected: No such file), then `scripts/list-devices.sh` + `scripts/resolve-device.sh` exactly as in the plan. `bash tests/test-resolve-device.sh && echo OK` → `OK`.
+- Full suite `bash tests/run.sh` → PASS both tests (roundtrip still good against relay with moq-cli 0.11.0). Cleaned up leaked ffmpeg/moq afterwards per the Task 1 quirk note.
+- No deviations from the plan; BSD-awk `RSTART/RLENGTH` form works as pre-verified. Next: Task 3 (local MediaMTX / LL-HLS leg — needs Docker running).
