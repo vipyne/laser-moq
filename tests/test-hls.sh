@@ -9,7 +9,8 @@ export SOURCE=test HLS=1 BROADCAST="laserdisc-hls-$$.hang"
 OUT="$(mktemp -d)"
 scripts/publish.sh >"$OUT/pub.log" 2>&1 &
 PUB=$!
-cleanup() { kill $PUB 2>/dev/null; wait $PUB 2>/dev/null; docker compose -f hls-origin/compose.local.yml down >/dev/null 2>&1; }
+# pkill -P first: publish.sh is `ffmpeg | moq`; killing only $PUB orphans both.
+cleanup() { pkill -TERM -P $PUB 2>/dev/null; kill $PUB 2>/dev/null; wait $PUB 2>/dev/null; docker compose -f hls-origin/compose.local.yml down >/dev/null 2>&1; }
 trap cleanup EXIT
 # MediaMTX 1.20.1 gates HLS behind a cookieCheck redirect (Secure cookie; curl
 # accepts it on localhost) — every fetch needs -L plus the shared cookie jar.

@@ -15,7 +15,7 @@ Append-only. Newest at the bottom. Each iteration adds a dated entry.
 - `bluenviron/mediamtx:1.20.1` exists on Docker Hub. `hls.js` latest is 1.7.1.
 
 ## Soak
-(filled by Task 5)
+- 2026-09-10: `SOURCE=test HLS=0 BROADCAST=laserdisc-soak.hang timeout 1200 scripts/run-forever.sh` → `logs/publish-20260910-154015.log` shows exactly one `start #1`, zero `exited rc` lines (no unplanned restarts over 20 min), `stopping` from the TERM trap, wrapper rc=124 from `timeout`. No leaked ffmpeg/moq after (`pgrep` clean — the stop() trap got both pipeline children).
 
 ## Blockers
 (none yet)
@@ -46,3 +46,11 @@ Append-only. Newest at the bottom. Each iteration adds a dated entry.
 - Appended the two browser checks to `ralph/HUMAN.md` §4 (Chrome with `?hls=http://localhost:8888/laserdisc/index.m3u8`, then Safari). Did not leave a `python3 -m http.server` running — the serve command is in the HUMAN.md entry instead (unattended loop shouldn't leave servers up).
 - Full suite `bash tests/run.sh` → PASS all 4 (hls, resolve-device, roundtrip, site). Cleaned up the leaked ffmpeg/moq from roundtrip (Task 1 quirk) and confirmed `docker compose down`.
 - Next: Task 5 (`run-forever.sh` + soak — the soak step alone is a 20-minute `timeout 1200` run; budget for it).
+
+### 2026-09-10 — Task 5 complete (across two iterations)
+- A prior iteration did Steps 1–4 (wrote `tests/test-run-forever.sh` + `scripts/run-forever.sh`, ticked them in the plan) but stopped before the soak and **did not commit or log here** — this iteration found the files untracked. Re-ran `bash tests/test-run-forever.sh` to re-verify before trusting the ticks: `restart + clean shutdown ok`, exit 0.
+- **Test deviation (already in the file):** shutdown is tested with `kill -TERM`, not `-INT` — bash ignores SIGINT in background jobs of non-interactive shells, so the wrapper's INT trap can't fire under the test harness; Ctrl-C in a real terminal still works (same trap handles both).
+- Step 5 soak: see `## Soak` above — 20 min, zero unplanned restarts, clean TERM shutdown, no leaks.
+- **Task 1 quirk fixed for real.** First full-suite run FAILED `test-run-forever.sh` ("child survived SIGTERM"): the leaked `ffmpeg|moq` pipelines from `test-hls.sh` and `test-roundtrip.sh` polluted `pgrep -f 'ffmpeg .*testsrc2'` — the test killed a *leaked* ffmpeg (restart check passed spuriously against the second leak) and the final pgrep found a leak, not the wrapper's child. The wrapper itself never misbehaved. Fix (the one Task 1's note anticipated): both tests' cleanup traps now do `pkill -TERM -P $PUB` before `kill $PUB`, same as run-forever's `stop()`. Re-ran `bash tests/run.sh` from a clean state → PASS all 5, and the post-suite leak check (`pgrep` ffmpeg/moq, `docker ps`) is empty. **The manual `pkill` after test runs is no longer needed.**
+- **Quirk for future iterations:** the interactive shell aliases `ls`→`ls -l`-style output and `grep`→`ugrep`; command substitutions like `$(ls -t …)` come back mangled. Use `/bin/ls` and `/usr/bin/grep` (or `command grep`) in ad-hoc shell one-liners. Scripts run via `bash script.sh` are unaffected (aliases don't expand in non-interactive shells).
+- Next: Task 6 (prod compose/Caddyfile, Pages workflow, deploy runbook, HUMAN.md rewrite, README).
