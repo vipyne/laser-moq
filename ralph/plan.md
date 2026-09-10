@@ -59,7 +59,7 @@
 **Interfaces:**
 - Produces: `scripts/publish.sh` honouring env vars `SOURCE` (`test`|`capture`, default `capture`), `RELAY_URL`, `BROADCAST` (default `laserdisc.hang`), `HLS` (`1`|`0`, default `1`), `RTMP_URL` (default `rtmp://localhost:1935/laserdisc`), `VIDEO_DEV`, `AUDIO_DEV`, `SIZE` (default `1280x720`), `FPS` (default `30`). Exits 2 with a usage message on `-h`/`--help` or bad `SOURCE`.
 
-- [ ] **Step 1: Install moq-cli and record the version**
+- [x] **Step 1: Install moq-cli and record the version**
 
 Run:
 ```bash
@@ -68,7 +68,7 @@ moq --version
 ```
 Expected: prints a version (0.9.x). Write the version to `ralph/PROGRESS.md` under a `## Versions` heading. If `cargo install` fails on Rust version, note it — rustc 1.97 is installed and moq-cli needs ≥1.91, so this should not happen.
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 `tests/run.sh`:
 ```bash
@@ -105,18 +105,18 @@ echo "--- pub.log"; tail -20 "$OUT/pub.log"; echo "--- sub.log"; tail -20 "$OUT/
 exit 1
 ```
 
-- [ ] **Step 3: Run the test to verify it fails**
+- [x] **Step 3: Run the test to verify it fails**
 
 Run: `chmod +x tests/*.sh && bash tests/test-roundtrip.sh`
 Expected: FAIL — `scripts/publish.sh: No such file or directory`.
 
-- [ ] **Step 4: Write `scripts/overlay.filter`** (exact content, one line):
+- [x] **Step 4: Write `scripts/overlay.filter`** (exact content, one line):
 
 ```
 drawtext=text='%{localtime\:%H\\\:%M\\\:%S.%3N}':fontsize=48:fontcolor=white:box=1:boxcolor=black@0.6:x=20:y=20
 ```
 
-- [ ] **Step 5: Write `scripts/publish.sh`**
+- [x] **Step 5: Write `scripts/publish.sh`**
 
 ```bash
 #!/usr/bin/env bash
@@ -166,7 +166,7 @@ exec ffmpeg -hide_banner -loglevel warning -nostats "${INPUT[@]}" \
 
 Note: the `capture` branch calls `scripts/resolve-device.sh`, written in Task 2. Until then `SOURCE=capture` fails with "No such file" — acceptable; Task 1 only tests `SOURCE=test`.
 
-- [ ] **Step 6: Write `scripts/watch.sh`**
+- [x] **Step 6: Write `scripts/watch.sh`**
 
 ```bash
 #!/usr/bin/env bash
@@ -177,14 +177,14 @@ BROADCAST="${BROADCAST:-laserdisc.hang}"
 exec moq --client-connect "$RELAY_URL" --broadcast "$BROADCAST" export fmp4 | ffplay -hide_banner -loglevel warning -fflags nobuffer -flags low_delay -
 ```
 
-- [ ] **Step 7: Run the test to verify it passes**
+- [x] **Step 7: Run the test to verify it passes**
 
 Run: `chmod +x scripts/*.sh && bash tests/test-roundtrip.sh`
 Expected: `codecs: aac h264` then exit 0.
 
 If it fails with a protocol/handshake error in `sub.log`/`pub.log` (not a script bug): `cargo install moq-cli --version 0.8.4 --locked --force`, re-run, and record the outcome in `ralph/PROGRESS.md` (`## Versions`: which moq-cli talks to relay 0.13.5). If both fail, record the exact error and stop this task; do not loop.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts tests ralph/PROGRESS.md
