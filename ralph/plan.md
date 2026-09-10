@@ -770,7 +770,7 @@ git commit -m "docs: HLS origin deploy runbook, Pages workflow, HUMAN.md, README
 
 ---
 
-### Task 7: Real capture (M3) — hardware-gated
+### Task 7: Real capture (M3) — hardware-gated — `blocked: hardware` (Pengo not detected 2026-09-10; see ralph/HUMAN.md §3)
 
 **Files:**
 - Modify: `scripts/publish.sh` (only if the Pengo needs different `-pixel_format`/`-video_size`), `README.md` (Measured latency), `ralph/PROGRESS.md`
