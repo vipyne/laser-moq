@@ -7,7 +7,8 @@ export SOURCE=test HLS=0 BROADCAST="laserdisc-test-$$.hang"
 OUT="$(mktemp -d)"
 scripts/publish.sh >"$OUT/pub.log" 2>&1 &
 PUB=$!
-trap 'kill $PUB 2>/dev/null; wait $PUB 2>/dev/null' EXIT
+# pkill -P first: publish.sh is `ffmpeg | moq`; killing only $PUB orphans both.
+trap 'pkill -TERM -P $PUB 2>/dev/null; kill $PUB 2>/dev/null; wait $PUB 2>/dev/null' EXIT
 sleep 4
 timeout 20 moq --client-connect "${RELAY_URL:-${MOQ_RELAY_URL}}" \
   --broadcast "$BROADCAST" export ts 2>"$OUT/sub.log" | head -c 400000 >"$OUT/out.ts"

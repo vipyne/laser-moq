@@ -558,7 +558,7 @@ git commit -m "feat: viewer page with MoQ and LL-HLS side by side"
 **Interfaces:**
 - Produces: `scripts/run-forever.sh` — runs `publish.sh` with the same env, restarts after 2 s on any exit, logs to `logs/publish-YYYYmmdd-HHMMSS.log`, stops cleanly on SIGINT/SIGTERM (kills the child pipeline too). Env `MAX_RESTARTS` (default unlimited) for tests.
 
-- [ ] **Step 1: Write the failing test** `tests/test-run-forever.sh`:
+- [x] **Step 1: Write the failing test** `tests/test-run-forever.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -582,9 +582,9 @@ echo "restart + clean shutdown ok"
 exit 0
 ```
 
-- [ ] **Step 2: Run to verify it fails** → `scripts/run-forever.sh: No such file or directory`.
+- [x] **Step 2: Run to verify it fails** → `scripts/run-forever.sh: No such file or directory`.
 
-- [ ] **Step 3: Write `scripts/run-forever.sh`**
+- [x] **Step 3: Write `scripts/run-forever.sh`**
 
 ```bash
 #!/usr/bin/env bash
@@ -609,9 +609,9 @@ while :; do
 done
 ```
 
-- [ ] **Step 4: Run to verify it passes** → `restart + clean shutdown ok`. If `pkill -P` leaves an orphan `moq` (the pipe's right-hand side), also `pkill -f "moq --client-connect.*$BROADCAST"` in `stop()`.
+- [x] **Step 4: Run to verify it passes** → `restart + clean shutdown ok`. If `pkill -P` leaves an orphan `moq` (the pipe's right-hand side), also `pkill -f "moq --client-connect.*$BROADCAST"` in `stop()`. *(No orphan seen — `pkill -P` got both. Test deviation: shutdown tested with SIGTERM, not SIGINT — bash ignores INT in background jobs of non-interactive shells, so the INT trap can't fire under the harness; Ctrl-C in a real terminal still works. See PROGRESS.md.)*
 
-- [ ] **Step 5: Soak** — 20 minutes with the test source, then check for disconnects:
+- [x] **Step 5: Soak** — 20 minutes with the test source, then check for disconnects:
 
 ```bash
 SOURCE=test HLS=0 BROADCAST=laserdisc-soak.hang timeout 1200 scripts/run-forever.sh; \
@@ -619,7 +619,7 @@ grep -c 'exited rc' logs/publish-*.log | tail -1
 ```
 Expected: the last log shows exactly one `start #1` and the exit is from `timeout` (rc 124/143), i.e. no unplanned restarts. Record the result in `ralph/PROGRESS.md` (`## Soak`). If restarts occurred, paste the ffmpeg/moq error lines into `ralph/PROGRESS.md` and fix what is fixable (e.g. add `-rw_timeout`/retry flags); do not spend more than one iteration on it.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit** *(also includes the fix for the Task 1 leak quirk: `pkill -TERM -P $PUB` in test-roundtrip.sh and test-hls.sh cleanup traps — leaked pipelines were breaking this task's test inside the full suite. See PROGRESS.md.)*
 
 ```bash
 git add scripts/run-forever.sh tests/test-run-forever.sh ralph/PROGRESS.md
