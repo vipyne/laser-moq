@@ -13,6 +13,7 @@
 ## Global Constraints
 
 - **Laptop-only.** NEVER run `aws`, `oci`, `ssh`, `scp`, `rsync` to a remote, `gh repo create`, `gh api`, `gh pages`, or anything that changes infrastructure. Write those commands into `ralph/HUMAN.md` instead.
+- **Never push to GitHub.** Commits stay local; `git push`, `git remote add`, and all `gh` commands are the human's job (human gate — the deny list blocks them anyway). Anything that needs to reach GitHub goes into `ralph/HUMAN.md` §1 as an exact command for the human to review and run.
 - **Relay is read/publish-only.** Relay URL is exactly `${MOQ_RELAY_URL}`. Publish only to broadcast names matching `laserdisc*.hang`. Never change the relay's config, version, or box.
 - **Pinned versions:** `@moq/watch@0.5.2`, `hls.js@1.7.1`, `bluenviron/mediamtx:1.20.1`. `moq-cli`: try latest (0.9.14 on 2026-08-29); if Task 1's round-trip fails, `cargo install moq-cli --version 0.8.4 --locked` (same release day as the relay's `moq-relay 0.13.5`).
 - **One README, top level only.** Never create `README.md` in a subdirectory (use `NOTES.md`, `deploy-*.md`, etc.).
@@ -297,7 +298,7 @@ git commit -m "feat: resolve avfoundation device indices by name"
 - Consumes: `scripts/publish.sh` env `HLS=1`, `RTMP_URL` (Task 1).
 - Produces: local LL-HLS at `http://localhost:8888/laserdisc/index.m3u8`; MediaMTX RTMP ingest at `rtmp://localhost:1935/laserdisc`.
 
-- [ ] **Step 1: Write `hls-origin/mediamtx.yml`**
+- [x] **Step 1: Write `hls-origin/mediamtx.yml`**
 
 ```yaml
 # MediaMTX: RTMP in from ffmpeg, Low-Latency HLS out.
@@ -326,7 +327,7 @@ paths:
     source: publisher
 ```
 
-- [ ] **Step 2: Write `hls-origin/compose.local.yml`**
+- [x] **Step 2: Write `hls-origin/compose.local.yml`**
 
 ```yaml
 # Laptop-only: MediaMTX with plain HTTP. Prod uses compose.yml (adds Caddy/TLS).
@@ -342,7 +343,7 @@ services:
       - ./mediamtx.yml:/mediamtx.yml:ro
 ```
 
-- [ ] **Step 3: Write the failing test** `tests/test-hls.sh`:
+- [x] **Step 3: Write the failing test** `tests/test-hls.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -376,19 +377,19 @@ echo "publisher survived HLS origin loss"
 exit 0
 ```
 
-- [ ] **Step 4: Run the test to verify it fails**
+- [x] **Step 4: Run the test to verify it fails**
 
 Run: `bash tests/test-hls.sh`
 Expected: FAIL at `docker compose … up` (files missing) — or, if files exist but the tee isn't wired, "no playlist".
 
-- [ ] **Step 5: Make it pass**
+- [x] **Step 5: Make it pass** *(deviations: `-flags +global_header` added to publish.sh — FLV needs global headers and tee doesn't propagate the flag; test fetches use `curl -L` + cookie jar for MediaMTX 1.20.1's cookieCheck gate; variant playlist parsed as first non-comment line. See PROGRESS.md 2026-09-10 Task 3.)*
 
 `scripts/publish.sh` from Task 1 already emits the tee leg when `HLS=1`. If the playlist never appears, check `docker logs laser-mediamtx` for the RTMP publish and `pub.log` for `onfail` messages. MediaMTX may reject FLV without `aac` ADTS-to-ASC conversion — if the log says so, add `-bsf:a aac_adtstoasc` **only to the flv leg**: `[f=flv:onfail=ignore:bsfs/a=aac_adtstoasc]${RTMP_URL}`.
 
 Run: `bash tests/test-hls.sh`
 Expected: `LL-HLS ok` and `publisher survived HLS origin loss`, exit 0.
 
-- [ ] **Step 6: Run the whole suite and commit**
+- [x] **Step 6: Run the whole suite and commit**
 
 ```bash
 bash tests/run.sh
@@ -727,8 +728,11 @@ jobs:
 # HUMAN.md — things only you can do
 
 Ordered. Each item has the exact command(s). The ralph loop never runs these.
+Nothing reaches GitHub until you check the gate in §1 — the loop only commits locally.
 
 ## 1. GitHub repo + Pages
+- [ ] **Gate: review before anything is pushed.** `git log --oneline` + skim the diffs
+      (`git diff <last-commit-you-reviewed>..HEAD`). Only proceed when you're happy.
 - [ ] `gh repo create vipyne/laser-moq --public --source . --push`
 - [ ] Enable Pages via workflow: `gh api -X POST repos/vipyne/laser-moq/pages -f build_type=workflow`
       (if it says already exists: `gh api -X PUT repos/vipyne/laser-moq/pages -f build_type=workflow`)

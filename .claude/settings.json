@@ -13,6 +13,7 @@
       "Bash(gh pages:*)",
       "Bash(gh secret:*)",
       "Bash(git push:*)",
+      "Bash(git remote:*)",
       "Bash(cargo install moq-relay:*)",
       "Bash(ngrok:*)",
       "Bash(cloudflared:*)",
