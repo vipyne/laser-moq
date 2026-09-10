@@ -634,7 +634,7 @@ git commit -m "feat: restart wrapper for the publisher, soak results"
 - Create: `hls-origin/compose.yml`, `hls-origin/Caddyfile`, `hls-origin/env.example`, `.github/workflows/pages.yml`, `docs/deploy-hls-origin.md`, `README.md`
 - Modify: `ralph/HUMAN.md`
 
-- [ ] **Step 1: `hls-origin/compose.yml`**
+- [x] **Step 1: `hls-origin/compose.yml`**
 
 ```yaml
 # Production: MediaMTX + Caddy (automatic TLS for $HLS_DOMAIN).
@@ -686,7 +686,7 @@ HLS_DOMAIN=hls.vanessa-dev.com
 
 Validate locally: `cd hls-origin && HLS_DOMAIN=example.test docker compose -f compose.yml config >/dev/null && echo COMPOSE_OK`.
 
-- [ ] **Step 2: `.github/workflows/pages.yml`**
+- [x] **Step 2: `.github/workflows/pages.yml`**
 
 ```yaml
 name: pages
@@ -713,7 +713,7 @@ jobs:
         uses: actions/deploy-pages@v4
 ```
 
-- [ ] **Step 3: `docs/deploy-hls-origin.md`** — human runbook for a **new** VM. Write it in the same voice as the existing OCI runbooks (sections labelled *(laptop)* / *(on the box)*, a **Gate:** line after each section), provider-agnostic in substance. Required content, in order:
+- [x] **Step 3: `docs/deploy-hls-origin.md`** — human runbook for a **new** VM. Write it in the same voice as the existing OCI runbooks (sections labelled *(laptop)* / *(on the box)*, a **Gate:** line after each section), provider-agnostic in substance. Required content, in order:
 
 1. **Requirements:** Ubuntu 24.04, public IPv4, inbound 22/80/443/1935 TCP. On OCI: a *new* `VM.Standard.A1.Flex` 1 OCPU/6 GB in the same compartment (`<compartment-ocid>`), **new** VCN/subnet named `hls-vcn`/`hls-subnet` (do not reuse `relay-subnet`), reserved public IP `hls-ip`. Include the `oci` commands modelled on `<internal deploy-oci runbook>` §1–§2 but with the new names and this security list: `{"22/tcp": "YOUR_IP/32", "80/tcp": "0.0.0.0/0", "443/tcp": "0.0.0.0/0", "1935/tcp": "0.0.0.0/0"}`. Note the Always-Free A1 budget (4 OCPU total; three 1-OCPU boxes already exist → exactly one more fits).
 2. **DNS (human):** Route 53 A record `hls.vanessa-dev.com → PUBLIC_IP` (`AWS_PROFILE=vanessa-dev`), with the `aws route53 change-resource-record-sets` JSON. Gate: `dig +short hls.vanessa-dev.com @1.1.1.1`.
@@ -722,7 +722,7 @@ jobs:
 5. **Publish from the laptop:** `RTMP_URL=rtmp://hls.vanessa-dev.com:1935/laserdisc SOURCE=test scripts/publish.sh`; Gate: `curl -sf https://hls.vanessa-dev.com/laserdisc/index.m3u8 | head`.
 6. **Day-to-day:** logs, restart, park/terminate (OCI `instance action STOP/START`).
 
-- [ ] **Step 4: `ralph/HUMAN.md`** — rewrite as the single ordered checklist the human works through (keep any browser-check / hardware entries earlier tasks appended, folding them into the right place):
+- [x] **Step 4: `ralph/HUMAN.md`** — rewrite as the single ordered checklist the human works through (keep any browser-check / hardware entries earlier tasks appended, folding them into the right place):
 
 ```markdown
 # HUMAN.md — things only you can do
@@ -758,9 +758,9 @@ Nothing reaches GitHub until you check the gate in §1 — the loop only commits
 ```
 Include the Route 53 change-batch JSON for the CNAME (copy the shape from `<internal deploy-oci runbook>` §2, `"Type": "CNAME"`, `"Value": "vipyne.github.io"`).
 
-- [ ] **Step 5: `README.md`** (top level; the only README). Sections: **What this is** (2 sentences, link to the old talk idea), **Architecture** (the ASCII diagram from the spec), **Hardware chain**, **Install** (`cargo install moq-cli --locked` + the version that worked, from `ralph/PROGRESS.md`), **Run** (`SOURCE=test` quick start; `SOURCE=capture`; env var table from `publish.sh`), **Stage runbook** (numbered: plug in → `scripts/list-devices.sh` → `docker`/HLS origin up → `scripts/run-forever.sh` → open URL → if it dies: Ctrl-C and rerun; viewers auto-reconnect), **Measured latency** (table with MoQ / LL-HLS columns, filled with "TBD by human" only here — this is the one allowed placeholder because the number requires eyes), **Tests** (`tests/run.sh`, which need network/docker), **Troubleshooting** (device index moved → use names; relay down → `ralph/HUMAN.md` §2 of relay notes: `oci compute instance list`, `ssh ubuntu@<moq-relay-ip> docker ps`; version skew → pin 0.8.4; Safari → WebSocket fallback; HLS offline → MoQ keeps going), **Layout** (file table from this plan).
+- [x] **Step 5: `README.md`** (top level; the only README). Sections: **What this is** (2 sentences, link to the old talk idea), **Architecture** (the ASCII diagram from the spec), **Hardware chain**, **Install** (`cargo install moq-cli --locked` + the version that worked, from `ralph/PROGRESS.md`), **Run** (`SOURCE=test` quick start; `SOURCE=capture`; env var table from `publish.sh`), **Stage runbook** (numbered: plug in → `scripts/list-devices.sh` → `docker`/HLS origin up → `scripts/run-forever.sh` → open URL → if it dies: Ctrl-C and rerun; viewers auto-reconnect), **Measured latency** (table with MoQ / LL-HLS columns, filled with "TBD by human" only here — this is the one allowed placeholder because the number requires eyes), **Tests** (`tests/run.sh`, which need network/docker), **Troubleshooting** (device index moved → use names; relay down → `ralph/HUMAN.md` §2 of relay notes: `oci compute instance list`, `ssh ubuntu@<moq-relay-ip> docker ps`; version skew → pin 0.8.4; Safari → WebSocket fallback; HLS offline → MoQ keeps going), **Layout** (file table from this plan).
 
-- [ ] **Step 6: Run the full suite, then commit**
+- [x] **Step 6: Run the full suite, then commit**
 
 ```bash
 bash tests/run.sh

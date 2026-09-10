@@ -1,0 +1,6 @@
+{$HLS_DOMAIN} {
+	encode zstd gzip
+	header Access-Control-Allow-Origin *
+	header Cache-Control "no-cache"
+	reverse_proxy mediamtx:8888
+}
