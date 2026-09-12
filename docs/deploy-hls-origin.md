@@ -1,7 +1,7 @@
 # HLS origin VM — human runbook
 
 A **new** box that runs MediaMTX (RTMP in → LL-HLS out) behind Caddy (automatic
-TLS for `hls.vanessa-dev.com`). Do **not** reuse the relay box — the relay is
+TLS for `hls-laserdisc.vanessa-dev.com`). Do **not** reuse the relay box — the relay is
 shared with the <internal-moq-demo> demo and stays untouched. Provider-agnostic in
 substance: any Ubuntu 24.04 host with a public IPv4 and inbound 22/80/443/1935
 TCP works; the OCI commands below are the concrete path, modelled on
@@ -85,7 +85,7 @@ The printed address is `PUBLIC_IP`. If the launch fails with "Out of capacity"
 
 ## 2. DNS *(laptop)*
 
-Route 53 A record `hls.vanessa-dev.com → PUBLIC_IP` (`AWS_PROFILE=vanessa-dev`).
+Route 53 A record `hls-laserdisc.vanessa-dev.com → PUBLIC_IP` (`AWS_PROFILE=vanessa-dev`).
 Do this before §4 — Caddy cannot get a certificate until it resolves publicly:
 
 ```bash
@@ -96,7 +96,7 @@ AWS_PROFILE=vanessa-dev aws route53 change-resource-record-sets --hosted-zone-id
   "Changes": [{
     "Action": "UPSERT",
     "ResourceRecordSet": {
-      "Name": "hls.vanessa-dev.com",
+      "Name": "hls-laserdisc.vanessa-dev.com",
       "Type": "A",
       "TTL": 300,
       "ResourceRecords": [{"Value": "PUBLIC_IP"}]
@@ -105,7 +105,7 @@ AWS_PROFILE=vanessa-dev aws route53 change-resource-record-sets --hosted-zone-id
 }'
 ```
 
-**Gate:** `dig +short hls.vanessa-dev.com @1.1.1.1` prints `PUBLIC_IP`.
+**Gate:** `dig +short hls-laserdisc.vanessa-dev.com @1.1.1.1` prints `PUBLIC_IP`.
 
 ## 3. Box prep *(on the box — `ssh ubuntu@PUBLIC_IP`)*
 
@@ -136,20 +136,20 @@ rsync -a hls-origin/ ubuntu@PUBLIC_IP:~/hls-origin/
 
 ```bash
 cd ~/hls-origin
-cp env.example .env        # HLS_DOMAIN=hls.vanessa-dev.com
+cp env.example .env        # HLS_DOMAIN=hls-laserdisc.vanessa-dev.com
 docker compose up -d
 ```
 
-**Gate:** `curl -sI https://hls.vanessa-dev.com/ | head -1` → `404` with a valid
+**Gate:** `curl -sI https://hls-laserdisc.vanessa-dev.com/ | head -1` → `404` with a valid
 certificate (MediaMTX 404s the root; the cert is what matters).
 
 ## 5. Publish from the laptop *(laptop)*
 
 ```bash
-RTMP_URL=rtmp://hls.vanessa-dev.com:1935/laserdisc SOURCE=test scripts/publish.sh
+RTMP_URL=rtmp://hls-laserdisc.vanessa-dev.com:1935/laserdisc SOURCE=test scripts/publish.sh
 ```
 
-**Gate:** `curl -sf https://hls.vanessa-dev.com/laserdisc/index.m3u8 | head` prints
+**Gate:** `curl -sf https://hls-laserdisc.vanessa-dev.com/laserdisc/index.m3u8 | head` prints
 a playlist while the publisher runs.
 
 ## 6. Day-to-day *(laptop unless noted)*
