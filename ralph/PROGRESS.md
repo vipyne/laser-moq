@@ -70,3 +70,14 @@ Append-only. Newest at the bottom. Each iteration adds a dated entry.
 ### 2026-09-12 — domain rename (human-requested, outside the loop)
 - `laserdisc.vanessa-dev.com` → `moq-laserdisc.vanessa-dev.com` (Pages site) and `hls.vanessa-dev.com` → `hls-laserdisc.vanessa-dev.com` (HLS origin), everywhere: `site/CNAME`, `site/index.html` default HLS URL, `tests/test-site.sh`, `hls-origin/env.example`, `README.md`, `docs/deploy-hls-origin.md`, spec, plan, `ralph/HUMAN.md`. Relay URL unchanged.
 - Earlier entries above mention the old names; they were correct at the time. `bash tests/test-site.sh` passes with the new CNAME.
+
+### 2026-09-12 — relay endpoint scrubbed (human-requested, outside the loop)
+- The relay URL/hostname/IP and other infra identifiers no longer appear anywhere in the repo **or its git history** (rewritten with `git filter-repo --replace-text`; every commit hash changed; backup bundle kept outside the repo).
+- Everything now takes the relay from the `MOQ_RELAY_URL` env var: `scripts/publish.sh` + `scripts/watch.sh` + `tests/test-roundtrip.sh` require it (clear error if unset); the site reads `window.MOQ_RELAY_URL` from gitignored `site/config.js` (`site/config.example.js` is the template; the Pages workflow generates the real one from the `MOQ_RELAY_URL` Actions variable); `?relay=` still overrides.
+- Rule added to `ralph/PROMPT.md` + plan Global Constraints: never write the relay's URL/host/IP into any file in this repo.
+- To run anything relay-touching: `export MOQ_RELAY_URL=…` first.
+
+### 2026-09-12 — RTMP publish credentials (human-requested, outside the loop)
+- MediaMTX now requires credentials to publish; viewing stays anonymous. `authInternalUsers` in `hls-origin/mediamtx.yml`: `any` → read/playback only; `laserdisc`/`changeme` → publish. Prod overrides the password via `MTX_AUTHINTERNALUSERS_1_PASS=${RTMP_PUBLISH_PASS}` in `compose.yml` (value from `.env` on the VM, never committed) — verified with a standalone container: old pass rejected, env pass streams.
+- **Gotcha:** MediaMTX takes RTMP credentials as query params, not URL userinfo — `rtmp://host:1935/laserdisc?user=laserdisc&pass=…`; the `rtmp://user:pass@host/…` form fails auth with ffmpeg. All docs/defaults use the query form.
+- `scripts/publish.sh` default RTMP_URL carries the local-dev creds; `tests/test-hls.sh` also asserts an anonymous publish is rejected. Full suite: PASS all 5.

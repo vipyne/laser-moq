@@ -10,7 +10,7 @@ PUB=$!
 # pkill -P first: publish.sh is `ffmpeg | moq`; killing only $PUB orphans both.
 trap 'pkill -TERM -P $PUB 2>/dev/null; kill $PUB 2>/dev/null; wait $PUB 2>/dev/null' EXIT
 sleep 4
-timeout 20 moq --client-connect "${RELAY_URL:-${MOQ_RELAY_URL}}" \
+timeout 20 moq --client-connect "${MOQ_RELAY_URL:?must be set for this test}" \
   --broadcast "$BROADCAST" export ts 2>"$OUT/sub.log" | head -c 400000 >"$OUT/out.ts"
 codecs="$(ffprobe -v error -show_entries stream=codec_name -of csv=p=0 "$OUT/out.ts" | sort -u | tr '\n' ' ')"
 echo "codecs: $codecs"

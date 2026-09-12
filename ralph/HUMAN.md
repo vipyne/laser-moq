@@ -3,10 +3,17 @@
 Ordered. Each item has the exact command(s). The ralph loop never runs these.
 Nothing reaches GitHub until you check the gate in §1 — the loop only commits locally.
 
+The relay endpoint is deliberately nowhere in this repo: `export MOQ_RELAY_URL=…`
+in any shell that runs `scripts/` or `tests/`, and set the Actions variable in §1
+before the Pages site can deploy.
+
 ## 1. GitHub repo + Pages
 - [ ] **Gate: review before anything is pushed.** `git log --oneline` + skim the diffs
       (`git diff <last-commit-you-reviewed>..HEAD`). Only proceed when you're happy.
 - [ ] `gh repo create vipyne/laser-moq --public --source . --push`
+- [ ] `gh variable set MOQ_RELAY_URL --body 'https://<your-relay-host>/anon'` — the Pages
+      workflow writes `site/config.js` from this; the run triggered by the first push
+      fails without it (rerun afterwards: `gh workflow run pages`)
 - [ ] Enable Pages via workflow: `gh api -X POST repos/vipyne/laser-moq/pages -f build_type=workflow`
       (if it says already exists: `gh api -X PUT repos/vipyne/laser-moq/pages -f build_type=workflow`)
 - [ ] Custom domain: `gh api -X PUT repos/vipyne/laser-moq/pages -f cname=moq-laserdisc.vanessa-dev.com`
@@ -34,7 +41,7 @@ AWS_PROFILE=vanessa-dev aws route53 change-resource-record-sets --hosted-zone-id
 
 ## 2. HLS origin VM
 - [ ] Follow `docs/deploy-hls-origin.md` (new VM, DNS `hls-laserdisc.vanessa-dev.com`, ports 80/443/1935).
-- [ ] Gate: `curl -sf https://hls-laserdisc.vanessa-dev.com/laserdisc/index.m3u8 | head -3` while `SOURCE=test RTMP_URL=rtmp://hls-laserdisc.vanessa-dev.com:1935/laserdisc scripts/publish.sh` runs.
+- [ ] Gate: `curl -sf https://hls-laserdisc.vanessa-dev.com/laserdisc/index.m3u8 | head -3` while `SOURCE=test RTMP_URL="rtmp://hls-laserdisc.vanessa-dev.com:1935/laserdisc?user=laserdisc&pass=$RTMP_PUBLISH_PASS" scripts/publish.sh` runs.
 
 ## 3. Hardware
 - Pengo not detected on 2026-09-10 (`scripts/list-devices.sh` shows no match); plug in and rerun the loop so Task 7 (capture probe + defaults) can run.

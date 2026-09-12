@@ -49,7 +49,7 @@ LaserDisc ─RCA─▶ Ocean Matrix ─HDMI─▶ Pengo ─USB─▶ ffmpeg (avf
                        --broadcast laserdisc.hang import ts          RTMP in → LL-HLS out
                                     │ QUIC                             │ HTTPS via Caddy
                                     ▼                                  ▼
-                       <moq-relay-host> (existing)     https://<hls-host>/laserdisc/index.m3u8
+                       MoQ relay (existing)        https://<hls-host>/laserdisc/index.m3u8
                                     │ WebTransport / WSS               │ hls.js (lowLatencyMode)
                                     └──────────────┬───────────────────┘
                                                    ▼
@@ -85,7 +85,7 @@ is reused.
 One bash script; the heart of the demo.
 
 - Inputs (env vars with defaults): `VIDEO_DEV` / `AUDIO_DEV` (avfoundation
-  indices or names), `RELAY_URL` (default `${MOQ_RELAY_URL}`),
+  indices or names), `MOQ_RELAY_URL` (required, no default),
   `BROADCAST` (default `laserdisc.hang`), `SOURCE=test|capture` (default
   `capture`; `test` uses `-f lavfi testsrc2` + `sine` so everything can be
   exercised with no hardware).
@@ -94,7 +94,7 @@ One bash script; the heart of the demo.
   `-c:v h264_videotoolbox` with a short GOP (~1 s), no B-frames, `-realtime 1`,
   ~2–3 Mbps; `-c:a aac -b:a 128k -ar 48000`; `-f mpegts -` on stdout.
 - Output is `-f tee "[f=mpegts]pipe:1|[f=flv:onfail=ignore]$RTMP_URL"`; stdout is
-  piped into `moq --client-connect "$RELAY_URL" --broadcast "$BROADCAST" import ts`.
+  piped into `moq --client-connect "$MOQ_RELAY_URL" --broadcast "$BROADCAST" import ts`.
   `RTMP_URL` defaults to `rtmp://localhost:1935/laserdisc` (local MediaMTX); set
   `HLS=0` to drop the second leg entirely.
 - `-vf drawtext` burns `%{localtime:%H:%M:%S.%3N}`-style wall clock into the

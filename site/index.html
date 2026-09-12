@@ -45,21 +45,26 @@
   MoQ needs WebTransport (Chrome/Edge/Brave); this relay also speaks WebSocket so Safari should still connect.
 </footer>
 
+<script src="./config.js"></script> <!-- sets window.MOQ_RELAY_URL; written by CI, gitignored locally -->
 <script type="module">
   import "https://cdn.jsdelivr.net/npm/@moq/watch@0.5.2/element/+esm";
   import Hls from "https://cdn.jsdelivr.net/npm/hls.js@1.7.1/+esm";
 
   const q = new URLSearchParams(location.search);
-  const RELAY = q.get("relay") ?? "${MOQ_RELAY_URL}";
+  const RELAY = q.get("relay") ?? window.MOQ_RELAY_URL;
   const NAME  = q.get("name")  ?? "laserdisc.hang";
   const HLS_URL = q.get("hls") ?? "https://hls-laserdisc.vanessa-dev.com/laserdisc/index.m3u8";
 
   // --- MoQ ---
   const moq = document.getElementById("moq");
-  moq.setAttribute("url", RELAY);
-  moq.setAttribute("name", NAME);
   const smoq = document.getElementById("status-moq");
-  smoq.textContent = ("WebTransport" in window) ? "WebTransport" : "no WebTransport → WebSocket fallback";
+  if (RELAY) {
+    moq.setAttribute("url", RELAY);
+    moq.setAttribute("name", NAME);
+    smoq.textContent = ("WebTransport" in window) ? "WebTransport" : "no WebTransport → WebSocket fallback";
+  } else {
+    smoq.textContent = "no relay configured — copy site/config.example.js to site/config.js, or pass ?relay=<url>";
+  }
 
   // --- HLS ---
   const video = document.getElementById("hls");

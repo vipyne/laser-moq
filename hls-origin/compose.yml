@@ -7,6 +7,9 @@ services:
     restart: unless-stopped
     ports:
       - "1935:1935"
+    environment:
+      # replaces the local-dev 'changeme' publish password from mediamtx.yml
+      - MTX_AUTHINTERNALUSERS_1_PASS=${RTMP_PUBLISH_PASS:?set RTMP_PUBLISH_PASS in .env}
     volumes:
       - ./mediamtx.yml:/mediamtx.yml:ro
     logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
