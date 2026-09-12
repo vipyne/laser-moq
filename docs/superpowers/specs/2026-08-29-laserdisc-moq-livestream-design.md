@@ -53,7 +53,7 @@ LaserDisc ─RCA─▶ Ocean Matrix ─HDMI─▶ Pengo ─USB─▶ ffmpeg (avf
                                     │ WebTransport / WSS               │ hls.js (lowLatencyMode)
                                     └──────────────┬───────────────────┘
                                                    ▼
-                          https://laserdisc.vanessa-dev.com — one page, two players side by side
+                          https://moq-laserdisc.vanessa-dev.com — one page, two players side by side
                           (GitHub Pages for this repo + Route 53 CNAME)
 ```
 
@@ -136,7 +136,7 @@ A single static HTML file, no build step.
 - A capability check: if `WebTransport` is missing, show "falling back to
   WebSocket" (the relay supports it) — and if the element fails to connect at
   all, show a plain "stream is offline" message instead of a blank canvas.
-- `site/CNAME` containing `laserdisc.vanessa-dev.com` (GitHub Pages custom
+- `site/CNAME` containing `moq-laserdisc.vanessa-dev.com` (GitHub Pages custom
   domain).
 
 ### 3. Hosting — GitHub Pages + Route 53
@@ -147,10 +147,10 @@ All human-run; the loop only prepares files and writes the commands into `ralph/
   (`.github/workflows/pages.yml`, `actions/upload-pages-artifact` with `path: site`)
   because branch-deploy only allows `/` or `/docs`.
 - Route 53 (`AWS_PROFILE=vanessa-dev`, hosted zone `vanessa-dev.com`): CNAME
-  `laserdisc.vanessa-dev.com → vipyne.github.io`, and an A record for the HLS
-  origin host (e.g. `hls.vanessa-dev.com → <new VM IP>`). Then "Enforce HTTPS"
+  `moq-laserdisc.vanessa-dev.com → vipyne.github.io`, and an A record for the HLS
+  origin host (e.g. `hls-laserdisc.vanessa-dev.com → <new VM IP>`). Then "Enforce HTTPS"
   on Pages once the cert is issued.
-- Gate: `curl -sI https://laserdisc.vanessa-dev.com/` → 200 with a valid cert,
+- Gate: `curl -sI https://moq-laserdisc.vanessa-dev.com/` → 200 with a valid cert,
   and the page loads both streams in Chrome.
 
 ### 4. Docs — `README.md` (top level only)

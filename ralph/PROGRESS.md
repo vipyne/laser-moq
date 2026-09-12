@@ -66,3 +66,7 @@ Append-only. Newest at the bottom. Each iteration adds a dated entry.
 ### 2026-09-10 — Task 7 blocked: hardware
 - `scripts/list-devices.sh | grep -i pengo` → no match (card not plugged in). Marked Task 7 `blocked: hardware` in the plan and noted it in `ralph/HUMAN.md` §3. Steps 2–4 (mode probe, capture stream, latency numbers) wait for the card; plug it in and rerun the loop.
 - Completion condition met: Tasks 1–6 fully checked, `bash tests/run.sh` PASS all 5, Task 7 blocked with a HUMAN.md entry. Everything left is in `ralph/HUMAN.md` (push + Pages, HLS VM, hardware, browser checks, latency numbers).
+
+### 2026-09-12 — domain rename (human-requested, outside the loop)
+- `laserdisc.vanessa-dev.com` → `moq-laserdisc.vanessa-dev.com` (Pages site) and `hls.vanessa-dev.com` → `hls-laserdisc.vanessa-dev.com` (HLS origin), everywhere: `site/CNAME`, `site/index.html` default HLS URL, `tests/test-site.sh`, `hls-origin/env.example`, `README.md`, `docs/deploy-hls-origin.md`, spec, plan, `ralph/HUMAN.md`. Relay URL unchanged.
+- Earlier entries above mention the old names; they were correct at the time. `bash tests/test-site.sh` passes with the new CNAME.

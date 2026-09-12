@@ -27,7 +27,7 @@ LaserDisc ─RCA─▶ Ocean Matrix ─HDMI─▶ Pengo ─USB─▶ ffmpeg (avf
                                     │ WebTransport / WSS               │ hls.js (lowLatencyMode)
                                     └──────────────┬───────────────────┘
                                                    ▼
-                          https://laserdisc.vanessa-dev.com — one page, two players side by side
+                          https://moq-laserdisc.vanessa-dev.com — one page, two players side by side
                           (GitHub Pages for this repo + Route 53 CNAME)
 ```
 
@@ -83,9 +83,9 @@ Watch the MoQ leg locally with `scripts/watch.sh`.
    lists (set `VIDEO_DEV`/`AUDIO_DEV` if its name differs).
 3. HLS origin up: prod VM per `docs/deploy-hls-origin.md`, or locally
    `docker compose -f hls-origin/compose.local.yml up -d`.
-4. `SOURCE=capture RTMP_URL=rtmp://hls.vanessa-dev.com:1935/laserdisc scripts/run-forever.sh`
+4. `SOURCE=capture RTMP_URL=rtmp://hls-laserdisc.vanessa-dev.com:1935/laserdisc scripts/run-forever.sh`
    (restart wrapper; logs to `logs/`).
-5. Open https://laserdisc.vanessa-dev.com — both players, clocks under each.
+5. Open https://moq-laserdisc.vanessa-dev.com — both players, clocks under each.
 6. If it dies: Ctrl-C the wrapper and rerun it; viewers auto-reconnect.
 
 ## Measured latency
@@ -131,7 +131,7 @@ Docker too. `test-resolve-device.sh` and `test-site.sh` are offline.
 | `hls-origin/compose.yml` | Prod: mediamtx + caddy (TLS for `$HLS_DOMAIN`). |
 | `hls-origin/Caddyfile` | `HLS_DOMAIN → mediamtx:8888`. |
 | `site/index.html` | Public page: `<moq-watch>` + hls.js side by side, clocks. |
-| `site/CNAME` | `laserdisc.vanessa-dev.com`. |
+| `site/CNAME` | `moq-laserdisc.vanessa-dev.com`. |
 | `.github/workflows/pages.yml` | Publish `site/` to GitHub Pages. |
 | `tests/` | Bash tests (`run.sh` + `test-*.sh` + fixtures). |
 | `docs/deploy-hls-origin.md` | Human runbook for the new HLS VM. |

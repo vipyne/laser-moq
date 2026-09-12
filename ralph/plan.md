@@ -42,7 +42,7 @@
 | `hls-origin/compose.yml` | Prod: mediamtx + caddy (TLS for `$HLS_DOMAIN`). |
 | `hls-origin/Caddyfile` | `HLS_DOMAIN → mediamtx:8888`. |
 | `site/index.html` | Public page: `<moq-watch>` + hls.js side by side, clocks. |
-| `site/CNAME` | `laserdisc.vanessa-dev.com`. |
+| `site/CNAME` | `moq-laserdisc.vanessa-dev.com`. |
 | `.github/workflows/pages.yml` | Publish `site/` to GitHub Pages. |
 | `tests/run.sh`, `tests/test-*.sh`, `tests/fixtures/` | Bash tests. |
 | `docs/deploy-hls-origin.md` | Human runbook for the new HLS VM. |
@@ -405,7 +405,7 @@ git commit -m "feat: LL-HLS leg via local MediaMTX, tee resilience test"
 - Create: `site/index.html`, `site/CNAME`, `tests/test-site.sh`
 
 **Interfaces:**
-- Consumes: relay `${MOQ_RELAY_URL}`, broadcast `laserdisc.hang`, HLS URL (default `https://hls.vanessa-dev.com/laserdisc/index.m3u8`, overridable with `?hls=` and `?relay=`/`?name=` query params).
+- Consumes: relay `${MOQ_RELAY_URL}`, broadcast `laserdisc.hang`, HLS URL (default `https://hls-laserdisc.vanessa-dev.com/laserdisc/index.m3u8`, overridable with `?hls=` and `?relay=`/`?name=` query params).
 
 - [x] **Step 1: Write the failing test** `tests/test-site.sh` (static checks — the browser check is human):
 
@@ -422,7 +422,7 @@ grep -q '<moq-relay-host>/anon' $f                           || { echo "relay ur
 grep -q 'laserdisc.hang' $f                                       || { echo "broadcast name missing"; exit 1; }
 grep -q 'lowLatencyMode' $f                                       || { echo "hls.js lowLatencyMode missing"; exit 1; }
 grep -q 'id="clock-moq"' $f && grep -q 'id="clock-hls"' $f        || { echo "clocks missing"; exit 1; }
-[[ "$(cat site/CNAME)" == "laserdisc.vanessa-dev.com" ]]          || { echo "CNAME wrong"; exit 1; }
+[[ "$(cat site/CNAME)" == "moq-laserdisc.vanessa-dev.com" ]]          || { echo "CNAME wrong"; exit 1; }
 exit 0
 ```
 
@@ -430,7 +430,7 @@ exit 0
 
 Run: `bash tests/test-site.sh` → `missing site/index.html`.
 
-- [x] **Step 3: Write `site/CNAME`** containing exactly `laserdisc.vanessa-dev.com` (no trailing newline required).
+- [x] **Step 3: Write `site/CNAME`** containing exactly `moq-laserdisc.vanessa-dev.com` (no trailing newline required).
 
 - [x] **Step 4: Write `site/index.html`**
 
@@ -489,7 +489,7 @@ Run: `bash tests/test-site.sh` → `missing site/index.html`.
   const q = new URLSearchParams(location.search);
   const RELAY = q.get("relay") ?? "${MOQ_RELAY_URL}";
   const NAME  = q.get("name")  ?? "laserdisc.hang";
-  const HLS_URL = q.get("hls") ?? "https://hls.vanessa-dev.com/laserdisc/index.m3u8";
+  const HLS_URL = q.get("hls") ?? "https://hls-laserdisc.vanessa-dev.com/laserdisc/index.m3u8";
 
   // --- MoQ ---
   const moq = document.getElementById("moq");
@@ -681,7 +681,7 @@ volumes:
 
 `hls-origin/env.example`:
 ```
-HLS_DOMAIN=hls.vanessa-dev.com
+HLS_DOMAIN=hls-laserdisc.vanessa-dev.com
 ```
 
 Validate locally: `cd hls-origin && HLS_DOMAIN=example.test docker compose -f compose.yml config >/dev/null && echo COMPOSE_OK`.
@@ -716,10 +716,10 @@ jobs:
 - [x] **Step 3: `docs/deploy-hls-origin.md`** — human runbook for a **new** VM. Write it in the same voice as the existing OCI runbooks (sections labelled *(laptop)* / *(on the box)*, a **Gate:** line after each section), provider-agnostic in substance. Required content, in order:
 
 1. **Requirements:** Ubuntu 24.04, public IPv4, inbound 22/80/443/1935 TCP. On OCI: a *new* `VM.Standard.A1.Flex` 1 OCPU/6 GB in the same compartment (`<compartment-ocid>`), **new** VCN/subnet named `hls-vcn`/`hls-subnet` (do not reuse `relay-subnet`), reserved public IP `hls-ip`. Include the `oci` commands modelled on `<internal deploy-oci runbook>` §1–§2 but with the new names and this security list: `{"22/tcp": "YOUR_IP/32", "80/tcp": "0.0.0.0/0", "443/tcp": "0.0.0.0/0", "1935/tcp": "0.0.0.0/0"}`. Note the Always-Free A1 budget (4 OCPU total; three 1-OCPU boxes already exist → exactly one more fits).
-2. **DNS (human):** Route 53 A record `hls.vanessa-dev.com → PUBLIC_IP` (`AWS_PROFILE=vanessa-dev`), with the `aws route53 change-resource-record-sets` JSON. Gate: `dig +short hls.vanessa-dev.com @1.1.1.1`.
+2. **DNS (human):** Route 53 A record `hls-laserdisc.vanessa-dev.com → PUBLIC_IP` (`AWS_PROFILE=vanessa-dev`), with the `aws route53 change-resource-record-sets` JSON. Gate: `dig +short hls-laserdisc.vanessa-dev.com @1.1.1.1`.
 3. **Box prep:** `iptables -I INPUT -p tcp --dport {80,443,1935} -j ACCEPT && netfilter-persistent save`; `apt-get install -y docker.io docker-compose-v2`; `usermod -aG docker ubuntu`.
-4. **Ship + run:** `rsync -a hls-origin/ ubuntu@PUBLIC_IP:~/hls-origin/`; on the box `cp env.example .env`, `docker compose up -d`; Gate: `curl -sI https://hls.vanessa-dev.com/ → 404 ssl ok` (MediaMTX 404s the root; the cert is what matters).
-5. **Publish from the laptop:** `RTMP_URL=rtmp://hls.vanessa-dev.com:1935/laserdisc SOURCE=test scripts/publish.sh`; Gate: `curl -sf https://hls.vanessa-dev.com/laserdisc/index.m3u8 | head`.
+4. **Ship + run:** `rsync -a hls-origin/ ubuntu@PUBLIC_IP:~/hls-origin/`; on the box `cp env.example .env`, `docker compose up -d`; Gate: `curl -sI https://hls-laserdisc.vanessa-dev.com/ → 404 ssl ok` (MediaMTX 404s the root; the cert is what matters).
+5. **Publish from the laptop:** `RTMP_URL=rtmp://hls-laserdisc.vanessa-dev.com:1935/laserdisc SOURCE=test scripts/publish.sh`; Gate: `curl -sf https://hls-laserdisc.vanessa-dev.com/laserdisc/index.m3u8 | head`.
 6. **Day-to-day:** logs, restart, park/terminate (OCI `instance action STOP/START`).
 
 - [x] **Step 4: `ralph/HUMAN.md`** — rewrite as the single ordered checklist the human works through (keep any browser-check / hardware entries earlier tasks appended, folding them into the right place):
@@ -736,14 +736,14 @@ Nothing reaches GitHub until you check the gate in §1 — the loop only commits
 - [ ] `gh repo create vipyne/laser-moq --public --source . --push`
 - [ ] Enable Pages via workflow: `gh api -X POST repos/vipyne/laser-moq/pages -f build_type=workflow`
       (if it says already exists: `gh api -X PUT repos/vipyne/laser-moq/pages -f build_type=workflow`)
-- [ ] Custom domain: `gh api -X PUT repos/vipyne/laser-moq/pages -f cname=laserdisc.vanessa-dev.com`
-- [ ] Route 53 CNAME `laserdisc.vanessa-dev.com → vipyne.github.io` (AWS_PROFILE=vanessa-dev; JSON below)
+- [ ] Custom domain: `gh api -X PUT repos/vipyne/laser-moq/pages -f cname=moq-laserdisc.vanessa-dev.com`
+- [ ] Route 53 CNAME `moq-laserdisc.vanessa-dev.com → vipyne.github.io` (AWS_PROFILE=vanessa-dev; JSON below)
 - [ ] After the cert shows in Settings → Pages: `gh api -X PUT repos/vipyne/laser-moq/pages -F https_enforced=true`
-- [ ] Gate: `curl -sI https://laserdisc.vanessa-dev.com/ | head -1` → 200
+- [ ] Gate: `curl -sI https://moq-laserdisc.vanessa-dev.com/ | head -1` → 200
 
 ## 2. HLS origin VM
-- [ ] Follow `docs/deploy-hls-origin.md` (new VM, DNS `hls.vanessa-dev.com`, ports 80/443/1935).
-- [ ] Gate: `curl -sf https://hls.vanessa-dev.com/laserdisc/index.m3u8 | head -3` while `SOURCE=test RTMP_URL=rtmp://hls.vanessa-dev.com:1935/laserdisc scripts/publish.sh` runs.
+- [ ] Follow `docs/deploy-hls-origin.md` (new VM, DNS `hls-laserdisc.vanessa-dev.com`, ports 80/443/1935).
+- [ ] Gate: `curl -sf https://hls-laserdisc.vanessa-dev.com/laserdisc/index.m3u8 | head -3` while `SOURCE=test RTMP_URL=rtmp://hls-laserdisc.vanessa-dev.com:1935/laserdisc scripts/publish.sh` runs.
 
 ## 3. Hardware
 - [ ] Plug LaserDisc → Ocean Matrix → Pengo → Mac. `scripts/list-devices.sh` must show the Pengo in BOTH video and audio lists. Note the exact name and set `VIDEO_DEV`/`AUDIO_DEV` if it isn't "Pengo".
@@ -753,7 +753,7 @@ Nothing reaches GitHub until you check the gate in §1 — the loop only commits
 (entries appended by the loop go here)
 
 ## 5. Public end-to-end
-- [ ] Phone on cellular: https://laserdisc.vanessa-dev.com shows both streams.
+- [ ] Phone on cellular: https://moq-laserdisc.vanessa-dev.com shows both streams.
 - [ ] Read MoQ latency and HLS latency off the clocks; write them into README "Measured latency".
 ```
 Include the Route 53 change-batch JSON for the CNAME (copy the shape from `<internal deploy-oci runbook>` §2, `"Type": "CNAME"`, `"Value": "vipyne.github.io"`).

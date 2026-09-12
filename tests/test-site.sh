@@ -10,5 +10,5 @@ grep -q '<moq-relay-host>/anon' $f                           || { echo "relay ur
 grep -q 'laserdisc.hang' $f                                       || { echo "broadcast name missing"; exit 1; }
 grep -q 'lowLatencyMode' $f                                       || { echo "hls.js lowLatencyMode missing"; exit 1; }
 grep -q 'id="clock-moq"' $f && grep -q 'id="clock-hls"' $f        || { echo "clocks missing"; exit 1; }
-[[ "$(cat site/CNAME)" == "laserdisc.vanessa-dev.com" ]]          || { echo "CNAME wrong"; exit 1; }
+[[ "$(cat site/CNAME)" == "moq-laserdisc.vanessa-dev.com" ]]          || { echo "CNAME wrong"; exit 1; }
 exit 0

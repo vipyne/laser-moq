@@ -52,7 +52,7 @@
   const q = new URLSearchParams(location.search);
   const RELAY = q.get("relay") ?? "${MOQ_RELAY_URL}";
   const NAME  = q.get("name")  ?? "laserdisc.hang";
-  const HLS_URL = q.get("hls") ?? "https://hls.vanessa-dev.com/laserdisc/index.m3u8";
+  const HLS_URL = q.get("hls") ?? "https://hls-laserdisc.vanessa-dev.com/laserdisc/index.m3u8";
 
   // --- MoQ ---
   const moq = document.getElementById("moq");
