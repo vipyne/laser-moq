@@ -70,3 +70,35 @@ Append-only. Newest at the bottom. Each iteration adds a dated entry.
 ### 2026-09-12 — domain rename (human-requested, outside the loop)
 - `laserdisc.vanessa-dev.com` → `moq-laserdisc.vanessa-dev.com` (Pages site) and `hls.vanessa-dev.com` → `hls-laserdisc.vanessa-dev.com` (HLS origin), everywhere: `site/CNAME`, `site/index.html` default HLS URL, `tests/test-site.sh`, `hls-origin/env.example`, `README.md`, `docs/deploy-hls-origin.md`, spec, plan, `ralph/HUMAN.md`. Relay URL unchanged.
 - Earlier entries above mention the old names; they were correct at the time. `bash tests/test-site.sh` passes with the new CNAME.
+
+### 2026-09-12 — relay endpoint scrubbed (human-requested, outside the loop)
+- The relay URL/hostname/IP and other infra identifiers no longer appear anywhere in the repo **or its git history** (rewritten with `git filter-repo --replace-text`; every commit hash changed; backup bundle kept outside the repo).
+- Everything now takes the relay from the `MOQ_RELAY_URL` env var: `scripts/publish.sh` + `scripts/watch.sh` + `tests/test-roundtrip.sh` require it (clear error if unset); the site reads `window.MOQ_RELAY_URL` from gitignored `site/config.js` (`site/config.example.js` is the template; the Pages workflow generates the real one from the `MOQ_RELAY_URL` Actions variable); `?relay=` still overrides.
+- Rule added to `ralph/PROMPT.md` + plan Global Constraints: never write the relay's URL/host/IP into any file in this repo.
+- To run anything relay-touching: `export MOQ_RELAY_URL=…` first.
+
+### 2026-09-12 — RTMP publish credentials (human-requested, outside the loop)
+- MediaMTX now requires credentials to publish; viewing stays anonymous. `authInternalUsers` in `hls-origin/mediamtx.yml`: `any` → read/playback only; `laserdisc`/`changeme` → publish. Prod overrides the password via `MTX_AUTHINTERNALUSERS_1_PASS=${RTMP_PUBLISH_PASS}` in `compose.yml` (value from `.env` on the VM, never committed) — verified with a standalone container: old pass rejected, env pass streams.
+- **Gotcha:** MediaMTX takes RTMP credentials as query params, not URL userinfo — `rtmp://host:1935/laserdisc?user=laserdisc&pass=…`; the `rtmp://user:pass@host/…` form fails auth with ffmpeg. All docs/defaults use the query form.
+- `scripts/publish.sh` default RTMP_URL carries the local-dev creds; `tests/test-hls.sh` also asserts an anonymous publish is rejected. Full suite: PASS all 5.
+
+### 2026-09-12 — MoQ auth specced + verified (human-requested, outside the loop)
+- Verified against sources: relay 0.13.5 (`[auth] key = "<jwk>"` + `public` stay independent — adding a key does NOT affect anonymous `anon/` access) and moq-token wire format is identical between the relay's verifier (moq-token 0.6.x) and moq-cli 0.11.0's signer (0.7.3): claims `root`/`put`/`get`/`exp`/`iat`. Relay parses the token from the `?jwt=` query param on the connect URL.
+- Dry-ran locally with moq 0.11.0: `moq token generate --out root.jwk` (HS256), `moq token sign --key … --root laserdisc [--publish ""] [--subscribe ""] --expires <unix>`, `moq token verify` round-trips.
+- Design: keep `public = "anon"` (pipecat demo untouched); laserdisc moves to the token-gated `laserdisc/` prefix. Publisher gets a pub+sub token (secret, in `MOQ_RELAY_URL` env); page gets a subscribe-only token (public by design, in the Actions variable). Zero repo code changes — the MOQ_RELAY_URL plumbing already carries it. Full runbook: `ralph/HUMAN.md` §6. `.gitignore` now excludes `*.jwk`.
+- `@moq/watch@0.5.2` appears to pass the url attr's query through (`new URL(...)`, no stripping) — confirmed in bundled source, final confirmation is the §6 browser gate.
+
+### 2026-09-13 — Safari WebSocket fallback root-caused (human §4)
+- The relay's `wss://` fallback never worked: TCP 443 is the plain `[web.http]` listener (verified: `http://relay.…:443/anon` returns the landing page in cleartext; TLS handshake → "wrong version number"). Chrome was fine because WebTransport is QUIC/UDP 443 with its own certs. Spec's "WebSocket fallback already enabled" was wrong in practice.
+- Fix (relay box): swap to `[web.https]` with `listen`/`cert`/`key` (field names confirmed in moq-relay 0.13.5 `src/web.rs`; same LE cert files as QUIC). WS polyfill (`web-ws`) is on by default. Runbook: `ralph/HUMAN.md` §4.
+
+### 2026-09-13 — Task 7 steps 1–3 done by hand; capture defaults folded in
+- Card detected as **"HDMI to U3 capture"** (the Pengo's UVC name); only mode: NTSC **720x480@60** (`SIZE=720x480 FPS=60` verified streaming; `FPS=60.000240` also accepted). `uyvy422` pixel format fine as-is.
+- `publish.sh`: capture now defaults to 720x480@60 and device "HDMI to U3 capture" (test source keeps 1280x720@30); `preview.sh` (new: local ffplay eyeball of the card, `FRAME=x.png` for a still) same device default. README env table updated.
+- End-to-end seen by human: LaserDisc playing via MoQ + HLS in Safari from the localhost page.
+- Task 7 step 4 (Measured latency) deliberately open — the human wants to revamp that section first. Safari support pinned/deferred (relay `[web.https]` runbook remains in HUMAN.md §4).
+
+### 2026-09-13 — timecode strip on the viewer page (human-requested)
+- New panel above the players live-crops the burned-in clock out of both streams and stacks them (MoQ over HLS, magnified) so the timecode delta is readable at a glance. Crop rect (10,10,360,70) is resolution-independent because overlay.filter draws at absolute x=20,y=20 fontsize=48.
+- Sources: `#moq canvas` and the hls `<video>`, copied via drawImage in the existing rAF tick; rows paint black when a stream isn't flowing. No getImageData/toDataURL (avoids tainted-canvas errors with cross-origin native HLS).
+- `tests/test-site.sh` now requires `tc-moq`/`tc-hls` (written first, seen failing, then passing). Suite 5/5.

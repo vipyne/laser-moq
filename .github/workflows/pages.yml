@@ -15,6 +15,11 @@ jobs:
     environment: { name: github-pages, url: "${{ steps.deployment.outputs.page_url }}" }
     steps:
       - uses: actions/checkout@v4
+      - name: write site/config.js from the MOQ_RELAY_URL repo variable
+        env: { MOQ_RELAY_URL: "${{ vars.MOQ_RELAY_URL }}" }
+        run: |
+          test -n "$MOQ_RELAY_URL" || { echo "Actions variable MOQ_RELAY_URL is not set: gh variable set MOQ_RELAY_URL --body 'https://…/anon'" >&2; exit 1; }
+          printf 'window.MOQ_RELAY_URL = "%s";\n' "$MOQ_RELAY_URL" > site/config.js
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with: { path: site }

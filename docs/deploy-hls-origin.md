@@ -11,13 +11,12 @@ TCP works; the OCI commands below are the concrete path, modelled on
 
 - Ubuntu 24.04, public IPv4, inbound **22, 80, 443, 1935 TCP**.
 - On OCI: a **new** `VM.Standard.A1.Flex` 1 OCPU / 6 GB. Always-Free A1 budget
-  is 4 OCPU total; three 1-OCPU boxes already exist (relay and two other boxes,
-  bench) → **exactly one more fits**.
+  is 4 OCPU total; three 1-OCPU boxes already exist → **exactly one more fits**.
 - New network, do not reuse `relay-subnet`: VCN `hls-vcn`, subnet `hls-subnet`,
   reserved public IP `hls-ip`.
 
 ```bash
-export C='<compartment-ocid>'
+export C='<compartment-ocid>'   # paste your compartment OCID (kept out of the repo)
 oci iam availability-domain list -c $C --query 'data[].name'
 export AD='<one name from the list>'
 
@@ -136,7 +135,7 @@ rsync -a hls-origin/ ubuntu@PUBLIC_IP:~/hls-origin/
 
 ```bash
 cd ~/hls-origin
-cp env.example .env        # HLS_DOMAIN=hls-laserdisc.vanessa-dev.com
+cp env.example .env        # set HLS_DOMAIN and a real RTMP_PUBLISH_PASS (openssl rand -hex 16)
 docker compose up -d
 ```
 
@@ -146,10 +145,10 @@ certificate (MediaMTX 404s the root; the cert is what matters).
 ## 5. Publish from the laptop *(laptop)*
 
 ```bash
-RTMP_URL=rtmp://hls-laserdisc.vanessa-dev.com:1935/laserdisc SOURCE=test scripts/publish.sh
+RTMP_URL="rtmp://hls-laserdisc.vanessa-dev.com:1935/laserdisc?user=laserdisc&pass=$RTMP_PUBLISH_PASS" SOURCE=test scripts/publish.sh
 ```
 
-**Gate:** `curl -sf https://hls-laserdisc.vanessa-dev.com/laserdisc/index.m3u8 | head` prints
+**Gate:** `J=$(mktemp); curl -sfL -c "$J" -b "$J" https://hls-laserdisc.vanessa-dev.com/laserdisc/index.m3u8 | head` prints
 a playlist while the publisher runs.
 
 ## 6. Day-to-day *(laptop unless noted)*

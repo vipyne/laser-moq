@@ -3,3 +3,5 @@
 .env
 .claude/ralph-loop.local.md
 logs/
+site/config.js
+*.jwk

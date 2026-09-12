@@ -4,7 +4,7 @@
 
 **Goal:** Livestream a LaserDisc's analog signal from a Mac to a public URL over Media over QUIC, with an identical LL-HLS stream beside it so viewers can see which protocol has lower latency.
 
-**Architecture:** One ffmpeg process (avfoundation → h264_videotoolbox + aac, wall-clock burned in) tees the same stream to (a) `moq-cli import ts` → the existing relay `<moq-relay-host>` and (b) RTMP → MediaMTX → LL-HLS. A single static page (`site/index.html`, GitHub Pages) shows both players with a browser clock under each.
+**Architecture:** One ffmpeg process (avfoundation → h264_videotoolbox + aac, wall-clock burned in) tees the same stream to (a) `moq-cli import ts` → the existing relay (endpoint from `MOQ_RELAY_URL`) and (b) RTMP → MediaMTX → LL-HLS. A single static page (`site/index.html`, GitHub Pages) shows both players with a browser clock under each.
 
 **Tech Stack:** bash, ffmpeg 7.1 (avfoundation, tee, drawtext, h264_videotoolbox), `moq-cli` (crates.io), `@moq/watch` 0.5.2 web component, `hls.js` 1.7.1, MediaMTX 1.20.1 (Docker), Caddy (prod TLS), GitHub Pages workflow.
 
@@ -14,7 +14,7 @@
 
 - **Laptop-only.** NEVER run `aws`, `oci`, `ssh`, `scp`, `rsync` to a remote, `gh repo create`, `gh api`, `gh pages`, or anything that changes infrastructure. Write those commands into `ralph/HUMAN.md` instead.
 - **Never push to GitHub.** Commits stay local; `git push`, `git remote add`, and all `gh` commands are the human's job (human gate — the deny list blocks them anyway). Anything that needs to reach GitHub goes into `ralph/HUMAN.md` §1 as an exact command for the human to review and run.
-- **Relay is read/publish-only.** Relay URL is exactly `${MOQ_RELAY_URL}`. Publish only to broadcast names matching `laserdisc*.hang`. Never change the relay's config, version, or box.
+- **Relay is read/publish-only.** The relay endpoint comes only from the `MOQ_RELAY_URL` env var — never hardcode its URL, hostname, or IP in the repo. Publish only to broadcast names matching `laserdisc*.hang`. Never change the relay's config, version, or box.
 - **Pinned versions:** `@moq/watch@0.5.2`, `hls.js@1.7.1`, `bluenviron/mediamtx:1.20.1`. `moq-cli`: try latest (0.9.14 on 2026-08-29); if Task 1's round-trip fails, `cargo install moq-cli --version 0.8.4 --locked` (same release day as the relay's `moq-relay 0.13.5`).
 - **One README, top level only.** Never create `README.md` in a subdirectory (use `NOTES.md`, `deploy-*.md`, etc.).
 - **ffmpeg drawtext goes in a filter script file** (`scripts/overlay.filter`, used with `-filter_script:v`). Inline `-vf` with `%{localtime…}` breaks on shell escaping — verified.
@@ -58,7 +58,7 @@
 - Create: `scripts/publish.sh`, `scripts/overlay.filter`, `scripts/watch.sh`, `tests/run.sh`, `tests/test-roundtrip.sh`, `ralph/PROGRESS.md`
 
 **Interfaces:**
-- Produces: `scripts/publish.sh` honouring env vars `SOURCE` (`test`|`capture`, default `capture`), `RELAY_URL`, `BROADCAST` (default `laserdisc.hang`), `HLS` (`1`|`0`, default `1`), `RTMP_URL` (default `rtmp://localhost:1935/laserdisc`), `VIDEO_DEV`, `AUDIO_DEV`, `SIZE` (default `1280x720`), `FPS` (default `30`). Exits 2 with a usage message on `-h`/`--help` or bad `SOURCE`.
+- Produces: `scripts/publish.sh` honouring env vars `SOURCE` (`test`|`capture`, default `capture`), `MOQ_RELAY_URL` (required, no default), `BROADCAST` (default `laserdisc.hang`), `HLS` (`1`|`0`, default `1`), `RTMP_URL` (default `rtmp://localhost:1935/laserdisc`), `VIDEO_DEV`, `AUDIO_DEV`, `SIZE` (default `1280x720`), `FPS` (default `30`). Exits 2 with a usage message on `-h`/`--help` or bad `SOURCE`.
 
 - [x] **Step 1: Install moq-cli and record the version**
 
@@ -122,14 +122,14 @@ drawtext=text='%{localtime\:%H\\\:%M\\\:%S.%3N}':fontsize=48:fontcolor=white:box
 ```bash
 #!/usr/bin/env bash
 # Encode once, tee to MoQ (relay) and RTMP (MediaMTX → LL-HLS).
-#   SOURCE=test|capture  RELAY_URL  BROADCAST  HLS=1|0  RTMP_URL
+#   SOURCE=test|capture  MOQ_RELAY_URL (required)  BROADCAST  HLS=1|0  RTMP_URL
 #   VIDEO_DEV/AUDIO_DEV  (capture: avfoundation index or name substring)
 #   SIZE=1280x720 FPS=30
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
 SOURCE="${SOURCE:-capture}"
-RELAY_URL="${RELAY_URL:-${MOQ_RELAY_URL}}"
+MOQ_RELAY_URL="${MOQ_RELAY_URL:?not set (e.g. https://your-relay.example.com/anon)}"
 BROADCAST="${BROADCAST:-laserdisc.hang}"
 HLS="${HLS:-1}"
 RTMP_URL="${RTMP_URL:-rtmp://localhost:1935/laserdisc}"
@@ -156,13 +156,13 @@ esac
 if [[ "$SOURCE" == "test" ]]; then MAP=(-map 0:v -map 1:a); else MAP=(-map 0:v -map 0:a); fi
 if [[ "$HLS" == "1" ]]; then TEE="[f=mpegts]pipe:1|[f=flv:onfail=ignore]${RTMP_URL}"; else TEE="[f=mpegts]pipe:1"; fi
 
-echo "publish: source=$SOURCE relay=$RELAY_URL broadcast=$BROADCAST hls=$HLS rtmp=$RTMP_URL" >&2
+echo "publish: source=$SOURCE relay=$MOQ_RELAY_URL broadcast=$BROADCAST hls=$HLS rtmp=$RTMP_URL" >&2
 exec ffmpeg -hide_banner -loglevel warning -nostats "${INPUT[@]}" \
   -filter_script:v "$HERE/overlay.filter" \
   -c:v h264_videotoolbox -realtime 1 -b:v 2500k -g 30 -bf 0 -profile:v main -pix_fmt yuv420p \
   -c:a aac -b:a 128k -ar 48000 -ac 2 \
   "${MAP[@]}" -f tee "$TEE" \
-  | moq --client-connect "$RELAY_URL" --broadcast "$BROADCAST" import ts
+  | moq --client-connect "$MOQ_RELAY_URL" --broadcast "$BROADCAST" import ts
 ```
 
 Note: the `capture` branch calls `scripts/resolve-device.sh`, written in Task 2. Until then `SOURCE=capture` fails with "No such file" — acceptable; Task 1 only tests `SOURCE=test`.
@@ -173,9 +173,9 @@ Note: the `capture` branch calls `scripts/resolve-device.sh`, written in Task 2.
 #!/usr/bin/env bash
 # Local subscriber for eyeballing the MoQ leg.
 set -euo pipefail
-RELAY_URL="${RELAY_URL:-${MOQ_RELAY_URL}}"
+MOQ_RELAY_URL="${MOQ_RELAY_URL:?not set (e.g. https://your-relay.example.com/anon)}"
 BROADCAST="${BROADCAST:-laserdisc.hang}"
-exec moq --client-connect "$RELAY_URL" --broadcast "$BROADCAST" export fmp4 | ffplay -hide_banner -loglevel warning -fflags nobuffer -flags low_delay -
+exec moq --client-connect "$MOQ_RELAY_URL" --broadcast "$BROADCAST" export fmp4 | ffplay -hide_banner -loglevel warning -fflags nobuffer -flags low_delay -
 ```
 
 - [x] **Step 7: Run the test to verify it passes**
@@ -405,7 +405,7 @@ git commit -m "feat: LL-HLS leg via local MediaMTX, tee resilience test"
 - Create: `site/index.html`, `site/CNAME`, `tests/test-site.sh`
 
 **Interfaces:**
-- Consumes: relay `${MOQ_RELAY_URL}`, broadcast `laserdisc.hang`, HLS URL (default `https://hls-laserdisc.vanessa-dev.com/laserdisc/index.m3u8`, overridable with `?hls=` and `?relay=`/`?name=` query params).
+- Consumes: relay from `MOQ_RELAY_URL` (the page reads `window.MOQ_RELAY_URL` via `site/config.js`), broadcast `laserdisc.hang`, HLS URL (default `https://hls-laserdisc.vanessa-dev.com/laserdisc/index.m3u8`, overridable with `?hls=` and `?relay=`/`?name=` query params).
 
 - [x] **Step 1: Write the failing test** `tests/test-site.sh` (static checks — the browser check is human):
 
@@ -418,7 +418,7 @@ f=site/index.html
 grep -q 'cdn.jsdelivr.net/npm/@moq/watch@0.5.2/element/+esm' $f || { echo "moq/watch not pinned"; exit 1; }
 grep -q 'cdn.jsdelivr.net/npm/hls.js@1.7.1' $f                 || { echo "hls.js not pinned"; exit 1; }
 grep -q '<moq-watch' $f                                          || { echo "no <moq-watch>"; exit 1; }
-grep -q '<moq-relay-host>/anon' $f                           || { echo "relay url missing"; exit 1; }
+grep -q 'window.MOQ_RELAY_URL' $f                                 || { echo "relay config hook missing"; exit 1; }
 grep -q 'laserdisc.hang' $f                                       || { echo "broadcast name missing"; exit 1; }
 grep -q 'lowLatencyMode' $f                                       || { echo "hls.js lowLatencyMode missing"; exit 1; }
 grep -q 'id="clock-moq"' $f && grep -q 'id="clock-hls"' $f        || { echo "clocks missing"; exit 1; }
@@ -487,7 +487,7 @@ Run: `bash tests/test-site.sh` → `missing site/index.html`.
   import Hls from "https://cdn.jsdelivr.net/npm/hls.js@1.7.1/+esm";
 
   const q = new URLSearchParams(location.search);
-  const RELAY = q.get("relay") ?? "${MOQ_RELAY_URL}";
+  const RELAY = q.get("relay") ?? window.MOQ_RELAY_URL;
   const NAME  = q.get("name")  ?? "laserdisc.hang";
   const HLS_URL = q.get("hls") ?? "https://hls-laserdisc.vanessa-dev.com/laserdisc/index.m3u8";
 
@@ -731,23 +731,23 @@ Ordered. Each item has the exact command(s). The ralph loop never runs these.
 Nothing reaches GitHub until you check the gate in §1 — the loop only commits locally.
 
 ## 1. GitHub repo + Pages
-- [ ] **Gate: review before anything is pushed.** `git log --oneline` + skim the diffs
+- [x] **Gate: review before anything is pushed.** `git log --oneline` + skim the diffs
       (`git diff <last-commit-you-reviewed>..HEAD`). Only proceed when you're happy.
-- [ ] `gh repo create vipyne/laser-moq --public --source . --push`
-- [ ] Enable Pages via workflow: `gh api -X POST repos/vipyne/laser-moq/pages -f build_type=workflow`
+- [x] `gh repo create vipyne/laser-moq --public --source . --push`
+- [x] Enable Pages via workflow: `gh api -X POST repos/vipyne/laser-moq/pages -f build_type=workflow`
       (if it says already exists: `gh api -X PUT repos/vipyne/laser-moq/pages -f build_type=workflow`)
-- [ ] Custom domain: `gh api -X PUT repos/vipyne/laser-moq/pages -f cname=moq-laserdisc.vanessa-dev.com`
-- [ ] Route 53 CNAME `moq-laserdisc.vanessa-dev.com → vipyne.github.io` (AWS_PROFILE=vanessa-dev; JSON below)
-- [ ] After the cert shows in Settings → Pages: `gh api -X PUT repos/vipyne/laser-moq/pages -F https_enforced=true`
-- [ ] Gate: `curl -sI https://moq-laserdisc.vanessa-dev.com/ | head -1` → 200
+- [x] Custom domain: `gh api -X PUT repos/vipyne/laser-moq/pages -f cname=moq-laserdisc.vanessa-dev.com`
+- [x] Route 53 CNAME `moq-laserdisc.vanessa-dev.com → vipyne.github.io` (AWS_PROFILE=vanessa-dev; JSON below)
+- [x] After the cert shows in Settings → Pages: `gh api -X PUT repos/vipyne/laser-moq/pages -F https_enforced=true`
+- [x] Gate: `curl -sI https://moq-laserdisc.vanessa-dev.com/ | head -1` → 200
 
 ## 2. HLS origin VM
-- [ ] Follow `docs/deploy-hls-origin.md` (new VM, DNS `hls-laserdisc.vanessa-dev.com`, ports 80/443/1935).
-- [ ] Gate: `curl -sf https://hls-laserdisc.vanessa-dev.com/laserdisc/index.m3u8 | head -3` while `SOURCE=test RTMP_URL=rtmp://hls-laserdisc.vanessa-dev.com:1935/laserdisc scripts/publish.sh` runs.
+- [x] Follow `docs/deploy-hls-origin.md` (new VM, DNS `hls-laserdisc.vanessa-dev.com`, ports 80/443/1935).
+- [x] Gate: `curl -sf https://hls-laserdisc.vanessa-dev.com/laserdisc/index.m3u8 | head -3` while `SOURCE=test RTMP_URL=rtmp://hls-laserdisc.vanessa-dev.com:1935/laserdisc scripts/publish.sh` runs.
 
 ## 3. Hardware
-- [ ] Plug LaserDisc → Ocean Matrix → Pengo → Mac. `scripts/list-devices.sh` must show the Pengo in BOTH video and audio lists. Note the exact name and set `VIDEO_DEV`/`AUDIO_DEV` if it isn't "Pengo".
-- [ ] `SOURCE=capture scripts/watch.sh` in one terminal, `SOURCE=capture HLS=0 scripts/publish.sh` in another → picture.
+- [x] Plug LaserDisc → Ocean Matrix → Pengo → Mac. `scripts/list-devices.sh` must show the Pengo in BOTH video and audio lists. Note the exact name and set `VIDEO_DEV`/`AUDIO_DEV` if it isn't "Pengo".
+- [x] `SOURCE=capture scripts/watch.sh` in one terminal, `SOURCE=capture HLS=0 scripts/publish.sh` in another → picture.
 
 ## 4. Browser checks
 (entries appended by the loop go here)
@@ -770,22 +770,22 @@ git commit -m "docs: HLS origin deploy runbook, Pages workflow, HUMAN.md, README
 
 ---
 
-### Task 7: Real capture (M3) — hardware-gated — `blocked: hardware` (Pengo not detected 2026-09-10; see ralph/HUMAN.md §3)
+### Task 7: Real capture (M3) — hardware-gated — steps 1–3 done by hand 2026-09-13 (card = "HDMI to U3 capture", NTSC 720x480@60; defaults folded into publish.sh); step 4 waits on the Measured-latency revamp
 
 **Files:**
 - Modify: `scripts/publish.sh` (only if the Pengo needs different `-pixel_format`/`-video_size`), `README.md` (Measured latency), `ralph/PROGRESS.md`
 
-- [ ] **Step 1: Detect hardware**
+- [x] **Step 1: Detect hardware** — done by hand 2026-09-13; card shows as "HDMI to U3 capture"
 
 Run: `scripts/list-devices.sh | grep -i "${VIDEO_DEV:-pengo}"`
 If nothing matches: append to `ralph/HUMAN.md` §3 "Pengo not detected on <date>; plug in and rerun the loop", write `blocked: hardware` next to this task's heading in this file, and **stop this task** (the loop moves on / finishes).
 
-- [ ] **Step 2: Probe the card's real modes**
+- [x] **Step 2: Probe the card's real modes** — NTSC 720x480@60 only; now the capture defaults
 
 Run: `ffmpeg -hide_banner -f avfoundation -framerate 30 -video_size 1280x720 -i "$(scripts/resolve-device.sh Pengo Pengo)" -t 1 -f null - 2>&1 | tail -20`
 If avfoundation rejects the size/pixel format, it prints the supported list — set `SIZE`/`-pixel_format` accordingly in `publish.sh` defaults and note it in `ralph/PROGRESS.md`.
 
-- [ ] **Step 3: Stream it**
+- [x] **Step 3: Stream it** — verified 2026-09-13 (publish + watch, and end-to-end in Safari via the localhost page)
 
 Run: `SOURCE=capture HLS=1 scripts/publish.sh` (with local MediaMTX up) and `scripts/watch.sh` in another process for 30 s. Expected: no ffmpeg warnings about dropped frames beyond the first second.
 

@@ -26,6 +26,13 @@ sleep 3
 "${CURL[@]}" "http://localhost:8888/laserdisc/$media" -o "$OUT/media.m3u8" || { echo "no media playlist $media"; exit 1; }
 grep -q '#EXT-X-PART' "$OUT/media.m3u8" || { echo "not LL-HLS (no EXT-X-PART)"; head -30 "$OUT/media.m3u8"; exit 1; }
 echo "LL-HLS ok"
+# publish auth: an anonymous publisher must be rejected (rc 124 = timeout hit,
+# meaning ffmpeg was still happily streaming → auth is not enforced)
+timeout 8 ffmpeg -hide_banner -loglevel error -re -f lavfi -i testsrc2=size=320x180:rate=15 \
+  -c:v h264_videotoolbox -f flv rtmp://localhost:1935/laserdisc >/dev/null 2>&1
+rc=$?
+[[ $rc -ne 124 && $rc -ne 0 ]] || { echo "anonymous RTMP publish was NOT rejected (rc=$rc)"; exit 1; }
+echo "anonymous publish rejected"
 # resilience: HLS origin dies, MoQ leg must keep running
 docker compose -f hls-origin/compose.local.yml stop >/dev/null
 sleep 5

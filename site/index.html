@@ -17,6 +17,14 @@
   .player canvas, .player video { display: block; width: 100%; aspect-ratio: 16/9; background: #000; }
   .clock { font: 1.6rem/1 ui-monospace, monospace; padding: .5rem .75rem; }
   .status { padding: 0 .75rem .5rem; color: #aaa; font-size: .9rem; min-height: 1.2rem; }
+  .timecodes { margin: 1rem 1.5rem 0; padding: .5rem .75rem; background: #000;
+               border: 1px solid #222; border-radius: 6px; max-width: 44rem; }
+  .timecodes h2 { margin: 0 0 .25rem; font-size: .8rem; font-weight: 600; color: #aaa;
+                  letter-spacing: .08em; text-transform: uppercase; }
+  .tc-row { display: flex; align-items: center; gap: .75rem; }
+  .tc-row + .tc-row { margin-top: 2px; }
+  .tc-row span { font: 700 1.5rem/1 ui-monospace, monospace; color: #8ab4ff; width: 4.5rem; }
+  .tc-row canvas { display: block; width: min(540px, 100%); background: #000; }
   footer { padding: 1rem 1.5rem; color: #777; font-size: .85rem; }
   a { color: #8ab4ff; }
 </style>
@@ -26,6 +34,11 @@
   <h1>📀 LIVE from a LaserDisc</h1>
   <p>Same analog signal, same encoder, two protocols. The clock burned into the picture is the publisher's; the clock under each player is yours. The difference is latency.</p>
 </header>
+<section class="timecodes">
+  <h2>publisher timecodes, as received</h2>
+  <div class="tc-row"><span>MoQ</span><canvas id="tc-moq" width="360" height="70"></canvas></div>
+  <div class="tc-row"><span>HLS</span><canvas id="tc-hls" width="360" height="70"></canvas></div>
+</section>
 <main>
   <section class="player">
     <h2>Media over QUIC</h2>
@@ -45,21 +58,26 @@
   MoQ needs WebTransport (Chrome/Edge/Brave); this relay also speaks WebSocket so Safari should still connect.
 </footer>
 
+<script src="./config.js"></script> <!-- sets window.MOQ_RELAY_URL; written by CI, gitignored locally -->
 <script type="module">
   import "https://cdn.jsdelivr.net/npm/@moq/watch@0.5.2/element/+esm";
   import Hls from "https://cdn.jsdelivr.net/npm/hls.js@1.7.1/+esm";
 
   const q = new URLSearchParams(location.search);
-  const RELAY = q.get("relay") ?? "${MOQ_RELAY_URL}";
+  const RELAY = q.get("relay") ?? window.MOQ_RELAY_URL;
   const NAME  = q.get("name")  ?? "laserdisc.hang";
   const HLS_URL = q.get("hls") ?? "https://hls-laserdisc.vanessa-dev.com/laserdisc/index.m3u8";
 
   // --- MoQ ---
   const moq = document.getElementById("moq");
-  moq.setAttribute("url", RELAY);
-  moq.setAttribute("name", NAME);
   const smoq = document.getElementById("status-moq");
-  smoq.textContent = ("WebTransport" in window) ? "WebTransport" : "no WebTransport → WebSocket fallback";
+  if (RELAY) {
+    moq.setAttribute("url", RELAY);
+    moq.setAttribute("name", NAME);
+    smoq.textContent = ("WebTransport" in window) ? "WebTransport" : "no WebTransport → WebSocket fallback";
+  } else {
+    smoq.textContent = "no relay configured — copy site/config.example.js to site/config.js, or pass ?relay=<url>";
+  }
 
   // --- HLS ---
   const video = document.getElementById("hls");
@@ -76,10 +94,30 @@
     shls.textContent = "HLS not supported in this browser";
   }
 
+  // --- timecode strip: live-crop the burned-in clock out of each stream ---
+  // overlay.filter draws at x=20,y=20 fontsize=48 (absolute pixels, same for
+  // 720x480 capture and 1280x720 test), so one crop rect fits both.
+  const TC = { sx: 10, sy: 10, sw: 360, sh: 70 };
+  const moqSrc = moq.querySelector("canvas");
+  const tcMoq = document.getElementById("tc-moq").getContext("2d");
+  const tcHls = document.getElementById("tc-hls").getContext("2d");
+  // Never read pixels back (getImageData/toDataURL): a cross-origin native-HLS
+  // <video> may taint the target canvas, but drawImage itself stays legal.
+  const drawTc = (ctx, src, ready) => {
+    ctx.fillStyle = "#000"; ctx.fillRect(0, 0, TC.sw, TC.sh);
+    if (!ready) return;
+    try { ctx.drawImage(src, TC.sx, TC.sy, TC.sw, TC.sh, 0, 0, TC.sw, TC.sh); } catch {}
+  };
+
   // --- clocks ---
   const fmt = d => d.toTimeString().slice(0, 8) + "." + String(d.getMilliseconds()).padStart(3, "0");
   const cm = document.getElementById("clock-moq"), ch = document.getElementById("clock-hls");
-  const tick = () => { const s = fmt(new Date()); cm.textContent = s; ch.textContent = s; requestAnimationFrame(tick); };
+  const tick = () => {
+    const s = fmt(new Date()); cm.textContent = s; ch.textContent = s;
+    drawTc(tcMoq, moqSrc, moqSrc && moqSrc.width > 0);
+    drawTc(tcHls, video, video.readyState >= 2);
+    requestAnimationFrame(tick);
+  };
   tick();
 </script>
 </body>

@@ -33,7 +33,9 @@ your memory is the repo. Read, do ONE task, verify, commit, stop.
 - NEVER push to GitHub: no `git push`, no `git remote add`, no `gh` of any kind.
   Commit locally only. The human reviews the commits and pushes (gate in
   `ralph/HUMAN.md` §1).
-- NEVER change the relay (`<moq-relay-host>`), its config, its version, or its box.
+- NEVER change the relay (the host behind `MOQ_RELAY_URL`), its config, its version,
+  or its box. NEVER write the relay's URL, hostname, or IP into any file in this
+  repo — it comes from the `MOQ_RELAY_URL` env var only.
 - Only publish to the relay under broadcast names matching `laserdisc*.hang`.
 - Never create a `README.md` in a subdirectory. One README, top level.
 - Don't install anything globally except `cargo install moq-cli` (and the
