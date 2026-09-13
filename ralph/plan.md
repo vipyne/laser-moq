@@ -948,7 +948,7 @@ The static receipts page: renders `site/results/data.json` client-side. GitHub P
 - **Caveats block** (hardcoded prose): same encoder + same clock methodology; measured on the publisher machine so both clocks are one clock; screenshot timing ≈ ±50 ms; `hlsjs-api` is player-reported latency, not glass-to-glass.
 - Back-link to the live page (`../`).
 
-- [ ] **Step 1: Write the test first** — create `tests/test-results-page.sh`:
+- [x] **Step 1: Write the test first** — create `tests/test-results-page.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -968,19 +968,19 @@ exit 0
 Run: `bash tests/test-results-page.sh`
 Expected: FAILS (`missing site/results/index.html`).
 
-- [ ] **Step 2: Implement the page** per the Page contract.
+- [x] **Step 2: Implement the page** per the Page contract.
 
 Run: `bash tests/test-results-page.sh && bash tests/test-site.sh`
 Expected: results-page test reaches the README assertion (the only remaining failure) or passes if Step 3 is done; `test-site.sh` PASS — its recursive relay grep now covers `site/results/`.
 
-- [ ] **Step 3: README** — replace the whole "## Measured latency" section (table + parenthetical) with: a pointer to `https://moq-laserdisc.vanessa-dev.com/results/`; three lines on how a run gets there (`scripts/measure-latency.sh` on the publisher machine → review `site/results/data.json` → commit + push, Pages redeploys). Add `tools/measure/`, `scripts/measure-latency.sh`, `site/results/index.html`, `site/results/data.json` rows to **Layout**; mention `brew install tesseract` + node in **Install**; note in **Tests** that `test-measure.sh` self-skips without tesseract/node and `test-results-page.sh` is offline.
+- [x] **Step 3: README** — replace the whole "## Measured latency" section (table + parenthetical) with: a pointer to `https://moq-laserdisc.vanessa-dev.com/results/`; three lines on how a run gets there (`scripts/measure-latency.sh` on the publisher machine → review `site/results/data.json` → commit + push, Pages redeploys). Add `tools/measure/`, `scripts/measure-latency.sh`, `site/results/index.html`, `site/results/data.json` rows to **Layout**; mention `brew install tesseract` + node in **Install**; note in **Tests** that `test-measure.sh` self-skips without tesseract/node and `test-results-page.sh` is offline.
 
 Run: `bash tests/test-results-page.sh`
 Expected: PASS.
 
-- [ ] **Step 4: HUMAN.md** — (a) rewrite §5's second item: during a real `SOURCE=capture` stream on the publisher machine run `scripts/measure-latency.sh --source laserdisc --notes "<disc>"`, review `site/results/data.json`, commit, push, then check `https://moq-laserdisc.vanessa-dev.com/results/`; also tick Task 7 Step 4 in `ralph/plan.md` in the same pass. (b) Append a new **§7 Publisher-machine (x86 Mac) prep**: `brew install tesseract node`, Google Chrome installed, clone + `npm install` in `tools/measure/`, gate: `bash tests/test-measure.sh` prints no SKIP and passes; load caveat: the old machine encodes and decodes two streams during measurement — if ffmpeg reports dropped frames, shorten `--samples` and note it in the run's `notes`. (c) Add a §4 browser-check entry: open `/results` locally (`cd site && python3 -m http.server 8000` → `http://localhost:8000/results/`) and on prod after the first push.
+- [x] **Step 4: HUMAN.md** — (a) rewrite §5's second item: during a real `SOURCE=capture` stream on the publisher machine run `scripts/measure-latency.sh --source laserdisc --notes "<disc>"`, review `site/results/data.json`, commit, push, then check `https://moq-laserdisc.vanessa-dev.com/results/`; also tick Task 7 Step 4 in `ralph/plan.md` in the same pass. (b) Append a new **§7 Publisher-machine (x86 Mac) prep**: `brew install tesseract node`, Google Chrome installed, clone + `npm install` in `tools/measure/`, gate: `bash tests/test-measure.sh` prints no SKIP and passes; load caveat: the old machine encodes and decodes two streams during measurement — if ffmpeg reports dropped frames, shorten `--samples` and note it in the run's `notes`. (c) Add a §4 browser-check entry: open `/results` locally (`cd site && python3 -m http.server 8000` → `http://localhost:8000/results/`) and on prod after the first push.
 
-- [ ] **Step 5: Full suite + commit**
+- [x] **Step 5: Full suite + commit**
 
 ```bash
 bash tests/run.sh

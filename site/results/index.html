@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Measured latency — LIVE from a LaserDisc</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #0b0b0f; color: #eee; font: 16px/1.4 system-ui, sans-serif; }
+  header { padding: 1rem 1.5rem; border-bottom: 1px solid #222; }
+  header h1 { margin: 0; font-size: 1.4rem; letter-spacing: .02em; }
+  header p { margin: .25rem 0 0; color: #aaa; }
+  main { padding: 1rem 1.5rem; max-width: 64rem; }
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 700px) { .tiles { grid-template-columns: 1fr; } }
+  .tile { background: #000; border: 1px solid #222; border-radius: 6px; padding: .75rem 1rem; }
+  .tile h2 { margin: 0; font-size: 1rem; color: #aaa; }
+  .tile .big { font: 700 2.4rem/1.2 ui-monospace, monospace; }
+  .tile .sub { color: #aaa; font-size: .9rem; }
+  .tile .badge { display: inline-block; font-size: .75rem; color: #0b0b0f; background: #8ab4ff;
+                 border-radius: 3px; padding: 0 .4em; vertical-align: middle; }
+  .tile.hls .badge { background: #ffb74d; }
+  .moq { color: #8ab4ff; } .hls-c { color: #ffb74d; }
+  section { margin-top: 1.5rem; }
+  section h2 { font-size: 1.1rem; margin: 0 0 .5rem; }
+  svg { display: block; width: 100%; height: auto; background: #000; border: 1px solid #222; border-radius: 6px; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  th, td { text-align: left; padding: .35rem .6rem; border-bottom: 1px solid #222; }
+  th { color: #aaa; font-weight: 600; }
+  td.num { font-family: ui-monospace, monospace; text-align: right; }
+  th.num { text-align: right; }
+  .caveats { color: #aaa; font-size: .9rem; border-left: 3px solid #222; padding-left: .75rem; }
+  .empty { color: #aaa; padding: 2rem 0; }
+  footer { padding: 1rem 1.5rem; color: #777; font-size: .85rem; }
+  a { color: #8ab4ff; }
+</style>
+</head>
+<body>
+<header>
+  <h1>📊 Measured latency</h1>
+  <p>Glass-to-glass: the burned-in publisher clock, OCR'd out of each player, minus the local clock — measured on the publisher machine, so both clocks are one clock. <a href="../">← back to the live streams</a></p>
+</header>
+<main id="main">
+  <div class="empty" id="empty" hidden>no measured runs yet</div>
+  <div class="tiles" id="tiles" hidden>
+    <div class="tile" id="tile-moq">
+      <h2>Media over QUIC <span class="badge">clock-ocr</span></h2>
+      <div class="big moq" id="moq-p50">—</div>
+      <div class="sub" id="moq-sub"></div>
+    </div>
+    <div class="tile hls" id="tile-hls">
+      <h2>Low-Latency HLS <span class="badge">clock-ocr</span></h2>
+      <div class="big hls-c" id="hls-p50">—</div>
+      <div class="sub" id="hls-sub"></div>
+    </div>
+  </div>
+  <section id="chart-section" hidden>
+    <h2>All runs — <span class="moq">MoQ</span> vs <span class="hls-c">HLS</span>, one dot per sample</h2>
+    <div id="chart"></div>
+  </section>
+  <section id="table-section" hidden>
+    <h2>Runs</h2>
+    <table>
+      <thead><tr><th>date</th><th>source</th><th>machine</th><th>transport</th>
+        <th class="num">n</th><th class="num">p50 ms</th><th class="num">min</th><th class="num">max</th><th>notes</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </section>
+  <section>
+    <h2>Caveats</h2>
+    <div class="caveats">
+      Both streams come from one ffmpeg encode (same bitrate, GOP, encoder), so the comparison is
+      apples to apples. Measurements run on the publisher machine: the burned-in clock and the
+      local clock are the same clock, so there is no NTP skew — but screenshot timing adds about
+      ±50&nbsp;ms of noise to every glass-to-glass sample. <code>hlsjs-api</code> rows are the
+      latency hls.js itself reports, not glass-to-glass, shown for cross-checking only.
+    </div>
+  </section>
+</main>
+<footer>
+  Data: <a href="data.json">data.json</a> — appended by <code>scripts/measure-latency.sh</code>, committed by a human.
+</footer>
+
+<script>
+  const COLOR = { moq: "#8ab4ff", hls: "#ffb74d" };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const p50 = v => { const s = [...v].sort((a, b) => a - b); const m = s.length >> 1; return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2); };
+  const ocr = (run, t) => run.samples.filter(s => s.transport === t && s.method === "clock-ocr").map(s => s.glass_to_glass_ms);
+
+  function tiles(latest) {
+    for (const t of ["moq", "hls"]) {
+      const v = ocr(latest, t);
+      document.getElementById(t + "-p50").textContent = v.length ? p50(v).toLocaleString() + " ms" : "no samples";
+      document.getElementById(t + "-sub").textContent = v.length
+        ? `${v.length} samples · ${Math.min(...v).toLocaleString()}–${Math.max(...v).toLocaleString()} ms · ${latest.started_utc.slice(0, 10)} · ${esc(latest.source)}`
+        : "";
+    }
+  }
+
+  function chart(runs) {
+    const W = 720, H = 300, L = 70, R = 15, T = 15, B = 45;
+    const pts = [];
+    runs.forEach((run, i) => { for (const t of ["moq", "hls"]) for (const ms of ocr(run, t)) pts.push({ i, t, ms }); });
+    if (!pts.length) return;
+    const ymax = Math.max(...pts.map(p => p.ms)) * 1.1;
+    const x = i => L + (W - L - R) * (runs.length === 1 ? 0.5 : i / (runs.length - 1));
+    const y = ms => T + (H - T - B) * (1 - ms / ymax);
+    // ~5 gridlines at a round step (1/2/5 × 10^k)
+    const raw = ymax / 5, k = Math.pow(10, Math.floor(Math.log10(raw)));
+    const step = [1, 2, 5, 10].map(m => m * k).find(s => ymax / s <= 6);
+    let g = "";
+    for (let v = 0; v <= ymax; v += step)
+      g += `<line x1="${L}" y1="${y(v)}" x2="${W - R}" y2="${y(v)}" stroke="#222"/>` +
+           `<text x="${L - 8}" y="${y(v) + 4}" text-anchor="end" fill="#aaa" font-size="11">${v.toLocaleString()}</text>`;
+    let xl = "";
+    runs.forEach((run, i) => {
+      xl += `<text x="${x(i)}" y="${H - B + 18}" text-anchor="middle" fill="#aaa" font-size="11">${esc(run.started_utc.slice(0, 10))}</text>` +
+            `<text x="${x(i)}" y="${H - B + 32}" text-anchor="middle" fill="#777" font-size="10">${esc(run.source)}</text>`;
+    });
+    // deterministic horizontal spread so same-run dots don't stack into one
+    const dots = pts.map((p, n) =>
+      `<circle cx="${(x(p.i) + (n % 7 - 3) * 2.5).toFixed(1)}" cy="${y(p.ms).toFixed(1)}" r="4" fill="${COLOR[p.t]}" fill-opacity="0.85"><title>${p.t} ${p.ms} ms</title></circle>`).join("");
+    document.getElementById("chart").innerHTML =
+      `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="glass-to-glass latency per run">` +
+      `<text x="14" y="${(T + H - B) / 2}" fill="#aaa" font-size="11" transform="rotate(-90 14 ${(T + H - B) / 2})" text-anchor="middle">glass-to-glass ms</text>` +
+      g + xl + dots + `</svg>`;
+  }
+
+  function table(runs) {
+    const rows = [];
+    for (const run of [...runs].reverse()) {
+      for (const t of ["moq", "hls"]) {
+        const v = ocr(run, t);
+        if (!v.length) continue;
+        rows.push(`<tr><td>${esc(run.started_utc.slice(0, 10))}</td><td>${esc(run.source)}</td><td>${esc(run.machine ?? "")}</td>` +
+          `<td><span class="${t === "moq" ? "moq" : "hls-c"}">${t}</span></td><td class="num">${v.length}</td>` +
+          `<td class="num">${p50(v).toLocaleString()}</td><td class="num">${Math.min(...v).toLocaleString()}</td>` +
+          `<td class="num">${Math.max(...v).toLocaleString()}</td><td>${esc(run.notes ?? "")}</td></tr>`);
+      }
+      const api = run.samples.filter(s => s.method === "hlsjs-api").map(s => s.latency_ms);
+      if (api.length)
+        rows.push(`<tr><td>${esc(run.started_utc.slice(0, 10))}</td><td>${esc(run.source)}</td><td>${esc(run.machine ?? "")}</td>` +
+          `<td><span class="hls-c">hls</span> <small>(hlsjs-api)</small></td><td class="num">${api.length}</td>` +
+          `<td class="num">${p50(api).toLocaleString()}</td><td class="num">${Math.min(...api).toLocaleString()}</td>` +
+          `<td class="num">${Math.max(...api).toLocaleString()}</td><td>player-reported</td></tr>`);
+    }
+    document.getElementById("rows").innerHTML = rows.join("");
+  }
+
+  fetch("./data.json").then(r => r.json()).then(d => {
+    const runs = (d.schema === 1 && Array.isArray(d.runs)) ? d.runs : [];
+    if (!runs.length) { document.getElementById("empty").hidden = false; return; }
+    for (const id of ["tiles", "chart-section", "table-section"]) document.getElementById(id).hidden = false;
+    tiles(runs[runs.length - 1]);
+    chart(runs);
+    table(runs);
+  }).catch(() => { const e = document.getElementById("empty"); e.textContent = "could not load data.json"; e.hidden = false; });
+</script>
+</body>
+</html>

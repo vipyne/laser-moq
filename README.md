@@ -47,6 +47,9 @@ cargo install moq-cli --locked
 `moq-relay 0.13.5`. ffmpeg 7.1.1 (with avfoundation + videotoolbox) and Docker
 are also required.
 
+For latency measurement (`scripts/measure-latency.sh`): `brew install tesseract`,
+node + npm, Google Chrome, then `npm install` inside `tools/measure/`.
+
 ## Run
 
 Everything needs `MOQ_RELAY_URL` — the MoQ relay endpoint, deliberately not
@@ -106,18 +109,21 @@ Watch the MoQ leg locally with `scripts/watch.sh`.
 
 ## Measured latency
 
-| Leg | Glass-to-glass |
-|---|---|
-| MoQ | TBD by human |
-| LL-HLS | TBD by human |
+Live numbers: **https://moq-laserdisc.vanessa-dev.com/results/** — measured
+programmatically (Playwright screenshots the players, tesseract OCRs the
+burned-in publisher clock; see `tools/measure/`).
 
-(Read off the burned-in publisher clock vs the browser clock on the viewer page.)
+How a run gets there: run `scripts/measure-latency.sh` on the publisher machine
+(both clocks are one clock, no NTP skew), review the run it appended to
+`site/results/data.json`, then commit + push — Pages redeploys the page.
 
 ## Tests
 
 `bash tests/run.sh` runs every `tests/test-*.sh`. `test-roundtrip.sh` and
 `test-run-forever.sh` need network (the relay) + moq-cli; `test-hls.sh` needs
-Docker too. `test-resolve-device.sh` and `test-site.sh` are offline.
+Docker too. `test-resolve-device.sh`, `test-site.sh` and `test-results-page.sh`
+are offline. `test-measure.sh` self-skips its OCR self-test when tesseract,
+node, or `tools/measure/node_modules` is missing.
 
 ## Troubleshooting
 
@@ -144,11 +150,15 @@ Docker too. `test-resolve-device.sh` and `test-site.sh` are offline.
 | `scripts/preview.sh` | Eyeball the capture card locally (ffplay, no encode/network); `FRAME=x.png` grabs a still. |
 | `scripts/dev.sh` | Local dev stack in one command: `up [test\|capture]` / `down` / `status`. |
 | `scripts/run-forever.sh` | Restart wrapper around `publish.sh` with backoff + log. |
+| `scripts/measure-latency.sh` | Wrapper around the OCR latency harness; appends a run to `site/results/data.json`. |
+| `tools/measure/` | The harness: Playwright drives installed Chrome, tesseract reads the burned-in clock. |
 | `hls-origin/mediamtx.yml` | MediaMTX config (RTMP in, LL-HLS out). |
 | `hls-origin/compose.local.yml` | Laptop: mediamtx only. |
 | `hls-origin/compose.yml` | Prod: mediamtx + caddy (TLS for `$HLS_DOMAIN`). |
 | `hls-origin/Caddyfile` | `HLS_DOMAIN → mediamtx:8888`. |
 | `site/index.html` | Public page: `<moq-watch>` + hls.js side by side, clocks. |
+| `site/results/index.html` | `/results`: summary tiles + SVG chart + runs table from `data.json`; no libraries. |
+| `site/results/data.json` | Committed, append-only history of measured runs (schema v1). |
 | `site/CNAME` | `moq-laserdisc.vanessa-dev.com`. |
 | `site/config.example.js` | Template for gitignored `site/config.js` (`window.MOQ_RELAY_URL`). |
 | `.github/workflows/pages.yml` | Publish `site/` to GitHub Pages (writes `config.js` from the `MOQ_RELAY_URL` Actions variable). |
