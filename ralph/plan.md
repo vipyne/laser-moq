@@ -42,6 +42,10 @@
 | `hls-origin/compose.yml` | Prod: mediamtx + caddy (TLS for `$HLS_DOMAIN`). |
 | `hls-origin/Caddyfile` | `HLS_DOMAIN → mediamtx:8888`. |
 | `site/index.html` | Public page: `<moq-watch>` + hls.js side by side, clocks. |
+| `site/results/index.html` | `/results` page: summary tiles + SVG chart + runs table from `data.json`; no libraries. |
+| `site/results/data.json` | Committed, append-only history of measured runs (schema v1). |
+| `tools/measure/measure.mjs`, `tools/measure/package.json` | OCR latency harness: Playwright drives installed Chrome, tesseract reads the burned-in clock. |
+| `scripts/measure-latency.sh` | Thin wrapper around the harness; appends a run to `site/results/data.json`. |
 | `site/CNAME` | `moq-laserdisc.vanessa-dev.com`. |
 | `.github/workflows/pages.yml` | Publish `site/` to GitHub Pages. |
 | `tests/run.sh`, `tests/test-*.sh`, `tests/fixtures/` | Bash tests. |
@@ -770,7 +774,7 @@ git commit -m "docs: HLS origin deploy runbook, Pages workflow, HUMAN.md, README
 
 ---
 
-### Task 7: Real capture (M3) — hardware-gated — steps 1–3 done by hand 2026-09-13 (card = "HDMI to U3 capture", NTSC 720x480@60; defaults folded into publish.sh); step 4 waits on the Measured-latency revamp
+### Task 7: Real capture (M3) — hardware-gated — steps 1–3 done by hand 2026-09-13 (card = "HDMI to U3 capture", NTSC 720x480@60; defaults folded into publish.sh); step 4 = run the Task 8 harness during a real stream — `blocked: human`
 
 **Files:**
 - Modify: `scripts/publish.sh` (only if the Pengo needs different `-pixel_format`/`-video_size`), `README.md` (Measured latency), `ralph/PROGRESS.md`
@@ -789,12 +793,203 @@ If avfoundation rejects the size/pixel format, it prints the supported list — 
 
 Run: `SOURCE=capture HLS=1 scripts/publish.sh` (with local MediaMTX up) and `scripts/watch.sh` in another process for 30 s. Expected: no ffmpeg warnings about dropped frames beyond the first second.
 
-- [ ] **Step 4: Record and commit**
+- [ ] **Step 4: Record real-capture latency** — `blocked: human` (needs the publisher machine + a live LaserDisc stream; nothing for the loop to run here)
 
-Append to `ralph/HUMAN.md` §5: read the two latencies off the page and fill README "Measured latency". Commit: `git commit -am "feat: capture defaults for the Pengo card"`.
+After Tasks 8–9 land: during a `SOURCE=capture` stream, the human runs `scripts/measure-latency.sh --source laserdisc`, reviews `site/results/data.json`, commits, and pushes (flow in `ralph/HUMAN.md` §5 and §7). Tick this step in the same human pass.
+
+---
+
+### Task 8: Programmatic latency measurement — OCR harness (M4)
+
+Replaces "a human reads the clocks" with a robot doing the same reading: Playwright drives the machine's **installed Chrome** on the viewer page, screenshots the clock region of each player, tesseract OCRs the burned-in publisher clock, and `glass_to_glass_ms = local clock − burned-in clock`. Run on the **publisher machine** so both clocks are the same clock (no NTP skew). The harness only writes a local JSON file; publishing (commit + push) stays human.
+
+**Files:**
+- Create: `tools/measure/measure.mjs`, `tools/measure/package.json`, `scripts/measure-latency.sh`, `tests/test-measure.sh`, `site/results/data.json`
+- Modify: `site/index.html` (expose `window.__hls`; footer link to `results/`), `.gitignore` (`tools/measure/node_modules/`), `ralph/PROGRESS.md`
+
+**Interfaces — data schema v1** (`site/results/data.json`; Task 9 renders exactly this):
+
+```json
+{
+  "schema": 1,
+  "runs": [
+    {
+      "started_utc": "2026-09-13T17:20:31Z",
+      "target": "https://moq-laserdisc.vanessa-dev.com/",
+      "source": "test",
+      "machine": "arm64 mac",
+      "notes": "",
+      "samples": [
+        {"transport": "moq", "method": "clock-ocr", "glass_to_glass_ms": 412,  "at_utc": "2026-09-13T17:21:02Z"},
+        {"transport": "hls", "method": "clock-ocr", "glass_to_glass_ms": 4210, "at_utc": "2026-09-13T17:21:03Z"},
+        {"transport": "hls", "method": "hlsjs-api", "latency_ms": 3900,        "at_utc": "2026-09-13T17:21:03Z"}
+      ]
+    }
+  ]
+}
+```
+
+Hard rules for this task: `data.json` lives under `site/`, and `tests/test-site.sh` greps all of `site/` for the relay hostname — so `target` is stored **with its query string stripped** (a `?relay=` override must never reach a committed file), and no relay URL appears in any created file. Local publishes use `BROADCAST=laserdisc-measure.hang` (must match `laserdisc*.hang`).
+
+**Harness contract** (`measure.mjs`, ESM, no deps beyond `playwright`):
+- Flags: `--url` (default `https://moq-laserdisc.vanessa-dev.com/`), `--samples` (default 12), `--interval-ms` (default 5000), `--source` (default `test`), `--notes`, `--out` (default `site/results/data.json`), `--debug-dir` (default `logs/measure-<ts>/`), `--headed`, `--self-test`.
+- Launch `chromium.launch({ channel: "chrome", headless: !headed })` — the installed Chrome, no browser download (works on the old x86 Mac and guarantees WebTransport).
+- Warm-up: wait until the `<video id="hls">` has `readyState >= 2` and the `<moq-watch>` canvas is painting non-black, plus ~15 s grace. If either pane never starts, say which and exit non-zero.
+- Per sample, per pane: record local time via `page.evaluate(() => Date.now())` immediately before an element screenshot clipped to the clock corner — **top-left 65% × 30% of the pane's bounding box** (generous because 720x480 capture is pillarboxed inside the 16:9 box; the drawtext sits at content x=20,y=20, fontsize 48). OCR: `tesseract <png> stdout --psm 7 -c tessedit_char_whitelist=0123456789:.`; parse `HH:MM:SS.mmm` (the burned clock is publisher **localtime** — same machine, same tz); delta mod 24 h. A sample that fails to parse is dropped and its crop kept in `--debug-dir`. If OCR is flaky, upscale the crop 2× before tesseract; do not loosen the whitelist.
+- After each HLS sample also read `page.evaluate(() => window.__hls?.latency)` — **seconds** in hls.js, store `latency_ms` (× 1000) as a `hlsjs-api` sample.
+- Screenshot timing costs ~±50 ms; acceptable against sub-second-vs-multi-second deltas (Task 9 states it in the caveats).
+- End of run: read `--out`, append one run object (pretty-printed, `target` query-stripped), write back, and print a per-transport summary (n, p50, min, max) to stdout.
+- `--self-test` (offline, no browser, no network): write the repo's drawtext settings with the literal text `12:34:56.789` to a temp **filter script** (inline `-vf` with colons is the known escaping trap — see Global Constraints), render one 720x120 black frame with ffmpeg, run it through the exact crop→OCR→parse path, and assert the parsed string matches. Exit 0/1.
+
+- [ ] **Step 1: Write the test first** — create `tests/test-measure.sh`:
+
+```bash
+#!/usr/bin/env bash
+set -u
+cd "$(dirname "$0")/.."
+f=site/results/data.json
+[[ -f $f ]] || { echo "missing $f"; exit 1; }
+python3 -m json.tool "$f" >/dev/null 2>&1 || { echo "data.json is not valid JSON"; exit 1; }
+python3 - "$f" <<'PY' || { echo "data.json schema check failed"; exit 1; }
+import json, sys
+d = json.load(open(sys.argv[1]))
+assert d.get("schema") == 1 and isinstance(d.get("runs"), list)
+for r in d["runs"]:
+    assert "?" not in r["target"], "target must be query-stripped"
+    for s in r["samples"]:
+        assert s["transport"] in ("moq", "hls") and s["method"] in ("clock-ocr", "hlsjs-api")
+PY
+[[ -f tools/measure/package.json ]] || { echo "missing tools/measure/package.json"; exit 1; }
+grep -q '"playwright"' tools/measure/package.json || { echo "playwright not pinned"; exit 1; }
+[[ -x scripts/measure-latency.sh ]] || { echo "measure-latency.sh missing or not executable"; exit 1; }
+grep -q 'window.__hls' site/index.html || { echo "window.__hls hook missing from site/index.html"; exit 1; }
+command -v tesseract >/dev/null || { echo "SKIP: tesseract not installed"; exit 0; }
+command -v node >/dev/null || { echo "SKIP: node not installed"; exit 0; }
+[[ -d tools/measure/node_modules ]] || { echo "SKIP: npm install not run in tools/measure"; exit 0; }
+node tools/measure/measure.mjs --self-test || { echo "self-test failed"; exit 1; }
+exit 0
+```
+
+Run: `bash tests/test-measure.sh`
+Expected: FAILS (`missing site/results/data.json`).
+
+- [ ] **Step 2: Install the sanctioned deps**
+
+```bash
+command -v tesseract >/dev/null || brew install tesseract
+command -v node >/dev/null && command -v npm >/dev/null || echo "NO NODE"
+```
+Expected: `tesseract --version` prints; if `NO NODE` printed, append the needed install to `ralph/HUMAN.md` (§7), mark this step `blocked: human`, commit, stop this task. Then create `tools/measure/package.json` (`{"name":"laser-moq-measure","private":true,"type":"module","dependencies":{"playwright":"<pin the exact version npm resolves today>"}}`), run `npm install` **inside `tools/measure/`**, add `tools/measure/node_modules/` to `.gitignore`. No `npx playwright install` — `channel: "chrome"` uses the machine's Chrome.
+
+- [ ] **Step 3: Seed data + self-test + wrapper + page hook**
+- Create `site/results/data.json` containing exactly `{"schema": 1, "runs": []}`.
+- Implement `measure.mjs` far enough that `--self-test` works (arg parsing, temp filter script + ffmpeg render, crop, tesseract invocation, `HH:MM:SS.mmm` parser).
+- `site/index.html`: after `hls.attachMedia(video);` add `window.__hls = hls; // instrumentation hook for tools/measure` and add `<a href="results/">measured latency</a>` to the footer.
+- Create `scripts/measure-latency.sh`, executable:
+
+```bash
+#!/usr/bin/env bash
+# Programmatic glass-to-glass measurement; appends a run to site/results/data.json.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+exec node tools/measure/measure.mjs "$@"
+```
+
+Run: `bash tests/test-measure.sh`
+Expected: PASS (self-test parses `12:34:56.789`).
+
+- [ ] **Step 4: Live measurement loop**
+- Implement the full measurement loop per the Harness contract above, including the run-append and the stdout summary.
+- **Probe `@moq/watch` for a latency stat**: `page.evaluate(() => Object.getOwnPropertyNames(Object.getPrototypeOf(document.getElementById("moq"))))` — record what exists in `ralph/PROGRESS.md`; only emit a moq `api` sample if a real latency/buffer value is exposed (do not invent one).
+
+Run: `bash tests/test-measure.sh && bash tests/test-site.sh`
+Expected: both PASS (site test proves no relay leak and the pins are untouched).
+
+- [ ] **Step 5: Local end-to-end** — needs `site/config.js` locally (copy `site/config.example.js`, value from `$MOQ_RELAY_URL`); the harness records `target` query-stripped either way:
+
+```bash
+docker compose -f hls-origin/compose.local.yml up -d
+SOURCE=test HLS=1 BROADCAST=laserdisc-measure.hang scripts/publish.sh > /dev/null 2>&1 & PUB=$!
+(cd site && python3 -m http.server 8000 > /dev/null 2>&1 &)
+sleep 20
+scripts/measure-latency.sh \
+  --url "http://localhost:8000/?name=laserdisc-measure.hang&hls=http://localhost:8888/laserdisc/index.m3u8" \
+  --source test --samples 6 --notes "local e2e (loop)"
+kill "$PUB" 2>/dev/null; pkill -f 'python3 -m http.server 8000'
+pkill -f 'ffmpeg .*testsrc2'; pkill -f 'moq --client-connect'
+docker compose -f hls-origin/compose.local.yml down
+bash tests/test-measure.sh
+```
+Expected: one run appended with ≥4 successful `clock-ocr` samples per transport, MoQ p50 < HLS p50, `test-measure.sh` still PASS. If the canvas/video stays black headless, retry once with `--headed` before invoking the two-strike rule. Kill everything you started regardless of outcome.
+
+- [ ] **Step 6: Full suite + commit**
+
+```bash
+bash tests/run.sh
+git add -A
+git commit -m "feat: programmatic latency measurement harness (Playwright + tesseract OCR)"
+```
+
+---
+
+### Task 9: `/results` page + docs plumbing (M5)
+
+The static receipts page: renders `site/results/data.json` client-side. GitHub Pages already uploads all of `site/` and triggers on `site/**` — `/results` deploys with zero workflow changes; it does not need `config.js`.
+
+**Files:**
+- Create: `site/results/index.html`, `tests/test-results-page.sh`
+- Modify: `README.md`, `ralph/HUMAN.md`, `ralph/PROGRESS.md`
+
+**Page contract** — one file, all CSS/JS inline, **no external scripts** (no CDN, no Chart.js), same look as `site/index.html` (`#0b0b0f`, `color-scheme: dark`, system-ui / ui-monospace):
+- `fetch("./data.json")`; empty `runs` → "no measured runs yet" and nothing else breaks.
+- **Summary tiles** from the **latest run**: `<div id="tile-moq">` / `<div id="tile-hls">` — big p50 glass-to-glass ms (clock-ocr samples only), `n samples · min–max`, method badge.
+- **SVG chart**, hand-rolled inline: x = run date, y = `glass_to_glass_ms`, one dot per clock-ocr sample, one colour per transport (reuse the page's link-blue for MoQ, pick a warm tone for HLS), labelled gridlines; linear y unless ~400 ms vs ~4000 ms reads badly, then log with labelled ticks.
+- **Runs table**: date, source, machine, transport, n, p50, min, max, notes.
+- **Caveats block** (hardcoded prose): same encoder + same clock methodology; measured on the publisher machine so both clocks are one clock; screenshot timing ≈ ±50 ms; `hlsjs-api` is player-reported latency, not glass-to-glass.
+- Back-link to the live page (`../`).
+
+- [ ] **Step 1: Write the test first** — create `tests/test-results-page.sh`:
+
+```bash
+#!/usr/bin/env bash
+set -u
+cd "$(dirname "$0")/.."
+f=site/results/index.html
+[[ -f $f ]] || { echo "missing $f"; exit 1; }
+grep -q 'data.json' $f || { echo "page does not load ./data.json"; exit 1; }
+grep -Eq '<script[^>]*src=' $f && { echo "external script in results page (must be no-library)"; exit 1; }
+grep -q 'id="tile-moq"' $f && grep -q 'id="tile-hls"' $f || { echo "summary tiles missing"; exit 1; }
+grep -qi 'glass' $f || { echo "no glass-to-glass wording"; exit 1; }
+grep -q 'results/' site/index.html || { echo "live page does not link to results/"; exit 1; }
+grep -q 'TBD by human' README.md && { echo "README still has the placeholder latency table"; exit 1; }
+exit 0
+```
+
+Run: `bash tests/test-results-page.sh`
+Expected: FAILS (`missing site/results/index.html`).
+
+- [ ] **Step 2: Implement the page** per the Page contract.
+
+Run: `bash tests/test-results-page.sh && bash tests/test-site.sh`
+Expected: results-page test reaches the README assertion (the only remaining failure) or passes if Step 3 is done; `test-site.sh` PASS — its recursive relay grep now covers `site/results/`.
+
+- [ ] **Step 3: README** — replace the whole "## Measured latency" section (table + parenthetical) with: a pointer to `https://moq-laserdisc.vanessa-dev.com/results/`; three lines on how a run gets there (`scripts/measure-latency.sh` on the publisher machine → review `site/results/data.json` → commit + push, Pages redeploys). Add `tools/measure/`, `scripts/measure-latency.sh`, `site/results/index.html`, `site/results/data.json` rows to **Layout**; mention `brew install tesseract` + node in **Install**; note in **Tests** that `test-measure.sh` self-skips without tesseract/node and `test-results-page.sh` is offline.
+
+Run: `bash tests/test-results-page.sh`
+Expected: PASS.
+
+- [ ] **Step 4: HUMAN.md** — (a) rewrite §5's second item: during a real `SOURCE=capture` stream on the publisher machine run `scripts/measure-latency.sh --source laserdisc --notes "<disc>"`, review `site/results/data.json`, commit, push, then check `https://moq-laserdisc.vanessa-dev.com/results/`; also tick Task 7 Step 4 in `ralph/plan.md` in the same pass. (b) Append a new **§7 Publisher-machine (x86 Mac) prep**: `brew install tesseract node`, Google Chrome installed, clone + `npm install` in `tools/measure/`, gate: `bash tests/test-measure.sh` prints no SKIP and passes; load caveat: the old machine encodes and decodes two streams during measurement — if ffmpeg reports dropped frames, shorten `--samples` and note it in the run's `notes`. (c) Add a §4 browser-check entry: open `/results` locally (`cd site && python3 -m http.server 8000` → `http://localhost:8000/results/`) and on prod after the first push.
+
+- [ ] **Step 5: Full suite + commit**
+
+```bash
+bash tests/run.sh
+git add -A
+git commit -m "feat: /results latency page (static, no-library)"
+```
 
 ---
 
 ## Completion
 
-The loop is **complete** when Tasks 1–6 are fully checked, `bash tests/run.sh` passes, and Task 7 is either checked or marked `blocked: hardware` with a `ralph/HUMAN.md` entry. Then output `<promise>LASER_MOQ_COMPLETE</promise>`.
+The loop is **complete** when Tasks 1–6, 8, and 9 are fully checked, `bash tests/run.sh` passes, and Task 7 is either checked or carries its `blocked:` markers with matching `ralph/HUMAN.md` entries. Then output `<promise>LASER_MOQ_COMPLETE</promise>`.

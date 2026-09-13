@@ -142,6 +142,7 @@ Docker too. `test-resolve-device.sh` and `test-site.sh` are offline.
 | `scripts/list-devices.sh` | Wrapper around `ffmpeg -f avfoundation -list_devices`. |
 | `scripts/watch.sh` | Local subscriber: `moq … export fmp4 \| ffplay -`. |
 | `scripts/preview.sh` | Eyeball the capture card locally (ffplay, no encode/network); `FRAME=x.png` grabs a still. |
+| `scripts/dev.sh` | Local dev stack in one command: `up [test\|capture]` / `down` / `status`. |
 | `scripts/run-forever.sh` | Restart wrapper around `publish.sh` with backoff + log. |
 | `hls-origin/mediamtx.yml` | MediaMTX config (RTMP in, LL-HLS out). |
 | `hls-origin/compose.local.yml` | Laptop: mediamtx only. |

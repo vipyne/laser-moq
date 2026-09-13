@@ -12,8 +12,8 @@ your memory is the repo. Read, do ONE task, verify, commit, stop.
 4. `git log --oneline -20` and `git status`.
 
 ## Do
-- Pick the **first task with unchecked steps** in the plan (Tasks 1→7, in order). Do not
-  skip ahead unless the task is marked `blocked: hardware`.
+- Pick the **first task with unchecked steps** in the plan (Tasks 1→9, in order). Do not
+  skip ahead unless the task (or the step) is marked `blocked: hardware` or `blocked: human`.
 - Follow its steps literally: write the test first, run it and see it fail, implement,
   run it and see it pass, commit. Use the exact code in the plan unless it is
   demonstrably wrong on this machine — if you change it, say why in `ralph/PROGRESS.md`.
@@ -39,7 +39,10 @@ your memory is the repo. Read, do ONE task, verify, commit, stop.
 - Only publish to the relay under broadcast names matching `laserdisc*.hang`.
 - Never create a `README.md` in a subdirectory. One README, top level.
 - Don't install anything globally except `cargo install moq-cli` (and the
-  `--version 0.8.4` fallback described in Task 1).
+  `--version 0.8.4` fallback described in Task 1) and `brew install tesseract`
+  (Task 8). `npm install` is allowed **inside `tools/measure/` only** — never
+  `npm i -g`. If `node`/`npm` or Google Chrome is missing on this machine, mark
+  the step `blocked: human` and append what's needed to `ralph/HUMAN.md`.
 - Docker is fine for the local MediaMTX only. Always `docker compose … down` what you
   started.
 - Kill every background process you started (ffmpeg, moq, python http.server) before
@@ -56,8 +59,8 @@ your memory is the repo. Read, do ONE task, verify, commit, stop.
   it; work on whatever else is unchecked, or finish.
 
 ## Finish
-When Tasks 1–6 are fully checked, `bash tests/run.sh` passes, and Task 7 is checked or
-marked `blocked: hardware` with a `ralph/HUMAN.md` entry, print exactly:
+When Tasks 1–6, 8, and 9 are fully checked, `bash tests/run.sh` passes, and Task 7 is
+checked or carries `blocked:` markers with matching `ralph/HUMAN.md` entries, print exactly:
 
 <promise>LASER_MOQ_COMPLETE</promise>
 

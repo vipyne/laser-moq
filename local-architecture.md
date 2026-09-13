@@ -15,7 +15,7 @@ the real relay (`$MOQ_RELAY_URL`), even in dev.
                                     ▼
   scripts/publish.sh   (scripts/preview.sh = eyeball the card, no encode)
   ┌───────────────────────────────────────────────────────────────────┐
-  │ ffmpeg — one encode, wall clock burned in (overlay.filter)        │
+  │ ffmpeg — ONE encode, wall clock burned in (overlay.filter)        │
   │   -f tee ─┬─▶ [mpegts] stdout ──▶ moq import ts  (moq-cli)        │
   │           └─▶ [flv] rtmp://localhost:1935/laserdisc               │
   │                       ?user=laserdisc&pass=changeme (dev creds)   │
@@ -38,10 +38,7 @@ the real relay (`$MOQ_RELAY_URL`), even in dev.
 
   python3 -m http.server 8000   (run from site/)
   http://localhost:8000/?hls=http://localhost:8888/laserdisc/index.m3u8
-  site/index.html + site/config.js   (gitignored; copy config.example.js —
-                                      this is where the relay URL comes from
-                                      locally, standing in for the Pages
-                                      workflow's generated config.js)
+  site/index.html + site/config.js   
   ┌────────────────────────────────────────────────────────────────────┐
   │  timecode strip (stacked burned-in clock crops)                    │
   ├─────────────────────────────────┬──────────────────────────────────┤
@@ -59,8 +56,10 @@ the real relay (`$MOQ_RELAY_URL`), even in dev.
 | ffmpeg + `moq` (pipeline from `publish.sh`) | the publisher | outbound only |
 | `python3 -m http.server 8000` | serves `site/` | 8000/tcp |
 
-Teardown: `pkill -f 'ffmpeg .*testsrc2'; pkill -f 'moq --client-connect';
-docker compose -f hls-origin/compose.local.yml down` (plus the http.server).
+All of this is managed by **`scripts/dev.sh`**: `up [test|capture]` starts the
+container + publisher + site server (writing `site/config.js` from
+`$MOQ_RELAY_URL` if missing), `down` stops everything including strays from
+ad-hoc runs, `status` shows what's running and whether the playlist is flowing.
 
 ## Tests share this topology
 

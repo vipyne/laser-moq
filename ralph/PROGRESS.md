@@ -102,3 +102,7 @@ Append-only. Newest at the bottom. Each iteration adds a dated entry.
 - New panel above the players live-crops the burned-in clock out of both streams and stacks them (MoQ over HLS, magnified) so the timecode delta is readable at a glance. Crop rect (10,10,360,70) is resolution-independent because overlay.filter draws at absolute x=20,y=20 fontsize=48.
 - Sources: `#moq canvas` and the hls `<video>`, copied via drawImage in the existing rAF tick; rows paint black when a stream isn't flowing. No getImageData/toDataURL (avoids tainted-canvas errors with cross-origin native HLS).
 - `tests/test-site.sh` now requires `tc-moq`/`tc-hls` (written first, seen failing, then passing). Suite 5/5.
+
+### 2026-09-13 — scripts/dev.sh (human-requested)
+- One command for the local stack: `dev.sh up [test|capture]` (compose up, publisher backgrounded with pidfile + logs/dev-publish.log, `python3 -m http.server 8000 --directory site`, writes site/config.js from $MOQ_RELAY_URL if absent), `dev.sh down` (pidfile kills with child-pkill for the ffmpeg|moq pipeline, stray-pattern cleanup, compose down), `dev.sh status` (incl. playlist-flowing check via cookie-jar curl). Verified: down→status(all DOWN)→up(playlist flowing) cycle.
+- README Layout + local-architecture.md updated to point at it.
