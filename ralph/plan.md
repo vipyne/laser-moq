@@ -841,7 +841,7 @@ Hard rules for this task: `data.json` lives under `site/`, and `tests/test-site.
 - End of run: read `--out`, append one run object (pretty-printed, `target` query-stripped), write back, and print a per-transport summary (n, p50, min, max) to stdout.
 - `--self-test` (offline, no browser, no network): write the repo's drawtext settings with the literal text `12:34:56.789` to a temp **filter script** (inline `-vf` with colons is the known escaping trap — see Global Constraints), render one 720x120 black frame with ffmpeg, run it through the exact crop→OCR→parse path, and assert the parsed string matches. Exit 0/1.
 
-- [ ] **Step 1: Write the test first** — create `tests/test-measure.sh`:
+- [x] **Step 1: Write the test first** — create `tests/test-measure.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -873,7 +873,7 @@ exit 0
 Run: `bash tests/test-measure.sh`
 Expected: FAILS (`missing site/results/data.json`).
 
-- [ ] **Step 2: Install the sanctioned deps**
+- [x] **Step 2: Install the sanctioned deps** *(tesseract + node already present; playwright pinned 1.63.0)*
 
 ```bash
 command -v tesseract >/dev/null || brew install tesseract
@@ -881,7 +881,7 @@ command -v node >/dev/null && command -v npm >/dev/null || echo "NO NODE"
 ```
 Expected: `tesseract --version` prints; if `NO NODE` printed, append the needed install to `ralph/HUMAN.md` (§7), mark this step `blocked: human`, commit, stop this task. Then create `tools/measure/package.json` (`{"name":"laser-moq-measure","private":true,"type":"module","dependencies":{"playwright":"<pin the exact version npm resolves today>"}}`), run `npm install` **inside `tools/measure/`**, add `tools/measure/node_modules/` to `.gitignore`. No `npx playwright install` — `channel: "chrome"` uses the machine's Chrome.
 
-- [ ] **Step 3: Seed data + self-test + wrapper + page hook**
+- [x] **Step 3: Seed data + self-test + wrapper + page hook**
 - Create `site/results/data.json` containing exactly `{"schema": 1, "runs": []}`.
 - Implement `measure.mjs` far enough that `--self-test` works (arg parsing, temp filter script + ffmpeg render, crop, tesseract invocation, `HH:MM:SS.mmm` parser).
 - `site/index.html`: after `hls.attachMedia(video);` add `window.__hls = hls; // instrumentation hook for tools/measure` and add `<a href="results/">measured latency</a>` to the footer.
@@ -898,14 +898,14 @@ exec node tools/measure/measure.mjs "$@"
 Run: `bash tests/test-measure.sh`
 Expected: PASS (self-test parses `12:34:56.789`).
 
-- [ ] **Step 4: Live measurement loop**
+- [x] **Step 4: Live measurement loop** *(probe result: `@moq/watch` 0.5.2 exposes `latency`/`latencyMin`/`latencyMax`/`jitter`, but the latency getters return the string `"real-time"`, not numbers — no api sample emitted. Deviation: parsed-but-absurd deltas (>10 min, i.e. an OCR digit error wrapping mod 24 h) are dropped as misreads, crop kept. See PROGRESS.md.)*
 - Implement the full measurement loop per the Harness contract above, including the run-append and the stdout summary.
 - **Probe `@moq/watch` for a latency stat**: `page.evaluate(() => Object.getOwnPropertyNames(Object.getPrototypeOf(document.getElementById("moq"))))` — record what exists in `ralph/PROGRESS.md`; only emit a moq `api` sample if a real latency/buffer value is exposed (do not invent one).
 
 Run: `bash tests/test-measure.sh && bash tests/test-site.sh`
 Expected: both PASS (site test proves no relay leak and the pins are untouched).
 
-- [ ] **Step 5: Local end-to-end** — needs `site/config.js` locally (copy `site/config.example.js`, value from `$MOQ_RELAY_URL`); the harness records `target` query-stripped either way:
+- [x] **Step 5: Local end-to-end** — needs `site/config.js` locally (copy `site/config.example.js`, value from `$MOQ_RELAY_URL`); the harness records `target` query-stripped either way:
 
 ```bash
 docker compose -f hls-origin/compose.local.yml up -d
@@ -922,7 +922,7 @@ bash tests/test-measure.sh
 ```
 Expected: one run appended with ≥4 successful `clock-ocr` samples per transport, MoQ p50 < HLS p50, `test-measure.sh` still PASS. If the canvas/video stays black headless, retry once with `--headed` before invoking the two-strike rule. Kill everything you started regardless of outcome.
 
-- [ ] **Step 6: Full suite + commit**
+- [x] **Step 6: Full suite + commit**
 
 ```bash
 bash tests/run.sh

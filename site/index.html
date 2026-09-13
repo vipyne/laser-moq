@@ -55,6 +55,7 @@
 </main>
 <footer>
   A stunt hack. Source + runbook: <a href="https://github.com/vipyne/laser-moq">github.com/vipyne/laser-moq</a>.
+  <a href="results/">Measured latency</a>.
   MoQ needs WebTransport (Chrome/Edge/Brave); this relay also speaks WebSocket so Safari should still connect.
 </footer>
 
@@ -88,6 +89,7 @@
     hls.on(Hls.Events.MANIFEST_PARSED, () => { shls.textContent = "hls.js lowLatencyMode"; video.play().catch(() => {}); });
     hls.loadSource(HLS_URL);
     hls.attachMedia(video);
+    window.__hls = hls; // instrumentation hook for tools/measure
   } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
     video.src = HLS_URL; shls.textContent = "native HLS (Safari)";
   } else {

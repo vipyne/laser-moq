@@ -5,3 +5,4 @@
 logs/
 site/config.js
 *.jwk
+tools/measure/node_modules/
