@@ -9,12 +9,12 @@
 | # | Task | Status | Model |
 |---|------|--------|-------|
 | 1 | Measurement preflight + warm-up diagnostics | done | sonnet |
-| 2 | /results legibility | pending | sonnet |
+| 2 | /results legibility | done | sonnet |
 | 3 | endpoint-map subcommands in dev/prod | pending | haiku |
 | 4 | Live-geo verification (e2e) | pending | sonnet |
 | 5 | MoQ auth repo-side + gated verification | pending | sonnet |
 
-_Updated: 2026-09-15, iteration 1 (Task 1 done)_
+_Updated: 2026-09-15, iteration 2 (Task 2 done)_
 
 **Goal:** The measurement workflow diagnoses its own misconfiguration (preflight names the URL that has no stream and which script to use); `/results` states what the tiles/chart/table/map each show and which run the map depicts; `dev.sh`/`prod.sh` grow `map` subcommands; live geo collection is proven end-to-end against the dev stack; MoQ publish auth gets a repo-side test that self-skips until the human completes `ralph/HUMAN.md` §6.
 
@@ -110,7 +110,7 @@ git add -A && git commit -m "feat: measurement preflight + warm-up diagnostics"
 **Interfaces:**
 - Produces: `#how-to-read` (static intro under the header), `#latest-run-label` (JS-filled `Latest run — <date> · <source> · <machine>`), `#map-title` (JS-filled `Where the <date> run ran`, suffixed ` (latest run with geo)` when that run is not the overall latest).
 
-- [ ] **Step 1: Write the failing test** — append to `tests/test-results-page.sh` before `exit 0`:
+- [x] **Step 1: Write the failing test** — append to `tests/test-results-page.sh` before `exit 0`:
 
 ```bash
 grep -q 'id="how-to-read"' $f       || { echo "how-to-read intro missing"; exit 1; }
@@ -122,7 +122,7 @@ grep -qi 'latest run only' $f       || { echo "tile scope wording missing"; exit
 Run: `bash tests/test-results-page.sh`
 Expected: FAIL on `how-to-read intro missing`.
 
-- [ ] **Step 2: Implement** in `site/results/index.html`:
+- [x] **Step 2: Implement** in `site/results/index.html`:
 - Under the header's existing `<p>`, add:
 
 ```html
@@ -154,7 +154,7 @@ document.getElementById("map-title").textContent =
 Run: `bash tests/test-results-page.sh && bash tests/test-site.sh`
 Expected: both PASS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add -A && git commit -m "feat: results page explains tiles/chart/table/map scope"

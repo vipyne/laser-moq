@@ -10,4 +10,8 @@ grep -qi 'glass' $f || { echo "no glass-to-glass wording"; exit 1; }
 grep -q 'results/' site/index.html || { echo "live page does not link to results/"; exit 1; }
 grep -q 'id="map"' $f || { echo "ascii map element missing"; exit 1; }
 grep -q 'TBD by human' README.md && { echo "README still has the placeholder latency table"; exit 1; }
+grep -q 'id="how-to-read"' $f       || { echo "how-to-read intro missing"; exit 1; }
+grep -q 'id="latest-run-label"' $f  || { echo "latest-run label missing"; exit 1; }
+grep -q 'id="map-title"' $f         || { echo "dynamic map title missing"; exit 1; }
+grep -qi 'latest run only' $f       || { echo "tile scope wording missing"; exit 1; }
 exit 0

@@ -45,9 +45,14 @@
 <header>
   <h1>📊 Measured latency</h1>
   <p>Glass-to-glass: the burned-in publisher clock, OCR'd out of each player, minus the local clock — measured on the publisher machine, so both clocks are one clock. <a href="../">← back to the live streams</a></p>
+  <p id="how-to-read">How to read this page: each <em>run</em> is one invocation of
+  <code>scripts/measure-latency.sh</code> on the publisher machine, reviewed and committed by a
+  human. The tiles summarize the <strong>latest run only</strong>; the chart and table show
+  <strong>every committed run</strong>; the map shows the single run named in its title.</p>
 </header>
 <main id="main">
   <div class="empty" id="empty" hidden>no measured runs yet</div>
+  <h2 id="latest-run-label" hidden></h2>
   <div class="tiles" id="tiles" hidden>
     <div class="tile" id="tile-moq">
       <h2>Media over QUIC <span class="badge">clock-ocr</span></h2>
@@ -65,12 +70,13 @@
     <div id="chart"></div>
   </section>
   <section id="map-section" hidden>
-    <h2>Where the last run ran</h2>
+    <h2 id="map-title">Where the last run ran</h2>
     <pre id="map"></pre>
     <div id="map-legend"></div>
   </section>
   <section id="table-section" hidden>
     <h2>Runs</h2>
+    <p class="sub">Every committed run; p50/min/max are that run's clock-ocr samples. <code>hlsjs-api</code> rows are player-reported latency, shown for cross-checking.</p>
     <table>
       <thead><tr><th>date</th><th>source</th><th>machine</th><th>transport</th>
         <th class="num">n</th><th class="num">p50 ms</th><th class="num">min</th><th class="num">max</th><th>notes</th></tr></thead>
@@ -171,7 +177,10 @@
   const MARKS = [["P", "publisher", "publisher"], ["R", "relay", "moq relay"],
                  ["H", "hls", "hls origin"], ["S", "page", "page CDN edge"]];
 
-  function drawMap(run) {
+  function drawMap(run, latestRun) {
+    document.getElementById("map-title").textContent =
+      `Where the ${run.started_utc.slice(0, 10)} run ran` +
+      (run === latestRun ? "" : " (latest run with geo)");
     const grid = Array.from({ length: MAP_H }, () => Array(MAP_W).fill(" "));
     for (const [row, spans] of Object.entries(LAND))
       for (const [c1, c2] of spans)
@@ -201,11 +210,15 @@
     const runs = (d.schema === 1 && Array.isArray(d.runs)) ? d.runs : [];
     if (!runs.length) { document.getElementById("empty").hidden = false; return; }
     for (const id of ["tiles", "chart-section", "table-section"]) document.getElementById(id).hidden = false;
-    tiles(runs[runs.length - 1]);
+    const latest = runs[runs.length - 1];
+    const lbl = document.getElementById("latest-run-label");
+    lbl.textContent = `Latest run — ${latest.started_utc.slice(0, 10)} · ${latest.source} · ${latest.machine ?? "?"}`;
+    lbl.hidden = false;
+    tiles(latest);
     chart(runs);
     table(runs);
     const geoRun = [...runs].reverse().find(r => r.geo && Object.values(r.geo).some(Boolean));
-    if (geoRun) { document.getElementById("map-section").hidden = false; drawMap(geoRun); }
+    if (geoRun) { document.getElementById("map-section").hidden = false; drawMap(geoRun, latest); }
   }).catch(() => { const e = document.getElementById("empty"); e.textContent = "could not load data.json"; e.hidden = false; });
 </script>
 </body>

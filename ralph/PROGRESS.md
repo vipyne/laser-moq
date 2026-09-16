@@ -161,3 +161,24 @@ docs/superpowers/plans/2026-09-15-auth-and-results-workflow.md
 - No background processes started this iteration, so nothing to kill.
 - Next: Task 2 (/results legibility — static intro + dynamic labels in
   `site/results/index.html`).
+
+### 2026-09-15 — Task 2 complete (/results legibility)
+- Checked `ralph/HUMAN.md` again first: no new dated notes since the last
+  iteration's read; nothing to fold into PLAN.md. Picked Task 2, the first
+  task with unchecked steps.
+- TDD per plan: appended the 4-line assertion block to
+  `tests/test-results-page.sh` before `exit 0`, ran it — failed on
+  "how-to-read intro missing" as expected. Implemented verbatim from the
+  plan: `#how-to-read` paragraph under the header intro, `<h2 id="latest-run-label"
+  hidden>` above the tiles (filled in the fetch handler with
+  `Latest run — <date> · <source> · <machine>`), `#map-title` heading text set
+  inside `drawMap(run, latestRun)` (added the second param + call-site arg),
+  and the `.sub` scope paragraph above the runs table.
+- `bash tests/test-results-page.sh` → PASS. `bash tests/test-site.sh` → PASS
+  (the plan's verify command). No deviations.
+- Did not run the full `tests/run.sh`: same reasoning as Task 1 — avoid
+  tearing down a dev stack that may be up outside this iteration; both
+  standalone tests specified by the plan's verify command are static/no-Docker
+  and green.
+- No background processes started this iteration.
+- Next: Task 3 (endpoint-map subcommands in `scripts/dev.sh`/`scripts/prod.sh`).
