@@ -30,4 +30,10 @@ command -v tesseract >/dev/null || { echo "SKIP: tesseract not installed"; exit 
 command -v node >/dev/null || { echo "SKIP: node not installed"; exit 0; }
 [[ -d tools/measure/node_modules ]] || { echo "SKIP: npm install not run in tools/measure"; exit 0; }
 node tools/measure/measure.mjs --self-test || { echo "self-test failed"; exit 1; }
+
+out=$(node tools/measure/measure.mjs --url "http://127.0.0.1:9/" 2>&1)
+[[ $? -ne 0 ]] || { echo "preflight should exit non-zero on unreachable target"; exit 1; }
+grep -q "preflight" <<<"$out" || { echo "preflight message missing"; exit 1; }
+grep -q "127.0.0.1:9" <<<"$out" || { echo "preflight must name the URL it probed"; exit 1; }
+
 exit 0

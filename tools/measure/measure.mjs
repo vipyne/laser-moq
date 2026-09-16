@@ -22,6 +22,7 @@ const opts = {
   debugDir: "",
   headed: false,
   selfTest: false,
+  skipPreflight: false,
 };
 for (let i = 0; i < argv.length; i++) {
   const a = argv[i];
@@ -35,6 +36,7 @@ for (let i = 0; i < argv.length; i++) {
   else if (a === "--debug-dir") opts.debugDir = next();
   else if (a === "--headed") opts.headed = true;
   else if (a === "--self-test") opts.selfTest = true;
+  else if (a === "--skip-preflight") opts.skipPreflight = true;
   else die(`unknown flag ${a}`);
 }
 function die(msg) { console.error(`measure: ${msg}`); process.exit(1); }
@@ -103,6 +105,30 @@ if (opts.selfTest) {
 }
 
 // --- live measurement -----------------------------------------------------
+// Preflight: fail fast, before Chrome, when the target's streams can't exist.
+const pageUrl = new URL(opts.url);
+const hlsUrl = pageUrl.searchParams.get("hls")
+  ?? "https://hls-laserdisc.vanessa-dev.com/laserdisc/index.m3u8";
+async function probe(u) {
+  try {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 8000);
+    const r = await fetch(u, { redirect: "follow", signal: ctl.signal });
+    clearTimeout(t);
+    return r.status;
+  } catch { return 0; }
+}
+if (!opts.skipPreflight) {
+  const pageStatus = await probe(pageUrl);
+  if (!pageStatus || pageStatus >= 400)
+    die(`preflight: page ${pageUrl} → ${pageStatus || "unreachable"}`);
+  const hlsStatus = await probe(hlsUrl);
+  if (!hlsStatus || hlsStatus >= 400)
+    die(`preflight: HLS playlist ${hlsUrl} → ${hlsStatus || "unreachable"}.\n` +
+      `  No stream at that origin — is the publisher's RTMP leg pointed there?\n` +
+      `  dev stack: scripts/dev.sh measure · prod: scripts/prod.sh up, then scripts/prod.sh measure`);
+}
+
 const { chromium } = await import("playwright");
 const localMsOfDay = epochMs => {
   const d = new Date(epochMs);
@@ -146,7 +172,8 @@ if (!state.hlsReady || !state.moqPainting) {
   const dead = [!state.moqPainting && "MoQ canvas never painted", !state.hlsReady && "HLS video never reached readyState 2"]
     .filter(Boolean).join("; ");
   await browser.close();
-  die(`warm-up failed: ${dead}`);
+  die(`warm-up failed: ${dead}\n  page: ${opts.url}\n  hls:  ${hlsUrl}\n` +
+    `  (preflight passed, so the origin is up — is the stream flowing? scripts/dev.sh status / scripts/prod.sh status)`);
 }
 await page.waitForTimeout(15_000); // grace: let both settle to steady-state
 

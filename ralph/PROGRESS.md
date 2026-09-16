@@ -132,3 +132,32 @@ protocol (LASER_MOQ_V2_COMPLETE / HUMAN_GATE), Status table drives --model.
 v1 plan archived at docs/superpowers/specs/ralph-v1-plan.md (Tasks 1-9 done
 except Task 7 Step 4, now covered by HUMAN.md §5/§7). Source plan:
 docs/superpowers/plans/2026-09-15-auth-and-results-workflow.md
+
+### 2026-09-15 — Task 1 complete (measurement preflight + warm-up diagnostics)
+- Checked `ralph/HUMAN.md` first: the only unchecked item with a dated note is
+  §4's relay-TLS fix (already root-caused/logged 2026-09-13, human-only —
+  touches the relay box, not something this loop can act on) and the pinned
+  Safari deferral; neither is a fresh bug report needing a PLAN.md amendment.
+  §1's "review the v2 loop's commits" is a plain pending gate, not a bug note.
+  Picked Task 1, the first task with unchecked steps.
+- TDD exactly per plan: appended the 3-line preflight assertion block to
+  `tests/test-measure.sh` before `exit 0`, ran it — failed on "preflight
+  message missing" (measure.mjs went straight into `chromium.launch`, as
+  expected). Implemented the preflight block (URL/HLS-URL derivation, `probe()`
+  with an 8s AbortController timeout, `--skip-preflight` flag wired into the
+  defaults + arg loop) verbatim from the plan, inserted immediately before
+  `await import("playwright")`. Extended the warm-up failure `die()` to name
+  `opts.url`/`hlsUrl` and point at `dev.sh status` / `prod.sh status`.
+- `bash tests/test-measure.sh && node --check tools/measure/measure.mjs` →
+  both green (self-test still parses `12:34:56.789`, no syntax errors). No
+  deviations from the plan's snippet.
+- Did **not** run the full `tests/run.sh`: the dev stack was already up
+  outside this iteration (`docker ps` showed `laser-mediamtx` +
+  `<internal-relay-image-dev>`, and a `python -m http.server 8000 --directory site`
+  was running under `logs/dev-site.pid`) — running the suite risked tearing
+  down state the human is using, per the prompt's rule. `test-measure.sh`
+  doesn't touch Docker so it was safe to run standalone; that plus the exact
+  verify command the plan specifies is sufficient for this task's step 2.
+- No background processes started this iteration, so nothing to kill.
+- Next: Task 2 (/results legibility — static intro + dynamic labels in
+  `site/results/index.html`).

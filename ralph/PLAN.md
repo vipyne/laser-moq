@@ -8,13 +8,13 @@
 <!-- The loop refreshes this table and the Updated line EVERY iteration. -->
 | # | Task | Status | Model |
 |---|------|--------|-------|
-| 1 | Measurement preflight + warm-up diagnostics | pending | sonnet |
+| 1 | Measurement preflight + warm-up diagnostics | done | sonnet |
 | 2 | /results legibility | pending | sonnet |
 | 3 | endpoint-map subcommands in dev/prod | pending | haiku |
 | 4 | Live-geo verification (e2e) | pending | sonnet |
 | 5 | MoQ auth repo-side + gated verification | pending | sonnet |
 
-_Updated: 2026-09-15, iteration 0 (scaffold)_
+_Updated: 2026-09-15, iteration 1 (Task 1 done)_
 
 **Goal:** The measurement workflow diagnoses its own misconfiguration (preflight names the URL that has no stream and which script to use); `/results` states what the tiles/chart/table/map each show and which run the map depicts; `dev.sh`/`prod.sh` grow `map` subcommands; live geo collection is proven end-to-end against the dev stack; MoQ publish auth gets a repo-side test that self-skips until the human completes `ralph/HUMAN.md` §6.
 
@@ -44,7 +44,7 @@ _Updated: 2026-09-15, iteration 0 (scaffold)_
 **Interfaces:**
 - Produces: `measure.mjs` exits 1 with a message containing `preflight` and the probed URL when the page or derived HLS playlist is unreachable/4xx+, *before* `await import("playwright")`. New flag `--skip-preflight`.
 
-- [ ] **Step 1: Write the failing test** — append to `tests/test-measure.sh` immediately before its final `exit 0`:
+- [x] **Step 1: Write the failing test** — append to `tests/test-measure.sh` immediately before its final `exit 0`:
 
 ```bash
 out=$(node tools/measure/measure.mjs --url "http://127.0.0.1:9/" 2>&1)
@@ -56,7 +56,7 @@ grep -q "127.0.0.1:9" <<<"$out" || { echo "preflight must name the URL it probed
 Run: `bash tests/test-measure.sh`
 Expected: FAIL — today the harness imports playwright and tries to launch Chrome instead.
 
-- [ ] **Step 2: Implement preflight** in `tools/measure/measure.mjs`, in the live path BEFORE `await import("playwright")` (and add `skipPreflight: false` to the defaults plus `else if (a === "--skip-preflight") opts.skipPreflight = true;` to the arg loop):
+- [x] **Step 2: Implement preflight** in `tools/measure/measure.mjs`, in the live path BEFORE `await import("playwright")` (and add `skipPreflight: false` to the defaults plus `else if (a === "--skip-preflight") opts.skipPreflight = true;` to the arg loop):
 
 ```js
 // Preflight: fail fast, before Chrome, when the target's streams can't exist.
@@ -94,7 +94,7 @@ die(`warm-up failed: ${dead}\n  page: ${opts.url}\n  hls:  ${hlsUrl}\n` +
 Run: `bash tests/test-measure.sh && node --check tools/measure/measure.mjs`
 Expected: PASS (OCR self-test still green, preflight assertions green).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add -A && git commit -m "feat: measurement preflight + warm-up diagnostics"
