@@ -105,6 +105,402 @@
           "at_utc": "2026-09-13T15:45:07Z"
         }
       ]
+    },
+    {
+      "started_utc": "2026-09-16T03:31:48Z",
+      "target": "http://localhost:8000/",
+      "source": "test",
+      "machine": "arm64 mac",
+      "notes": "local hls origin",
+      "samples": [
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1478,
+          "at_utc": "2026-09-16T03:32:05Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 716,
+          "at_utc": "2026-09-16T03:32:10Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1480,
+          "at_utc": "2026-09-16T03:32:10Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 1862,
+          "at_utc": "2026-09-16T03:32:10Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1484,
+          "at_utc": "2026-09-16T03:32:16Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 1891,
+          "at_utc": "2026-09-16T03:32:16Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 655,
+          "at_utc": "2026-09-16T03:32:21Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1480,
+          "at_utc": "2026-09-16T03:32:21Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 1830,
+          "at_utc": "2026-09-16T03:32:21Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 669,
+          "at_utc": "2026-09-16T03:32:26Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1480,
+          "at_utc": "2026-09-16T03:32:27Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 1889,
+          "at_utc": "2026-09-16T03:32:27Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1482,
+          "at_utc": "2026-09-16T03:32:32Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 1859,
+          "at_utc": "2026-09-16T03:32:32Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 651,
+          "at_utc": "2026-09-16T03:32:37Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1478,
+          "at_utc": "2026-09-16T03:32:37Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 1863,
+          "at_utc": "2026-09-16T03:32:37Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 669,
+          "at_utc": "2026-09-16T03:32:43Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1473,
+          "at_utc": "2026-09-16T03:32:43Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 1884,
+          "at_utc": "2026-09-16T03:32:43Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1479,
+          "at_utc": "2026-09-16T03:32:48Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 1859,
+          "at_utc": "2026-09-16T03:32:48Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 652,
+          "at_utc": "2026-09-16T03:32:53Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1483,
+          "at_utc": "2026-09-16T03:32:54Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 652,
+          "at_utc": "2026-09-16T03:32:59Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1479,
+          "at_utc": "2026-09-16T03:32:59Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 1831,
+          "at_utc": "2026-09-16T03:32:59Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1479,
+          "at_utc": "2026-09-16T03:33:04Z"
+        }
+      ],
+      "geo": {
+        "publisher": {
+          "city": "New Orleans",
+          "region": "Louisiana",
+          "country": "US",
+          "lat": 29.9547,
+          "lon": -90.0751
+        },
+        "relay": {
+          "city": "San Jose",
+          "region": "California",
+          "country": "US",
+          "lat": 37.2329,
+          "lon": -121.7875
+        },
+        "hls": null,
+        "page": null
+      }
+    },
+    {
+      "started_utc": "2026-09-16T03:40:27Z",
+      "target": "http://localhost:8000/",
+      "source": "test",
+      "machine": "arm64 mac",
+      "notes": "dev stack",
+      "samples": [
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 614,
+          "at_utc": "2026-09-16T03:40:45Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1386,
+          "at_utc": "2026-09-16T03:40:46Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 1712,
+          "at_utc": "2026-09-16T03:40:46Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1383,
+          "at_utc": "2026-09-16T03:40:51Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 1729,
+          "at_utc": "2026-09-16T03:40:51Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1381,
+          "at_utc": "2026-09-16T03:40:57Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 1736,
+          "at_utc": "2026-09-16T03:40:57Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 669,
+          "at_utc": "2026-09-16T03:41:02Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1382,
+          "at_utc": "2026-09-16T03:41:02Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 1711,
+          "at_utc": "2026-09-16T03:41:02Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1382,
+          "at_utc": "2026-09-16T03:41:07Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 572,
+          "at_utc": "2026-09-16T03:41:13Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1383,
+          "at_utc": "2026-09-16T03:41:13Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 1727,
+          "at_utc": "2026-09-16T03:41:13Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 671,
+          "at_utc": "2026-09-16T03:41:18Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1384,
+          "at_utc": "2026-09-16T03:41:18Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 1709,
+          "at_utc": "2026-09-16T03:41:18Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 653,
+          "at_utc": "2026-09-16T03:41:23Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1385,
+          "at_utc": "2026-09-16T03:41:24Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 1712,
+          "at_utc": "2026-09-16T03:41:24Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 650,
+          "at_utc": "2026-09-16T03:41:29Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1384,
+          "at_utc": "2026-09-16T03:41:29Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 661,
+          "at_utc": "2026-09-16T03:41:34Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1383,
+          "at_utc": "2026-09-16T03:41:34Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 1712,
+          "at_utc": "2026-09-16T03:41:34Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1382,
+          "at_utc": "2026-09-16T03:41:40Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 1727,
+          "at_utc": "2026-09-16T03:41:40Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 697,
+          "at_utc": "2026-09-16T03:41:45Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1387,
+          "at_utc": "2026-09-16T03:41:45Z"
+        }
+      ],
+      "geo": {
+        "publisher": {
+          "city": "New Orleans",
+          "region": "Louisiana",
+          "country": "US",
+          "lat": 29.9547,
+          "lon": -90.0751
+        },
+        "relay": {
+          "city": "San Jose",
+          "region": "California",
+          "country": "US",
+          "lat": 37.2329,
+          "lon": -121.7875
+        },
+        "hls": null,
+        "page": null
+      }
     }
   ]
 }

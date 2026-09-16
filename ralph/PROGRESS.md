@@ -124,3 +124,11 @@ Append-only. Newest at the bottom. Each iteration adds a dated entry.
 
 ### 2026-09-13 — scripts/prod.sh (human-requested)
 - Publisher runner for the x86 stage Mac (Pengo + media assumed connected): `up` exports SOURCE=capture and a credentialed prod RTMP_URL (built from $RTMP_PUBLISH_PASS; HLS_HOST/PAGE_URL/RTMP_URL overridable) and backgrounds run-forever.sh with a pidfile; `down` TERMs run-forever (its trap stops the pipeline) plus stray-pattern cleanup; `status` checks publisher pid, public playlist (cookie-jar curl), and the public page; `measure` wraps scripts/measure-latency.sh with --url <public page> --source capture. `help` mirrors dev.sh.
+
+### 2026-09-15 — v2 scaffold (by hand, not a loop iteration)
+Converted ralph/ to the v2 contract (create-ralph-loop skill): new PLAN.md
+(auth + results workflow, 5 tasks), PROMPT.md/ralph.sh with the two-promise
+protocol (LASER_MOQ_V2_COMPLETE / HUMAN_GATE), Status table drives --model.
+v1 plan archived at docs/superpowers/specs/ralph-v1-plan.md (Tasks 1-9 done
+except Task 7 Step 4, now covered by HUMAN.md §5/§7). Source plan:
+docs/superpowers/plans/2026-09-15-auth-and-results-workflow.md

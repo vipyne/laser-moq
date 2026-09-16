@@ -2,7 +2,8 @@
 # Production publisher, for the x86 Mac wired to the LaserDisc (Pengo + media
 # assumed connected). Publishes SOURCE=capture to the real relay + HLS origin
 # via run-forever.sh, and runs the latency measurement from the same machine.
-#   scripts/prod.sh up        start publishing (capture → relay + prod RTMP)
+#   scripts/prod.sh up        start publishing (capture → relay + prod RTMP;
+#                             SOURCE=test smoke-tests the same path pre-hardware)
 #   scripts/prod.sh down      stop publishing
 #   scripts/prod.sh status    publisher / public playlist / public page
 #   scripts/prod.sh measure   OCR latency run against the public page
@@ -21,7 +22,7 @@ up() {
   : "${MOQ_RELAY_URL:?export MOQ_RELAY_URL first}"
   : "${RTMP_PUBLISH_PASS:?export RTMP_PUBLISH_PASS first (matches .env on the HLS VM)}"
   if alive "$PID"; then echo "already publishing (pid $(cat "$PID"))"; status; return; fi
-  export SOURCE=capture
+  export SOURCE="${SOURCE:-capture}"   # SOURCE=test smoke-tests the prod path pre-hardware
   export RTMP_URL="${RTMP_URL:-rtmp://${HLS_HOST}:1935/laserdisc?user=laserdisc&pass=${RTMP_PUBLISH_PASS}}"
   scripts/run-forever.sh &
   echo $! > "$PID"

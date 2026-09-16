@@ -3,6 +3,7 @@
 #   scripts/dev.sh up [test|capture]   start everything (default: test source)
 #   scripts/dev.sh down                stop everything (incl. ad-hoc strays)
 #   scripts/dev.sh status              what's running right now
+#   scripts/dev.sh measure             OCR latency run against THIS stack's page
 # `up` needs MOQ_RELAY_URL; writes site/config.js from it if the file is missing.
 # Don't run tests/run.sh while the stack is up — its cleanup tears this down.
 set -u
@@ -95,19 +96,27 @@ status() {
   fi
 }
 
+measure() {
+  # Measure the dev stack's own page — not the public one — so the HLS pane
+  # points at the local MediaMTX this stack is actually publishing to.
+  scripts/measure-latency.sh --url "$PAGE_URL" --notes "dev stack" "$@"
+}
+
 help() {
   cat <<'EOF'
 scripts/dev.sh up            # test source (needs MOQ_RELAY_URL exported)
 scripts/dev.sh up capture    # real LaserDisc via the Pengo
 scripts/dev.sh status        # container / publisher / site / playlist-flowing
+scripts/dev.sh measure       # OCR latency run vs this stack's page (extra flags pass through)
 scripts/dev.sh down          # everything, including strays from manual runs
 EOF
 }
 
 case "${1:-}" in
-  up)     shift; up "$@";;
-  down)   down;;
-  status) status;;
-  help)   help;;
-  *)      help; exit 2;;
+  up)      shift; up "$@";;
+  down)    down;;
+  status)  status;;
+  measure) shift; measure "$@";;
+  help)    help;;
+  *)       help; exit 2;;
 esac

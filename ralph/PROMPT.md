@@ -1,67 +1,71 @@
-# Ralph loop prompt — LaserDisc over MoQ
+# Ralph loop prompt — LaserDisc over MoQ: auth + results workflow (v2)
 
 You are one iteration of an unattended loop. The same prompt runs every iteration;
 your memory is the repo. Read, do ONE task, verify, commit, stop.
 
 ## Read first (in this order)
-1. `ralph/PROGRESS.md` — what previous iterations did, versions that worked, known failures.
-2. `ralph/plan.md` — the task list with checkboxes. This is the source of truth for
-   what to build and how to verify it.
-3. `docs/superpowers/specs/2026-08-29-laserdisc-moq-livestream-design.md` — only if a
-   task's intent is unclear.
+1. `ralph/HUMAN.md` — a dated human note under an UNCHECKED **Gate:** item is a bug
+   report: before picking a task, add or amend the matching task/steps in
+   `ralph/PLAN.md` so the fix gets done and re-gated.
+2. `ralph/PLAN.md` — the `## Status` table, then the task list. This file is the
+   source of truth for what to build and how to verify it.
+3. `ralph/PROGRESS.md` — what previous iterations did, versions that worked, known
+   failures. Never retry a `## Blockers` entry seen three iterations in a row.
 4. `git log --oneline -20` and `git status`.
 
 ## Do
-- Pick the **first task with unchecked steps** in the plan (Tasks 1→9, in order). Do not
-  skip ahead unless the task (or the step) is marked `blocked: hardware` or `blocked: human`.
-- Follow its steps literally: write the test first, run it and see it fail, implement,
-  run it and see it pass, commit. Use the exact code in the plan unless it is
-  demonstrably wrong on this machine — if you change it, say why in `ralph/PROGRESS.md`.
-- Tick each step's checkbox in the plan file as you complete it. Ticked = verified by
-  running the command shown, not by reading the code.
-- Before finishing, run `bash tests/run.sh` (once it exists) and make sure nothing that
-  passed before is broken.
-- Append a short dated entry to `ralph/PROGRESS.md`: task, what you ran, result, anything
-  the next iteration must know (versions, quirks, failing commands verbatim).
-- Commit with `git add -A && git commit -m "<type>: <what>"` where type ∈ feat/fix/docs/test.
-  Every iteration ends with a commit, even if it's only `ralph/PROGRESS.md`.
+- Pick the **first task with unchecked steps**, in order. Do not touch steps marked
+  `gated: HUMAN.md §N` (while that gate is unchecked) or `blocked: …`.
+- Follow steps literally: write the test first, run it and see it fail, implement,
+  run it and see it pass. Tick a checkbox ONLY after running the verify command
+  shown — ticked means verified by running it, not by reading the code.
+- Update the `## Status` table at the top of `ralph/PLAN.md` every iteration
+  (statuses: pending / in progress / done / gated: HUMAN.md §N / blocked: <what>;
+  refresh the `_Updated:_` line). Preserve each row's `Model` cell — the driver
+  reads it to pick `--model` for the next iteration; change one only when
+  re-planning that task from a HUMAN.md gate note.
+- Append a dated entry to `ralph/PROGRESS.md` `## Iterations`: task, what you ran,
+  result, anything the next iteration must know (versions, quirks, failing
+  commands verbatim).
+- Commit locally: `git add -A && git commit -m "<type>: <what>"`, type ∈
+  feat/fix/docs/test. Every iteration ends with a commit, even if it only
+  touches `ralph/` files.
 
-## Hard rules (a deny list in `.claude/settings.json` enforces these too)
-- NEVER run `aws`, `oci`, `ssh`, `scp`, `rsync` to a host, `gh repo create`, `gh api`,
-  `gh pages`, `sudo`, or anything that touches infrastructure. Write the exact command
-  into `ralph/HUMAN.md` under the right section instead.
-- NEVER push to GitHub: no `git push`, no `git remote add`, no `gh` of any kind.
-  Commit locally only. The human reviews the commits and pushes (gate in
-  `ralph/HUMAN.md` §1).
-- NEVER change the relay (the host behind `MOQ_RELAY_URL`), its config, its version,
-  or its box. NEVER write the relay's URL, hostname, or IP into any file in this
-  repo — it comes from the `MOQ_RELAY_URL` env var only.
+## Hard rules (the deny list in `.claude/settings.json` enforces these too)
+- NEVER push or use `gh`: no `git push`, no `git remote add`, no `gh` of any kind.
+  Commits stay local; the human reviews and pushes (Gate in `ralph/HUMAN.md` §1).
+- NEVER run anything that touches infrastructure or remote hosts (`ssh`, `scp`,
+  `rsync` to a host, cloud CLIs, `sudo`). Write the exact command into
+  `ralph/HUMAN.md` under the right section instead.
+- NEVER change the relay (the host behind `MOQ_RELAY_URL`), its config, its
+  version, or its box. NEVER write the relay's URL, hostname, IP, or any token
+  into any file in this repo — the endpoint comes from the `MOQ_RELAY_URL` env
+  var only, and `tests/test-auth.sh` must never echo it.
 - Only publish to the relay under broadcast names matching `laserdisc*.hang`.
+- `site/results/data.json` must never contain `"ip"`, `"hostname"`, or `"host"`
+  keys — coarse geo (`city/region/country/lat/lon`) only.
 - Never create a `README.md` in a subdirectory. One README, top level.
-- Don't install anything globally except `cargo install moq-cli` (and the
-  `--version 0.8.4` fallback described in Task 1) and `brew install tesseract`
-  (Task 8). `npm install` is allowed **inside `tools/measure/` only** — never
-  `npm i -g`. If `node`/`npm` or Google Chrome is missing on this machine, mark
-  the step `blocked: human` and append what's needed to `ralph/HUMAN.md`.
-- Docker is fine for the local MediaMTX only. Always `docker compose … down` what you
-  started.
-- Kill every background process you started (ffmpeg, moq, python http.server) before
-  finishing: `pkill -f 'ffmpeg .*testsrc2'; pkill -f 'moq --client-connect'`.
+- Don't install anything globally except `brew install tesseract`; `npm install`
+  only inside `tools/measure/` (never `npm i -g`, never `npx playwright install`
+  — the harness drives the installed Chrome).
+- `site/results/index.html` stays library-free: no external `<script src=`.
+- Docker is fine for the local MediaMTX only (`hls-origin/compose.local.yml`).
+  Don't run `tests/run.sh` while the dev stack is up — cleanup tears it down.
+- Anything needing hardware, credentials, or a browser: append the exact
+  command/instructions to `ralph/HUMAN.md` (new § if needed), mark the plan step
+  `gated: HUMAN.md §N` (or `blocked: hardware`), and move to the next task.
+- Kill every background process you started before finishing:
+  `pkill -f 'ffmpeg .*overlay.filter'; pkill -f 'moq --client-connect'; pkill -f 'http.server 8000'; docker compose -f hls-origin/compose.local.yml down`
 
 ## When stuck
 - A step fails twice in this iteration → record the exact command and error in
-  `ralph/PROGRESS.md` under `## Blockers`, leave the checkbox unticked, commit, and stop.
-  The next iteration will read your notes and try a different angle.
-- Something needs hardware (the Pengo capture card) or a human (a browser check,
-  infra) → append to `ralph/HUMAN.md`, mark the step `blocked: hardware` /
-  `blocked: human` in the plan, commit, and move to the next task.
-- If `ralph/PROGRESS.md` shows the same blocker three iterations in a row, do not retry
-  it; work on whatever else is unchecked, or finish.
+  `ralph/PROGRESS.md` under `## Blockers`, leave the checkbox unticked, commit,
+  and stop. The next iteration will read your notes and try a different angle.
 
-## Finish
-When Tasks 1–6, 8, and 9 are fully checked, `bash tests/run.sh` passes, and Task 7 is
-checked or carries `blocked:` markers with matching `ralph/HUMAN.md` entries, print exactly:
-
-<promise>LASER_MOQ_COMPLETE</promise>
-
-Otherwise just stop after your commit; the loop will call you again.
+## Finish — promise protocol
+Print exactly ONE of these as your last line, or neither:
+- Every task in `ralph/PLAN.md` is fully checked and the full test suite passes →
+  `<promise>LASER_MOQ_V2_COMPLETE</promise>`
+- The ONLY remaining unchecked work is `gated:`/`blocked:` steps, each with a
+  matching `ralph/HUMAN.md` entry → `<promise>HUMAN_GATE</promise>`
+- Otherwise print no promise; stop after your commit and the loop calls you again.
