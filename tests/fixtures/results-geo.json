@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "runs": [
+    {
+      "started_utc": "2026-09-15T10:00:00Z",
+      "target": "https://moq-laserdisc.vanessa-dev.com/",
+      "source": "test",
+      "machine": "arm64 mac",
+      "notes": "fixture for test-endpoint-map.sh",
+      "samples": [
+        {"transport": "moq", "method": "clock-ocr", "glass_to_glass_ms": 412, "at_utc": "2026-09-15T10:01:00Z"},
+        {"transport": "moq", "method": "clock-ocr", "glass_to_glass_ms": 398, "at_utc": "2026-09-15T10:01:05Z"},
+        {"transport": "hls", "method": "clock-ocr", "glass_to_glass_ms": 4210, "at_utc": "2026-09-15T10:01:01Z"},
+        {"transport": "hls", "method": "clock-ocr", "glass_to_glass_ms": 4432, "at_utc": "2026-09-15T10:01:06Z"},
+        {"transport": "hls", "method": "hlsjs-api", "latency_ms": 3900, "at_utc": "2026-09-15T10:01:01Z"}
+      ],
+      "geo": {
+        "publisher": {"city": "New Orleans", "region": "Louisiana", "country": "US", "lat": 29.95, "lon": -90.07},
+        "relay": {"city": "San Jose", "region": "California", "country": "US", "lat": 37.34, "lon": -121.89},
+        "hls": {"city": "San Jose", "region": "California", "country": "US", "lat": 37.34, "lon": -121.89},
+        "page": {"city": "San Francisco", "region": "California", "country": "US", "lat": 37.77, "lon": -122.42}
+      }
+    }
+  ]
+}

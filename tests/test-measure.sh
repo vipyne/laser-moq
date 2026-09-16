@@ -12,6 +12,15 @@ for r in d["runs"]:
     assert "?" not in r["target"], "target must be query-stripped"
     for s in r["samples"]:
         assert s["transport"] in ("moq", "hls") and s["method"] in ("clock-ocr", "hlsjs-api")
+    g = r.get("geo")
+    if g:
+        assert set(g) <= {"publisher", "relay", "hls", "page"}
+        for v in g.values():
+            if v is not None:
+                assert set(v) <= {"city", "region", "country", "lat", "lon"}, "geo must stay coarse"
+raw = open(sys.argv[1]).read()
+assert '"ip"' not in raw and '"hostname"' not in raw and '"host"' not in raw, \
+    "endpoint identifiers must never be committed"
 PY
 [[ -f tools/measure/package.json ]] || { echo "missing tools/measure/package.json"; exit 1; }
 grep -q '"playwright"' tools/measure/package.json || { echo "playwright not pinned"; exit 1; }

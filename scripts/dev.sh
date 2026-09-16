@@ -95,9 +95,19 @@ status() {
   fi
 }
 
+help() {
+  cat <<'EOF'
+scripts/dev.sh up            # test source (needs MOQ_RELAY_URL exported)
+scripts/dev.sh up capture    # real LaserDisc via the Pengo
+scripts/dev.sh status        # container / publisher / site / playlist-flowing
+scripts/dev.sh down          # everything, including strays from manual runs
+EOF
+}
+
 case "${1:-}" in
   up)     shift; up "$@";;
   down)   down;;
   status) status;;
-  *)      sed -n '2,7p' "$0" | sed 's/^# \{0,1\}//'; exit 2;;
+  help)   help;;
+  *)      help; exit 2;;
 esac

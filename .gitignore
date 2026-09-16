@@ -1,8 +1,9 @@
 .DS_Store
 *.log
 .env
-.claude/ralph-loop.local.md
+.claude/
 logs/
 site/config.js
 *.jwk
 tools/measure/node_modules/
+**__pycache__

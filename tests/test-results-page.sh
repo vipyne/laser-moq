@@ -8,5 +8,6 @@ grep -Eq '<script[^>]*src=' $f && { echo "external script in results page (must 
 grep -q 'id="tile-moq"' $f && grep -q 'id="tile-hls"' $f || { echo "summary tiles missing"; exit 1; }
 grep -qi 'glass' $f || { echo "no glass-to-glass wording"; exit 1; }
 grep -q 'results/' site/index.html || { echo "live page does not link to results/"; exit 1; }
+grep -q 'id="map"' $f || { echo "ascii map element missing"; exit 1; }
 grep -q 'TBD by human' README.md && { echo "README still has the placeholder latency table"; exit 1; }
 exit 0

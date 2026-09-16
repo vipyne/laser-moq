@@ -61,6 +61,35 @@ container + publisher + site server (writing `site/config.js` from
 `$MOQ_RELAY_URL` if missing), `down` stops everything including strays from
 ad-hoc runs, `status` shows what's running and whether the playlist is flowing.
 
+## Results pathway (dev variant)
+
+Same harness as prod (see [architecture.md](architecture.md)), pointed at the
+local page instead — useful for testing the harness and the results page
+without touching the public data:
+
+```
+  laptop
+  ┌──────────────────────────────────────────────────────────────────┐
+  │  scripts/dev.sh up                       (stream must be flowing)│
+  │  scripts/measure-latency.sh --url http://localhost:8000/ \       │
+  │                             --source test --notes "dev run"      │
+  │    Playwright + Chrome → screenshot players → OCR burned clock   │
+  │    appends ONE run ─▶ site/results/data.json  (working tree)     │
+  └──────────────────────────────┬───────────────────────────────────┘
+                                 ▼
+  view it:   http://localhost:8000/results/   (dev.sh already serves it)
+  then either:
+    git checkout site/results/data.json   # toss the dev run, or
+    commit + push                         # it ships to the PUBLIC results
+                                          # page and, being last in the
+                                          # file, takes over the headline
+                                          # tiles — usually not what you
+                                          # want for a test run
+```
+
+Prereqs: `brew install tesseract`, node, `npm install` in `tools/measure/`
+(`tests/test-measure.sh` self-skips when these are missing).
+
 ## Tests share this topology
 
 `tests/run.sh` starts/stops the same compose file and kills stray

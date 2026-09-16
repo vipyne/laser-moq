@@ -121,9 +121,9 @@ How a run gets there: run `scripts/measure-latency.sh` on the publisher machine
 
 `bash tests/run.sh` runs every `tests/test-*.sh`. `test-roundtrip.sh` and
 `test-run-forever.sh` need network (the relay) + moq-cli; `test-hls.sh` needs
-Docker too. `test-resolve-device.sh`, `test-site.sh` and `test-results-page.sh`
-are offline. `test-measure.sh` self-skips its OCR self-test when tesseract,
-node, or `tools/measure/node_modules` is missing.
+Docker too. `test-resolve-device.sh`, `test-site.sh`, `test-results-page.sh`
+and `test-endpoint-map.sh` are offline. `test-measure.sh` self-skips its OCR
+self-test when tesseract, node, or `tools/measure/node_modules` is missing.
 
 ## Troubleshooting
 
@@ -148,9 +148,11 @@ node, or `tools/measure/node_modules` is missing.
 | `scripts/list-devices.sh` | Wrapper around `ffmpeg -f avfoundation -list_devices`. |
 | `scripts/watch.sh` | Local subscriber: `moq … export fmp4 \| ffplay -`. |
 | `scripts/preview.sh` | Eyeball the capture card locally (ffplay, no encode/network); `FRAME=x.png` grabs a still. |
-| `scripts/dev.sh` | Local dev stack in one command: `up [test\|capture]` / `down` / `status`. |
+| `scripts/dev.sh` | Local dev stack in one command: `up [test\|capture]` / `down` / `status` / `help`. |
+| `scripts/prod.sh` | Publisher runner for the stage x86 Mac: `up` / `down` / `status` / `measure` (needs `MOQ_RELAY_URL` + `RTMP_PUBLISH_PASS`). |
 | `scripts/run-forever.sh` | Restart wrapper around `publish.sh` with backoff + log. |
 | `scripts/measure-latency.sh` | Wrapper around the OCR latency harness; appends a run to `site/results/data.json`. |
+| `scripts/endpoint_map.py` | ASCII world map of the deployment (publisher, relay, HLS origin, page CDN) + path diagrams; `--demo` for offline. |
 | `tools/measure/` | The harness: Playwright drives installed Chrome, tesseract reads the burned-in clock. |
 | `hls-origin/mediamtx.yml` | MediaMTX config (RTMP in, LL-HLS out). |
 | `hls-origin/compose.local.yml` | Laptop: mediamtx only. |

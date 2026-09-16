@@ -207,13 +207,64 @@ for (let i = 0; i < opts.samples; i++) {
   }
   if (i < opts.samples - 1) await page.waitForTimeout(opts.intervalMs);
 }
+
+// Endpoint hostnames as the page sees them — used only to look up coarse geo,
+// never written anywhere. data.json is committed, so it gets cities and
+// coordinates only (tests/test-measure.sh enforces this).
+const hosts = await page.evaluate(() => {
+  const hostOf = u => { try { return new URL(u, location.href).hostname; } catch { return null; } };
+  return {
+    relay: hostOf(document.getElementById("moq")?.getAttribute("url") || ""),
+    hls: hostOf(window.__hls?.url || document.getElementById("hls")?.currentSrc || ""),
+    page: location.hostname,
+  };
+});
 await browser.close();
+
+const geo = await collectGeo(hosts);
+console.log(`geo: ${Object.entries(geo).map(([k, g]) => `${k}=${g ? g.city ?? "?" : "-"}`).join(" ")}`);
+
+async function collectGeo(hosts) {
+  const ipinfo = async (pathPart) => {
+    try {
+      const ctl = new AbortController();
+      const t = setTimeout(() => ctl.abort(), 10_000);
+      const r = await fetch(`https://ipinfo.io/${pathPart}`, {
+        headers: { Accept: "application/json" }, signal: ctl.signal });
+      clearTimeout(t);
+      return r.ok ? await r.json() : null;
+    } catch { return null; }
+  };
+  const coarse = (g) => {
+    if (!g) return null;
+    const out = {};
+    for (const k of ["city", "region", "country"]) if (g[k]) out[k] = g[k];
+    const [lat, lon] = (g.loc || "").split(",").map(Number);
+    if (Number.isFinite(lat) && Number.isFinite(lon)) { out.lat = lat; out.lon = lon; }
+    return Object.keys(out).length ? out : null;
+  };
+  const isLocal = h => !h || h === "localhost" || h === "::1" || h.startsWith("127.") || h.endsWith(".local");
+  const geoHost = async (host) => {
+    if (isLocal(host)) return null;
+    try {
+      const { lookup } = await import("node:dns/promises");
+      const { address } = await lookup(host, { family: 4 });
+      return coarse(await ipinfo(`${address}/json`));
+    } catch { return null; }
+  };
+  return {
+    publisher: coarse(await ipinfo("json")),
+    relay: await geoHost(hosts.relay),
+    hls: await geoHost(hosts.hls),
+    page: await geoHost(hosts.page),
+  };
+}
 
 // --- append the run and summarize ----------------------------------------
 const target = (() => { const u = new URL(opts.url); u.search = ""; u.hash = ""; return u.toString(); })();
 const machine = `${process.arch} ${process.platform === "darwin" ? "mac" : process.platform}`;
 const data = JSON.parse(fs.readFileSync(opts.out, "utf8"));
-data.runs.push({ started_utc: startedUtc, target, source: opts.source, machine, notes: opts.notes, samples });
+data.runs.push({ started_utc: startedUtc, target, source: opts.source, machine, notes: opts.notes, samples, geo });
 fs.writeFileSync(opts.out, JSON.stringify(data, null, 2) + "\n");
 console.log(`appended run (${samples.length} samples) to ${opts.out}`);
 

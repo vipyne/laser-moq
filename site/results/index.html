@@ -30,6 +30,12 @@
   td.num { font-family: ui-monospace, monospace; text-align: right; }
   th.num { text-align: right; }
   .caveats { color: #aaa; font-size: .9rem; border-left: 3px solid #222; padding-left: .75rem; }
+  #map { font: 11px/1.2 ui-monospace, monospace; margin: 0; padding: .6rem .8rem;
+         background: #000; border: 1px solid #222; border-radius: 6px; overflow-x: auto; color: #444; }
+  #map .m-P { color: #eee; font-weight: 700; } #map .m-R { color: #8ab4ff; font-weight: 700; }
+  #map .m-H { color: #ffb74d; font-weight: 700; } #map .m-S { color: #9e9e9e; font-weight: 700; }
+  #map-legend { color: #aaa; font-size: .85rem; margin-top: .4rem; }
+  #map-legend span { margin-right: 1.2rem; white-space: nowrap; }
   .empty { color: #aaa; padding: 2rem 0; }
   footer { padding: 1rem 1.5rem; color: #777; font-size: .85rem; }
   a { color: #8ab4ff; }
@@ -57,6 +63,11 @@
   <section id="chart-section" hidden>
     <h2>All runs — <span class="moq">MoQ</span> vs <span class="hls-c">HLS</span>, one dot per sample</h2>
     <div id="chart"></div>
+  </section>
+  <section id="map-section" hidden>
+    <h2>Where the last run ran</h2>
+    <pre id="map"></pre>
+    <div id="map-legend"></div>
   </section>
   <section id="table-section" hidden>
     <h2>Runs</h2>
@@ -147,6 +158,45 @@
     document.getElementById("rows").innerHTML = rows.join("");
   }
 
+  // Same coarse world as scripts/endpoint_map.py: 72x24 equirectangular,
+  // 5°/col from 180W, 7.5°/row from 90N; land as per-row column spans.
+  const LAND = { 1: [[24,32]], 2: [[24,31],[40,44],[46,70]], 3: [[3,8],[12,24],[25,30],[39,46],[46,71]],
+    4: [[10,24],[34,36],[38,48],[48,71]], 5: [[8,24],[34,48],[48,70]], 6: [[9,23],[34,46],[46,62],[62,64]],
+    7: [[10,22],[33,46],[46,50],[52,62],[63,64]], 8: [[12,20],[32,46],[46,50],[48,54],[54,62]],
+    9: [[12,17],[32,46],[48,53],[55,61]], 10: [[14,18],[30,46],[49,51],[55,62]], 11: [[16,20],[32,44],[55,64]],
+    12: [[16,26],[34,42],[56,66]], 13: [[18,27],[34,42],[61,64]], 14: [[18,26],[34,40],[59,67]],
+    15: [[18,26],[34,39],[58,67]], 16: [[18,23],[35,37],[59,66]], 17: [[18,22],[68,69]],
+    18: [[18,21],[67,68]], 19: [[19,20]], 22: [[8,62]], 23: [[4,66]] };
+  const MAP_W = 72, MAP_H = 24;
+  const MARKS = [["P", "publisher", "publisher"], ["R", "relay", "moq relay"],
+                 ["H", "hls", "hls origin"], ["S", "page", "page CDN edge"]];
+
+  function drawMap(run) {
+    const grid = Array.from({ length: MAP_H }, () => Array(MAP_W).fill(" "));
+    for (const [row, spans] of Object.entries(LAND))
+      for (const [c1, c2] of spans)
+        for (let c = c1; c <= Math.min(c2, MAP_W - 1); c++) grid[+row][c] = ".";
+    const placed = [];
+    for (const [letter, key, label] of MARKS) {
+      const g = run.geo[key];
+      if (!g || typeof g.lat !== "number" || typeof g.lon !== "number") continue;
+      const r = Math.min(MAP_H - 1, Math.max(0, Math.floor((90 - g.lat) / 7.5)));
+      const c = Math.min(MAP_W - 1, Math.max(0, Math.floor((g.lon + 180) / 5)));
+      for (const [dr, dc] of [[0,0],[0,1],[0,-1],[1,0],[-1,0],[0,2]]) {
+        const rr = r + dr, cc = c + dc;
+        if (rr >= 0 && rr < MAP_H && cc >= 0 && cc < MAP_W && !/[A-Z]/.test(grid[rr][cc])) {
+          grid[rr][cc] = letter; placed.push([letter, label, g]); break;
+        }
+      }
+    }
+    const html = row => row.map(ch => /[A-Z]/.test(ch) ? `<span class="m-${ch}">${ch}</span>` : ch).join("");
+    document.getElementById("map").innerHTML =
+      "┌" + "─".repeat(MAP_W) + "┐\n" + grid.map(r => "│" + html(r) + "│").join("\n") + "\n└" + "─".repeat(MAP_W) + "┘";
+    document.getElementById("map-legend").innerHTML = placed.map(([letter, label, g]) =>
+      `<span><span class="m-${letter}">${letter}</span> ${esc(label)} · ${esc([g.city, g.region].filter(Boolean).join(", "))}</span>`
+    ).join("") + `<span>run ${esc(run.started_utc.slice(0, 10))} · coarse geo, cities only</span>`;
+  }
+
   fetch("./data.json").then(r => r.json()).then(d => {
     const runs = (d.schema === 1 && Array.isArray(d.runs)) ? d.runs : [];
     if (!runs.length) { document.getElementById("empty").hidden = false; return; }
@@ -154,6 +204,8 @@
     tiles(runs[runs.length - 1]);
     chart(runs);
     table(runs);
+    const geoRun = [...runs].reverse().find(r => r.geo && Object.values(r.geo).some(Boolean));
+    if (geoRun) { document.getElementById("map-section").hidden = false; drawMap(geoRun); }
   }).catch(() => { const e = document.getElementById("empty"); e.textContent = "could not load data.json"; e.hidden = false; });
 </script>
 </body>

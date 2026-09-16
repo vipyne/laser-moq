@@ -74,6 +74,46 @@ protocol path alone.
   relay is untouched.
 ```
 
+## Results pathway (measured latency)
+
+Runs happen on the **x86 publisher Mac** — the same machine that burns the
+clock into the picture, so "burned-in clock" and "local clock" are one clock
+and there is no NTP skew. Nothing writes to git automatically; publishing a
+run is always a human commit.
+
+```
+  x86 publisher Mac (off-site, its own clone of this repo)
+  ┌──────────────────────────────────────────────────────────────────┐
+  │  scripts/prod.sh measure                                         │
+  │    └─▶ scripts/measure-latency.sh ─▶ tools/measure/measure.mjs   │
+  │         Playwright drives the installed Chrome:                  │
+  │           open https://moq-laserdisc.vanessa-dev.com/            │
+  │           (the real public page — full prod path end to end)     │
+  │           warm up both players → every ~5s, per player:          │
+  │             screenshot pane → crop top-left corner →             │
+  │             tesseract OCRs the burned-in publisher clock         │
+  │             glass_to_glass_ms = local now − burned clock         │
+  │           (+ hls.js self-reported latency, kept as cross-check)  │
+  │                                                                  │
+  │    appends ONE run ─▶ site/results/data.json                     │
+  │                       append-only · working-tree edit only —     │
+  │                       nothing touches git automatically          │
+  └──────────────────────────┬───────────────────────────────────────┘
+                             │  human: review the run →
+                             │  git commit → git push
+                             ▼
+  GitHub main ── site/** changed ─▶ pages.yml ─▶ GitHub Pages redeploy
+                             ▼
+  https://moq-laserdisc.vanessa-dev.com/results/
+    tiles  = latest run only (p50 per transport)
+    chart  = every run ever, one dot per sample
+    table  = every run, newest first (+ hlsjs-api rows)
+```
+
+Because `data.json` is append-only and the tiles headline the *last* run,
+make sure the real capture run is the final entry at push time — a stray
+`--source test` run committed after it would take over the headline.
+
 ## Where things are decided
 
 | Concern | Decided by |
