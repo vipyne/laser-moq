@@ -63,7 +63,12 @@ status() {
 
 measure() {
   # Both clocks are this machine's clock — run it here, not on a viewer machine.
-  scripts/measure-latency.sh --url "$PAGE_URL" --source capture "$@"
+  scripts/measure-latency.sh --url "$PAGE_URL" --source capture "$@" \
+    && python3 scripts/endpoint_map.py --from-run || true
+}
+
+map() {
+  python3 scripts/endpoint_map.py "$@"
 }
 
 help() {
@@ -72,6 +77,7 @@ scripts/prod.sh up         # publish capture → relay + prod HLS (run-forever)
 scripts/prod.sh down       # stop publishing
 scripts/prod.sh status     # publisher / public playlist / public page
 scripts/prod.sh measure    # OCR latency run vs the public page (extra flags pass through)
+scripts/prod.sh map        # live prod map
 EOF
 }
 
@@ -80,6 +86,7 @@ case "${1:-}" in
   down)    down;;
   status)  status;;
   measure) shift; measure "$@";;
+  map)     shift; map "$@";;
   help)    help;;
   *)       help; exit 2;;
 esac

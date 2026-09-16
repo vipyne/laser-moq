@@ -10,11 +10,11 @@
 |---|------|--------|-------|
 | 1 | Measurement preflight + warm-up diagnostics | done | sonnet |
 | 2 | /results legibility | done | sonnet |
-| 3 | endpoint-map subcommands in dev/prod | pending | haiku |
+| 3 | endpoint-map subcommands in dev/prod | done | haiku |
 | 4 | Live-geo verification (e2e) | pending | sonnet |
 | 5 | MoQ auth repo-side + gated verification | pending | sonnet |
 
-_Updated: 2026-09-15, iteration 2 (Task 2 done)_
+_Updated: 2026-09-15, iteration 3 (Task 3 done)_
 
 **Goal:** The measurement workflow diagnoses its own misconfiguration (preflight names the URL that has no stream and which script to use); `/results` states what the tiles/chart/table/map each show and which run the map depicts; `dev.sh`/`prod.sh` grow `map` subcommands; live geo collection is proven end-to-end against the dev stack; MoQ publish auth gets a repo-side test that self-skips until the human completes `ralph/HUMAN.md` §6.
 

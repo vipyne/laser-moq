@@ -182,3 +182,19 @@ docs/superpowers/plans/2026-09-15-auth-and-results-workflow.md
   and green.
 - No background processes started this iteration.
 - Next: Task 3 (endpoint-map subcommands in `scripts/dev.sh`/`scripts/prod.sh`).
+
+### 2026-09-15 — Task 3 complete (endpoint-map subcommands)
+- Checked `ralph/HUMAN.md` again: no new dated notes; nothing to add to PLAN.md.
+  Picked Task 3, the first unchecked task.
+- TDD per plan: appended the 3-line assertion block to `tests/test-endpoint-map.sh`
+  before `exit 0`, ran it → failed on "dev.sh map missing from help" as expected.
+- Implemented verbatim: added `map()` function in `scripts/dev.sh` calling
+  `python3 scripts/endpoint_map.py --hls localhost --page localhost "$@"`;
+  added help line for map; added case arm. Same in `scripts/prod.sh`: `map()`
+  calling `python3 scripts/endpoint_map.py "$@"`, help line, case arm.
+  Modified `scripts/prod.sh measure()` to append `&& python3 scripts/endpoint_map.py
+  --from-run || true` after the measure-latency.sh call.
+- `bash tests/test-endpoint-map.sh && bash -n scripts/dev.sh && bash -n scripts/prod.sh`
+  → all green (test passes, both scripts syntax-clean). No deviations from the plan.
+- No background processes started this iteration.
+- Next: Task 4 (live-geo e2e test).

@@ -20,4 +20,7 @@ for m in P R H S; do
 done
 grep -q '2026-09-15' <<<"$out" || { echo "run date missing from --from-run output"; exit 1; }
 grep -q 'New Orleans' <<<"$out" || { echo "stored geo missing from --from-run output"; exit 1; }
+scripts/dev.sh help | grep -q 'map'  || { echo "dev.sh map missing from help"; exit 1; }
+scripts/prod.sh help | grep -q 'map' || { echo "prod.sh map missing from help"; exit 1; }
+grep -q 'from-run' scripts/prod.sh   || { echo "prod.sh measure does not print the from-run map"; exit 1; }
 exit 0

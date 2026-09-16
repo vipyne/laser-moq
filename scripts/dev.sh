@@ -102,12 +102,18 @@ measure() {
   scripts/measure-latency.sh --url "$PAGE_URL" --notes "dev stack" "$@"
 }
 
+map() {
+  # Live map of THIS stack: relay is real; HLS/page are localhost (location unknown by design).
+  python3 scripts/endpoint_map.py --hls localhost --page localhost "$@"
+}
+
 help() {
   cat <<'EOF'
 scripts/dev.sh up            # test source (needs MOQ_RELAY_URL exported)
 scripts/dev.sh up capture    # real LaserDisc via the Pengo
 scripts/dev.sh status        # container / publisher / site / playlist-flowing
 scripts/dev.sh measure       # OCR latency run vs this stack's page (extra flags pass through)
+scripts/dev.sh map           # live map (relay real, HLS/page localhost by design)
 scripts/dev.sh down          # everything, including strays from manual runs
 EOF
 }
@@ -117,6 +123,7 @@ case "${1:-}" in
   down)    down;;
   status)  status;;
   measure) shift; measure "$@";;
+  map)     shift; map "$@";;
   help)    help;;
   *)       help; exit 2;;
 esac
