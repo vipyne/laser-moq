@@ -66,7 +66,8 @@ Pages workflow from the `MOQ_RELAY_URL` repo Actions variable; locally, copy
 If the relay requires tokens, they ride inside the same value — e.g.
 `https://relay.example.com/laserdisc?jwt=<token>` — a publish-capable token in
 the shell env, a subscribe-only token in the Actions variable. Setup:
-`ralph/HUMAN.md` §6.
+`ralph/HUMAN.md` §6. Once enabled, `bash tests/test-auth.sh` verifies the token
+protects publish while viewing stays anonymous.
 
 Quick start with the built-in test source (colour bars + 440 Hz tone), MoQ leg only:
 
@@ -121,9 +122,10 @@ How a run gets there: run `scripts/measure-latency.sh` on the publisher machine
 
 `bash tests/run.sh` runs every `tests/test-*.sh`. `test-roundtrip.sh` and
 `test-run-forever.sh` need network (the relay) + moq-cli; `test-hls.sh` needs
-Docker too. `test-resolve-device.sh`, `test-site.sh`, `test-results-page.sh`
-and `test-endpoint-map.sh` are offline. `test-measure.sh` self-skips its OCR
-self-test when tesseract, node, or `tools/measure/node_modules` is missing.
+Docker too. `test-resolve-device.sh`, `test-site.sh`, `test-results-page.sh`,
+`test-endpoint-map.sh`, and `test-auth.sh` are offline. `test-measure.sh` self-skips its OCR
+self-test when tesseract, node, or `tools/measure/node_modules` is missing. `test-auth.sh`
+self-skips until MoQ auth is enabled (see `ralph/HUMAN.md` §6).
 
 ## Troubleshooting
 
