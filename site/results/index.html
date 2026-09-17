@@ -91,6 +91,11 @@
       local clock are the same clock, so there is no NTP skew — but screenshot timing adds about
       ±50&nbsp;ms of noise to every glass-to-glass sample. <code>hlsjs-api</code> rows are the
       latency hls.js itself reports, not glass-to-glass, shown for cross-checking only.
+      Since Task 6, the harness records each run's HLS tuning receipt (client preset,
+      part target, sync target) straight off <code>window.__hls</code> — shown as a
+      hover tooltip on hls table rows and appended to the HLS tile's subtitle; runs from
+      before then have no tuning receipt and render as before. The viewer page's Mode A
+      "typical" and Mode B "ragged" presets are the two tuning stories this compares.
     </div>
   </section>
 </main>
@@ -104,12 +109,25 @@
   const p50 = v => { const s = [...v].sort((a, b) => a - b); const m = s.length >> 1; return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2); };
   const ocr = (run, t) => run.samples.filter(s => s.transport === t && s.method === "clock-ocr").map(s => s.glass_to_glass_ms);
 
+  function tuningLabel(run) {
+    const t = run.tuning;
+    if (!t) return "";
+    const parts = [];
+    if (t.preset) parts.push(t.preset);
+    if (typeof t.part_target_s === "number") parts.push(`part ${Math.round(t.part_target_s * 1000)}ms`);
+    if (typeof t.live_sync_s === "number") parts.push(`sync ${t.live_sync_s}s`);
+    if (typeof t.max_catchup_rate === "number") parts.push(`≤${t.max_catchup_rate}x`);
+    return parts.join(" · ");
+  }
+
   function tiles(latest) {
     for (const t of ["moq", "hls"]) {
       const v = ocr(latest, t);
       document.getElementById(t + "-p50").textContent = v.length ? p50(v).toLocaleString() + " ms" : "no samples";
+      const tuning = t === "hls" ? tuningLabel(latest) : "";
       document.getElementById(t + "-sub").textContent = v.length
-        ? `${v.length} samples · ${Math.min(...v).toLocaleString()}–${Math.max(...v).toLocaleString()} ms · ${latest.started_utc.slice(0, 10)} · ${esc(latest.source)}`
+        ? `${v.length} samples · ${Math.min(...v).toLocaleString()}–${Math.max(...v).toLocaleString()} ms · ${latest.started_utc.slice(0, 10)} · ${esc(latest.source)}` +
+          (tuning ? ` · ${esc(tuning)}` : "")
         : "";
     }
   }
@@ -149,8 +167,9 @@
       for (const t of ["moq", "hls"]) {
         const v = ocr(run, t);
         if (!v.length) continue;
-        rows.push(`<tr><td>${esc(run.started_utc.slice(0, 10))}</td><td>${esc(run.source)}</td><td>${esc(run.machine ?? "")}</td>` +
-          `<td><span class="${t === "moq" ? "moq" : "hls-c"}">${t}</span></td><td class="num">${v.length}</td>` +
+        const label = t === "hls" ? tuningLabel(run) : "";
+        rows.push(`<tr${label ? ` title="${esc(label)}"` : ""}><td>${esc(run.started_utc.slice(0, 10))}</td><td>${esc(run.source)}</td><td>${esc(run.machine ?? "")}</td>` +
+          `<td><span class="${t === "moq" ? "moq" : "hls-c"}">${t}</span>${label ? ` <small>${esc(label)}</small>` : ""}</td><td class="num">${v.length}</td>` +
           `<td class="num">${p50(v).toLocaleString()}</td><td class="num">${Math.min(...v).toLocaleString()}</td>` +
           `<td class="num">${Math.max(...v).toLocaleString()}</td><td>${esc(run.notes ?? "")}</td></tr>`);
       }
