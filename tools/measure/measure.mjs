@@ -191,6 +191,25 @@ const moqStats = await page.evaluate(() => {
 });
 console.log(`moq-watch stats: ${JSON.stringify(moqStats)}`); // recorded, not emitted — schema v1 has no moq api method
 
+// HLS client tuning as actually applied (never hand-typed) — see site/index.html PRESETS.
+const tuning = await page.evaluate(() => {
+  const h = window.__hls;
+  if (!h) return null;
+  const cfg = h.config ?? {};
+  const det = h.levels?.[h.currentLevel]?.details ?? h.levels?.[0]?.details ?? {};
+  const num = v => (typeof v === "number" && Number.isFinite(v) ? v : null);
+  return {
+    preset: typeof window.__hlspreset === "string" ? window.__hlspreset : null,
+    live_sync_s: num(cfg.liveSyncDuration),
+    max_latency_s: num(cfg.liveMaxLatencyDuration),
+    max_catchup_rate: num(cfg.maxLiveSyncPlaybackRate),
+    low_latency: cfg.lowLatencyMode === true,
+    part_target_s: num(det.partTarget),
+    target_duration_s: num(det.targetduration),
+  };
+});
+console.log(`tuning: ${JSON.stringify(tuning)}`);
+
 const panes = [
   { transport: "moq", selector: "#moq" },
   { transport: "hls", selector: "#hls" },
@@ -291,7 +310,7 @@ async function collectGeo(hosts) {
 const target = (() => { const u = new URL(opts.url); u.search = ""; u.hash = ""; return u.toString(); })();
 const machine = `${process.arch} ${process.platform === "darwin" ? "mac" : process.platform}`;
 const data = JSON.parse(fs.readFileSync(opts.out, "utf8"));
-data.runs.push({ started_utc: startedUtc, target, source: opts.source, machine, notes: opts.notes, samples, geo });
+data.runs.push({ started_utc: startedUtc, target, source: opts.source, machine, notes: opts.notes, samples, geo, "tuning": tuning });
 fs.writeFileSync(opts.out, JSON.stringify(data, null, 2) + "\n");
 console.log(`appended run (${samples.length} samples) to ${opts.out}`);
 
