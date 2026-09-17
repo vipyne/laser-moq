@@ -29,8 +29,8 @@ hlsAllowOrigins: ['*']
 hlsAlwaysRemux: yes          # prepare the playlist even with zero viewers
 hlsVariant: lowLatency
 hlsSegmentCount: 7
-hlsSegmentDuration: 1s
-hlsPartDuration: 200ms
+hlsSegmentDuration: 500ms   # latency floor ≈ 3x part duration
+hlsPartDuration: 100ms
 hlsMuxerCloseAfter: 60s
 
 paths:

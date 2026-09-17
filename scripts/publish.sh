@@ -20,6 +20,9 @@ else
   SIZE="${SIZE:-1280x720}"
   FPS="${FPS:-30}"
 fi
+# GOP defaults to a 0.5s keyframe interval, FPS-coupled so 500ms HLS segments
+# always land on a keyframe (integer-truncates FPS like "60.000240").
+GOP="${GOP:-$(( ${FPS%%.*} / 2 ))}"
 
 usage() { sed -n '2,6p' "$0" | sed 's/^# \{0,1\}//'; exit 2; }
 [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]] && usage
@@ -45,7 +48,7 @@ if [[ "$HLS" == "1" ]]; then TEE="[f=mpegts]pipe:1|[f=flv:onfail=ignore]${RTMP_U
 echo "publish: source=$SOURCE relay=$MOQ_RELAY_URL broadcast=$BROADCAST hls=$HLS rtmp=$RTMP_URL" >&2
 exec ffmpeg -hide_banner -loglevel warning -nostats "${INPUT[@]}" \
   -filter_script:v "$HERE/overlay.filter" \
-  -c:v h264_videotoolbox -realtime 1 -b:v 2500k -g 30 -bf 0 -profile:v main -pix_fmt yuv420p \
+  -c:v h264_videotoolbox -realtime 1 -b:v 2500k -g "$GOP" -bf 0 -profile:v main -pix_fmt yuv420p \
   -c:a aac -b:a 128k -ar 48000 -ac 2 -flags +global_header \
   "${MAP[@]}" -f tee "$TEE" \
   | moq --client-connect "$MOQ_RELAY_URL" --broadcast "$BROADCAST" import ts
