@@ -7,7 +7,8 @@
 #   scripts/prod.sh down      stop publishing
 #   scripts/prod.sh status    publisher / public playlist / public page
 #   scripts/prod.sh measure   OCR latency run against the public page
-# Needs: MOQ_RELAY_URL and RTMP_PUBLISH_PASS exported; moq on PATH (~/.cargo/bin).
+# Needs: MOQ_RELAY_URL exported; moq on PATH (~/.cargo/bin). RTMP_PUBLISH_PASS
+# is read from hls-origin/.env automatically (an exported value wins).
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 cd "$HERE/.."
@@ -20,7 +21,10 @@ alive() { [[ -f "$1" ]] && kill -0 "$(cat "$1")" 2>/dev/null; }
 
 up() {
   : "${MOQ_RELAY_URL:?export MOQ_RELAY_URL first}"
-  : "${RTMP_PUBLISH_PASS:?export RTMP_PUBLISH_PASS first (matches .env on the HLS VM)}"
+  if [[ -z "${RTMP_PUBLISH_PASS:-}" && -f hls-origin/.env ]]; then
+    set -a; source hls-origin/.env; set +a
+  fi
+  : "${RTMP_PUBLISH_PASS:?not exported and no hls-origin/.env (matches .env on the HLS VM)}"
   if alive "$PID"; then echo "already publishing (pid $(cat "$PID"))"; status; return; fi
   export SOURCE="${SOURCE:-capture}"   # SOURCE=test smoke-tests the prod path pre-hardware
   export RTMP_URL="${RTMP_URL:-rtmp://${HLS_HOST}:1935/laserdisc?user=laserdisc&pass=${RTMP_PUBLISH_PASS}}"

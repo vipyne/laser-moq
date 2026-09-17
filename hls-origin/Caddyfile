@@ -1,6 +1,8 @@
 {$HLS_DOMAIN} {
 	encode zstd gzip
-	header Access-Control-Allow-Origin *
-	header Cache-Control "no-cache"
+	# No header directives here: MediaMTX already sends exactly one CORS
+	# allow-origin header plus its own cache policy. Adding a second copy of
+	# the allow-origin header makes browsers reject every HLS response
+	# (hls.js manifestLoadError) — tests/test-caddyfile.sh enforces this.
 	reverse_proxy mediamtx:8888
 }
