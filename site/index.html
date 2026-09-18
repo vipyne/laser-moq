@@ -79,12 +79,20 @@
   const HLS_URL = q.get("hls") ?? "https://hls-laserdisc.vanessa-dev.com/laserdisc/index.m3u8";
 
   // --- MoQ ---
+  // The element's latency default is "real-time": a ZERO jitter buffer, so any
+  // late frame is a visible stutter on a real network (HLS looks smooth on the
+  // same link only because hls.js buffers ≥1.5s). 150ms absorbs typical jitter
+  // while keeping MoQ far ahead of HLS. ?moqlatency=<ms> or =real-time to A/B.
+  const MOQ_LATENCY = q.get("moqlatency") ?? "150";
   const moq = document.getElementById("moq");
   const smoq = document.getElementById("status-moq");
   if (RELAY) {
     moq.setAttribute("url", RELAY);
     moq.setAttribute("name", NAME);
-    smoq.textContent = ("WebTransport" in window) ? "WebTransport" : "no WebTransport → WebSocket fallback";
+    moq.setAttribute("latency", MOQ_LATENCY);
+    window.__moqlatency = MOQ_LATENCY; // instrumentation hook for tools/measure
+    smoq.textContent = (("WebTransport" in window) ? "WebTransport" : "no WebTransport → WebSocket fallback")
+      + (MOQ_LATENCY === "real-time" ? " · real-time" : ` · buffer ${MOQ_LATENCY}ms`);
   } else {
     smoq.textContent = "no relay configured — copy site/config.example.js to site/config.js, or pass ?relay=<url>";
   }

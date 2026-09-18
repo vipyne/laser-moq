@@ -21,4 +21,7 @@ grep -q "liveSyncDuration: 1.5" $f                                || { echo "typ
 grep -q 'hlspreset' $f                                            || { echo "preset param/toggle missing"; exit 1; }
 grep -q 'id="hls-preset"' $f                                      || { echo "preset toggle UI missing"; exit 1; }
 grep -q 'TODO(sneaky)' $f                                         || { echo "sneaky-mode TODO note missing"; exit 1; }
+grep -q 'moqlatency' $f                                           || { echo "moq latency param missing"; exit 1; }
+grep -q 'setAttribute("latency"' $f                               || { echo "moq jitter buffer never set"; exit 1; }
+grep -q '__moqlatency' $f                                         || { echo "moq latency harness hook missing"; exit 1; }
 exit 0
