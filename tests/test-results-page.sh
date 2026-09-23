@@ -14,4 +14,6 @@ grep -q 'id="how-to-read"' $f       || { echo "how-to-read intro missing"; exit 
 grep -q 'id="latest-run-label"' $f  || { echo "latest-run label missing"; exit 1; }
 grep -q 'id="map-title"' $f         || { echo "dynamic map title missing"; exit 1; }
 grep -qi 'latest run only' $f       || { echo "tile scope wording missing"; exit 1; }
+grep -q 'tuningLabel' $f || { echo "tuning receipt display missing"; exit 1; }
+grep -qi 'tuning' $f     || { echo "caveats do not mention tuning"; exit 1; }
 exit 0

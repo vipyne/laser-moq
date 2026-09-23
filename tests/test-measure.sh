@@ -18,10 +18,16 @@ for r in d["runs"]:
         for v in g.values():
             if v is not None:
                 assert set(v) <= {"city", "region", "country", "lat", "lon"}, "geo must stay coarse"
+    t = r.get("tuning")
+    if t is not None:
+        assert set(t) <= {"preset", "live_sync_s", "max_latency_s", "max_catchup_rate",
+                           "low_latency", "part_target_s", "target_duration_s"}, \
+            "tuning must stay within the known receipt fields"
 raw = open(sys.argv[1]).read()
 assert '"ip"' not in raw and '"hostname"' not in raw and '"host"' not in raw, \
     "endpoint identifiers must never be committed"
 PY
+grep -q '"tuning"' tools/measure/measure.mjs || { echo "harness does not record tuning receipts"; exit 1; }
 [[ -f tools/measure/package.json ]] || { echo "missing tools/measure/package.json"; exit 1; }
 grep -q '"playwright"' tools/measure/package.json || { echo "playwright not pinned"; exit 1; }
 [[ -x scripts/measure-latency.sh ]] || { echo "measure-latency.sh missing or not executable"; exit 1; }

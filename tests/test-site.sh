@@ -15,4 +15,13 @@ grep -q 'lowLatencyMode' $f                                       || { echo "hls
 grep -q 'id="clock-moq"' $f && grep -q 'id="clock-hls"' $f        || { echo "clocks missing"; exit 1; }
 grep -q 'id="tc-moq"' $f && grep -q 'id="tc-hls"' $f              || { echo "timecode strip missing"; exit 1; }
 [[ "$(cat site/CNAME)" == "moq-laserdisc.vanessa-dev.com" ]]          || { echo "CNAME wrong"; exit 1; }
+grep -q 'maxLiveSyncPlaybackRate' $f                              || { echo "hls.js catch-up rate missing"; exit 1; }
+grep -q "liveSyncDuration: 0.3" $f                                || { echo "ragged preset missing"; exit 1; }
+grep -q "liveSyncDuration: 1.5" $f                                || { echo "typical preset missing"; exit 1; }
+grep -q 'hlspreset' $f                                            || { echo "preset param/toggle missing"; exit 1; }
+grep -q 'id="hls-preset"' $f                                      || { echo "preset toggle UI missing"; exit 1; }
+grep -q 'TODO(sneaky)' $f                                         || { echo "sneaky-mode TODO note missing"; exit 1; }
+grep -q 'moqlatency' $f                                           || { echo "moq latency param missing"; exit 1; }
+grep -q 'setAttribute("latency"' $f                               || { echo "moq jitter buffer never set"; exit 1; }
+grep -q '__moqlatency' $f                                         || { echo "moq latency harness hook missing"; exit 1; }
 exit 0

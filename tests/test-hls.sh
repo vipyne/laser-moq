@@ -25,6 +25,7 @@ media="$(grep -m1 -E '^[^#].*\.m3u8' "$OUT/index.m3u8")"
 sleep 3
 "${CURL[@]}" "http://localhost:8888/laserdisc/$media" -o "$OUT/media.m3u8" || { echo "no media playlist $media"; exit 1; }
 grep -q '#EXT-X-PART' "$OUT/media.m3u8" || { echo "not LL-HLS (no EXT-X-PART)"; head -30 "$OUT/media.m3u8"; exit 1; }
+grep -q 'PART-TARGET=0.1' "$OUT/media.m3u8" || { echo "part target is not 100ms"; head -5 "$OUT/media.m3u8"; exit 1; }
 echo "LL-HLS ok"
 # publish auth: an anonymous publisher must be rejected (rc 124 = timeout hit,
 # meaning ffmpeg was still happily streaming → auth is not enforced)
