@@ -190,7 +190,7 @@
   const deltaEl = document.getElementById("tc-delta");
   const msOfDay = d => ((d.getHours() * 60 + d.getMinutes()) * 60 + d.getSeconds()) * 1000 + d.getMilliseconds();
   const parseTc = text => {
-    const m = text.trim().match(/^(\d{2}):(\d{2}):(\d{2})\.(\d{3})$/);
+    const m = text.replace(/\s+/g, "").match(/^(\d{2}):(\d{2}):(\d{2})\.(\d{3})$/);
     if (!m) return null;
     const [h, mn, s, ms] = m.slice(1).map(Number);
     if (h > 23 || mn > 59 || s > 59) return null;
@@ -218,13 +218,16 @@
     catch { return; }   // CDN unreachable → punch-ins stay, numbers stay "—"
     const worker = await createWorker("eng");
     await worker.setParameters({ tessedit_char_whitelist: "0123456789:." });
+    const held = { moq: null, hls: null };   // hold last good read; failed reads don't blank the display
     while (true) {
       const moqLat = await readLatency(worker, tcMoq.canvas, moqSrc && moqSrc.width > 0);
       const hlsLat = await readLatency(worker, tcHls.canvas, video.readyState >= 2);
-      latMoqEl.textContent = fmtLat(moqLat);
-      latHlsEl.textContent = fmtLat(hlsLat);
-      deltaEl.textContent = (moqLat != null && hlsLat != null)
-        ? `Δ HLS−MoQ ${((hlsLat - moqLat) / 1000).toFixed(2)}s` : "";
+      if (moqLat != null) held.moq = moqLat;
+      if (hlsLat != null) held.hls = hlsLat;
+      latMoqEl.textContent = fmtLat(held.moq);
+      latHlsEl.textContent = fmtLat(held.hls);
+      deltaEl.textContent = (held.moq != null && held.hls != null)
+        ? `Δ HLS−MoQ ${((held.hls - held.moq) / 1000).toFixed(2)}s` : "";
       await new Promise(r => setTimeout(r, 1000));
     }
   })();

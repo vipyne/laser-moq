@@ -1,11 +1,9 @@
-# LIVE from a LaserDisc — over Media over QUIC
+# laser-moq
+everything is cooler with lasers.
 
 ## What this is
 
-A conference stunt hack: the analog output of a LaserDisc player, captured into a
-Mac and livestreamed over **Media over QUIC** to a public URL, with an identical
-**LL-HLS** stream beside it so the audience can read the latency difference off
-two clocks. Design and rationale: [the spec](docs/superpowers/specs/2026-08-29-laserdisc-moq-livestream-design.md).
+A conference stunt hack.
 
 ## Architecture
 
