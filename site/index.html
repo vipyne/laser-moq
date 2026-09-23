@@ -25,11 +25,16 @@
   .timecodes { margin: 1rem 1.5rem 0; padding: .5rem .75rem; background: #000;
                border: 1px solid #222; border-radius: 6px; max-width: 44rem; }
   .timecodes h2 { margin: 0 0 .25rem; font-size: .8rem; font-weight: 600; color: #aaa;
-                  letter-spacing: .08em; text-transform: uppercase; }
+                  letter-spacing: .08em; text-transform: uppercase;
+                  display: flex; justify-content: space-between; }
   .tc-row { display: flex; align-items: center; gap: .75rem; }
   .tc-row + .tc-row { margin-top: 2px; }
   .tc-row span { font: 700 1.5rem/1 ui-monospace, monospace; color: #8ab4ff; width: 4.5rem; }
   .tc-row canvas { display: block; width: min(540px, 100%); background: #000; }
+  .tc-row .tc-lat { font: 700 1.1rem/1 ui-monospace, monospace; color: #eee;
+                    width: 5.5rem; text-align: right; margin-left: auto; }
+  .tc-note { margin-top: .35rem; color: #888; font-size: .8rem; }
+  .tc-note span { font: 700 .9rem/1 ui-monospace, monospace; color: #8ab4ff; margin-right: .5rem; }
   footer { padding: 1rem 1.5rem; color: #777; font-size: .85rem; }
   a { color: #8ab4ff; }
 </style>
@@ -40,9 +45,10 @@
   <p>Same analog signal, same encoder, two protocols. The clock burned into the picture is the publisher's; the clock under each player is yours. The difference is latency.</p>
 </header>
 <section class="timecodes">
-  <h2>publisher timecodes, as received</h2>
-  <div class="tc-row"><span>MoQ</span><canvas id="tc-moq" width="360" height="70"></canvas></div>
-  <div class="tc-row"><span>HLS</span><canvas id="tc-hls" width="360" height="70"></canvas></div>
+  <h2>publisher timecodes, as received <span>latency</span></h2>
+  <div class="tc-row"><span>MoQ</span><canvas id="tc-moq" width="360" height="70"></canvas><span class="tc-lat" id="lat-moq">—</span></div>
+  <div class="tc-row"><span>HLS</span><canvas id="tc-hls" width="360" height="70"></canvas><span class="tc-lat" id="lat-hls">—</span></div>
+  <div class="tc-note"><span id="tc-delta"></span>latency vs this device's clock, ± clock sync · Δ is sync-independent</div>
 </section>
 <main>
   <section class="player">
@@ -91,8 +97,11 @@
     moq.setAttribute("name", NAME);
     moq.setAttribute("latency", MOQ_LATENCY);
     window.__moqlatency = MOQ_LATENCY; // instrumentation hook for tools/measure
+    let relayDisplay = "";
+    try { const u = new URL(RELAY); relayDisplay = ` · ${u.host}${u.pathname}`; } catch {}  // host+path only; JWT stays out
     smoq.textContent = (("WebTransport" in window) ? "WebTransport" : "no WebTransport → WebSocket fallback")
-      + (MOQ_LATENCY === "real-time" ? " · real-time" : ` · buffer ${MOQ_LATENCY}ms`);
+      + (MOQ_LATENCY === "real-time" ? " · real-time" : ` · buffer ${MOQ_LATENCY}ms`)
+      + relayDisplay;
   } else {
     smoq.textContent = "no relay configured — copy site/config.example.js to site/config.js, or pass ?relay=<url>";
   }
@@ -173,6 +182,52 @@
     requestAnimationFrame(tick);
   };
   tick();
+
+  // --- latency: OCR burned-in clock from each crop, subtract from viewer clock ---
+  // ~1Hz. Safari native-HLS taints tc-hls → recognize throws → "—".
+  const latMoqEl = document.getElementById("lat-moq");
+  const latHlsEl = document.getElementById("lat-hls");
+  const deltaEl = document.getElementById("tc-delta");
+  const msOfDay = d => ((d.getHours() * 60 + d.getMinutes()) * 60 + d.getSeconds()) * 1000 + d.getMilliseconds();
+  const parseTc = text => {
+    const m = text.trim().match(/^(\d{2}):(\d{2}):(\d{2})\.(\d{3})$/);
+    if (!m) return null;
+    const [h, mn, s, ms] = m.slice(1).map(Number);
+    if (h > 23 || mn > 59 || s > 59) return null;
+    return ((h * 60 + mn) * 60 + s) * 1000 + ms;
+  };
+  // Snapshot viewer clock before recognize: crop was drawn ≤1 frame ago, so OCR
+  // time (~100-300ms) never inflates the number.
+  const readLatency = async (worker, canvas, ready) => {
+    if (!ready) return null;
+    const at = msOfDay(new Date());
+    try {
+      const { data } = await worker.recognize(canvas);
+      const tc = parseTc(data.text);
+      if (tc == null) return null;
+      let l = at - tc;
+      if (l > 43_200_000) l -= 86_400_000;   // midnight wrap
+      if (l < -43_200_000) l += 86_400_000;
+      return (l > -2_000 && l < 3_600_000) ? l : null;   // misread digits → null
+    } catch { return null; }
+  };
+  const fmtLat = l => l == null ? "—" : (l / 1000).toFixed(2) + "s";
+  (async () => {
+    let createWorker;
+    try { ({ createWorker } = await import("https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/+esm")); }
+    catch { return; }   // CDN unreachable → punch-ins stay, numbers stay "—"
+    const worker = await createWorker("eng");
+    await worker.setParameters({ tessedit_char_whitelist: "0123456789:." });
+    while (true) {
+      const moqLat = await readLatency(worker, tcMoq.canvas, moqSrc && moqSrc.width > 0);
+      const hlsLat = await readLatency(worker, tcHls.canvas, video.readyState >= 2);
+      latMoqEl.textContent = fmtLat(moqLat);
+      latHlsEl.textContent = fmtLat(hlsLat);
+      deltaEl.textContent = (moqLat != null && hlsLat != null)
+        ? `Δ HLS−MoQ ${((hlsLat - moqLat) / 1000).toFixed(2)}s` : "";
+      await new Promise(r => setTimeout(r, 1000));
+    }
+  })();
 </script>
 </body>
 </html>
