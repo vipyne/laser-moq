@@ -1,0 +1,7 @@
+{
+  "schema": 1,
+  "relay":      { "host": "relay.vanessa-dev.com", "provider": "OCI",
+                  "shape": "FILL_ME", "region": "FILL_ME", "software": "moq-relay 0.13.5" },
+  "hls_origin": { "host": "hls-laserdisc.vanessa-dev.com", "provider": "FILL_ME",
+                  "shape": "FILL_ME", "region": "FILL_ME", "software": "MediaMTX (see compose tag)" }
+}
