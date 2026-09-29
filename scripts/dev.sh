@@ -17,6 +17,14 @@ mkdir -p logs
 
 alive() { [[ -f "$1" ]] && kill -0 "$(cat "$1")" 2>/dev/null; }
 
+# Serve site/ on :8000 so the session's receipt is browsable right after down.
+serve_receipts() {
+  pkill -f 'http.server 8000' 2>/dev/null
+  (python3 -m http.server 8000 --directory site >/dev/null 2>&1 &)
+  echo
+  echo "open: http://localhost:8000/receipts/"
+}
+
 up() {
   local src="${1:-test}"
   [[ "$src" == "test" || "$src" == "capture" ]] || { echo "usage: scripts/dev.sh up [test|capture]" >&2; exit 2; }
@@ -68,6 +76,7 @@ down() {
   pkill -f 'http.server 8000' 2>/dev/null
   "${COMPOSE[@]}" down 2>/dev/null
   echo "dev stack down"
+  serve_receipts
 }
 
 status() {

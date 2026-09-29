@@ -22,6 +22,13 @@
          background: #000; border: 1px solid #222; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; }
   section { margin-top: 1.5rem; }
   section h2 { font-size: 1.1rem; margin: 0 0 .5rem; }
+  section h3 { font-size: .95rem; margin: 1rem 0 .35rem; color: #aaa; }
+  #download { font: inherit; font-size: .85rem; background: #15151c; color: #8ab4ff;
+              border: 1px solid #333; border-radius: 4px; padding: .3rem .7rem; cursor: pointer; }
+  #download:hover { border-color: #8ab4ff; }
+  .hint { color: #777; font-size: .8rem; margin-left: .5rem; }
+  td.num, th.num { font-family: ui-monospace, monospace; text-align: right; }
+  .delta { color: #8ab4ff; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -33,9 +40,19 @@
   <div class="empty" id="empty" hidden>no such session</div>
   <div id="content" hidden>
     <h2 id="session-title"></h2>
+    <p><button id="download" type="button">⬇ download receipt JSON</button>
+       <span class="hint">everything below (minus the ASCII map) as one file</span></p>
     <section>
       <h2>Config</h2>
       <table id="config-table"><tbody></tbody></table>
+    </section>
+    <section>
+      <h2>Versions</h2>
+      <table id="versions-table"><tbody></tbody></table>
+    </section>
+    <section>
+      <h2>Latency</h2>
+      <div id="runs-summary"></div>
     </section>
     <section>
       <h2>Hardware</h2>
@@ -83,10 +100,80 @@
 
       // Config table
       const configRows = [];
+      const fmtVal = v => Array.isArray(v) ? v.map(fmtVal).join(", ")
+        : (v && typeof v === "object") ? Object.entries(v).map(([k, x]) => `${k} ${fmtVal(x)}`).join(" · ")
+        : String(v);
       for (const [key, value] of Object.entries(session.config || {})) {
-        configRows.push(`<tr><td><code>${esc(key)}</code></td><td><code>${esc(String(value))}</code></td></tr>`);
+        configRows.push(`<tr><td><code>${esc(key)}</code></td><td><code>${esc(fmtVal(value))}</code></td></tr>`);
       }
       document.getElementById("config-table").querySelector("tbody").innerHTML = configRows.join("");
+
+      // Versions
+      document.getElementById("versions-table").querySelector("tbody").innerHTML =
+        Object.entries(session.versions || {}).map(([k, v]) =>
+          `<tr><td><code>${esc(k)}</code></td><td><code>${esc(fmtVal(v))}</code></td></tr>`).join("")
+        || `<tr><td class="empty">(none recorded)</td></tr>`;
+
+      // Latency: measurement runs inside the session window, glass-to-glass medians + delta
+      const median = a => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
+      const inWindow = r => r.started_utc >= session.started_utc && (!session.ended_utc || r.started_utc <= session.ended_utc);
+      const runs = (results.runs || []).filter(inWindow).map(r => {
+        const g = t => median((r.samples || []).filter(s => s.transport === t && s.glass_to_glass_ms != null).map(s => s.glass_to_glass_ms));
+        return { started_utc: r.started_utc, source: r.source, notes: r.notes, machine: r.machine,
+                 samples: (r.samples || []).length, moq_median_ms: g("moq"), hls_median_ms: g("hls"),
+                 delta_ms: g("moq") != null && g("hls") != null ? g("hls") - g("moq") : null };
+      });
+      const ms = v => v == null ? "—" : `${(v / 1000).toFixed(2)}s`;
+      document.getElementById("runs-summary").innerHTML = runs.length
+        ? `<table><thead><tr><th>run started</th><th>notes</th><th class="num">samples</th><th class="num">MoQ g2g</th><th class="num">HLS g2g</th><th class="num">Δ HLS−MoQ</th></tr></thead><tbody>` +
+          runs.map(r => `<tr><td>${esc(r.started_utc)}</td><td>${esc(r.notes ?? "")}</td><td class="num">${r.samples}</td>` +
+            `<td class="num">${ms(r.moq_median_ms)}</td><td class="num">${ms(r.hls_median_ms)}</td><td class="num delta">${ms(r.delta_ms)}</td></tr>`).join("") +
+          `</tbody></table><p class="hint">glass-to-glass medians per run (clock-ocr) · details on <a href="../results/">results</a></p>`
+        : `<p class="hint">no measurement runs during this session — run <code>scripts/prod.sh measure</code> while up</p>`;
+
+      // Hardware: publisher snapshots side by side, then relay/origin facts + probes
+      const hw = session.publisher_hw || {};
+      const gb = b => b == null ? "—" : `${Math.round(b / 2 ** 30)} GB`;
+      const la = a => Array.isArray(a) ? a.map(x => x.toFixed(2)).join(" ") : "—";
+      const therm = t => t == null ? "—" : /No thermal warning/.test(t) ? "nominal" : String(t).split("\n")[0];
+      const HW_ROWS = [["model", h => h.model], ["cpu", h => h.cpu], ["arch", h => h.arch],
+        ["ram", h => gb(h.ram_bytes)], ["macOS build", h => h.macos_build],
+        ["load avg (1/5/15m)", h => la(h.load_avg)], ["thermal", h => therm(h.thermal_state)],
+        ["ffmpeg CPU %", h => h.ffmpeg_cpu_pct ?? "—"]];
+      const cell = v => esc(fmtVal(v ?? "—"));
+      const fact = v => v === "FILL_ME" ? `<em>not recorded — fill endpoints.json</em>` : esc(fmtVal(v ?? "—"));
+      const box = (title, facts, probe, versionNote) => {
+        const rows = Object.entries(facts || {}).map(([k, v]) =>
+          `<tr><td><code>${esc(k)}</code></td><td>${fact(v)}${k === "software" && versionNote ? ` <code>${esc(versionNote)}</code>` : ""}</td></tr>`);
+        for (const [k, v] of Object.entries(probe || {}))
+          rows.push(`<tr><td><code>probe ${esc(k)}</code></td><td>${cell(v)}</td></tr>`);
+        return `<h3>${esc(title)}</h3><table><tbody>${rows.join("")}</tbody></table>`;
+      };
+      document.getElementById("hardware-content").innerHTML =
+        `<h3>publisher</h3><table><thead><tr><th></th><th>at open</th><th>at close</th></tr></thead><tbody>` +
+        HW_ROWS.map(([label, f]) =>
+          `<tr><td><code>${esc(label)}</code></td><td>${cell(hw.at_open && f(hw.at_open))}</td><td>${cell(hw.at_close && f(hw.at_close))}</td></tr>`).join("") +
+        `</tbody></table>` +
+        box("moq relay", endpoints.relay, session.probes?.relay) +
+        box("hls origin", endpoints.hls_origin, session.probes?.hls_origin,
+            session.versions?.mediamtx ? `${session.versions.mediamtx} (image tag in hls-origin/compose.yml)` : null);
+
+      // Timeline
+      const tl = [...(session.timeline || [])].sort((a, b) => String(a.at_utc).localeCompare(String(b.at_utc)));
+      document.getElementById("timeline-content").innerHTML = tl.length
+        ? `<table><tbody>` + tl.map(t =>
+            `<tr><td><code>${esc(t.at_utc ?? "—")}</code></td><td>${esc(t.event ?? "")}</td><td>${esc(t.detail ?? "")}</td></tr>`).join("") + `</tbody></table>`
+        : `<p class="hint">(no events)</p>`;
+
+      // Download: whole receipt minus the ASCII map, plus endpoint facts + latency summaries
+      document.getElementById("download").addEventListener("click", () => {
+        const dl = { ...session, endpoints, measurement_runs: runs };
+        delete dl.endpoint_map;
+        const url = URL.createObjectURL(new Blob([JSON.stringify(dl, null, 2)], { type: "application/json" }));
+        const a = document.createElement("a");
+        a.href = url; a.download = `receipt-${session.id}.json`; a.click();
+        URL.revokeObjectURL(url);
+      });
 
       // Endpoint map
       document.getElementById("map").textContent = session.endpoint_map || "(none)";

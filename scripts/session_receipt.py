@@ -25,7 +25,7 @@ import platform
 import re
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -296,18 +296,25 @@ TIMELINE_RE = re.compile(r'^\[(\d{2}:\d{2}:\d{2})\]\s+(start #\d+|exited rc=-?\d
 LOG_EXCERPT_RE = re.compile(r'warn|error', re.IGNORECASE)
 
 
-def parse_log_timeline(log_path: str, day: str) -> list[dict]:
-    """publisher start/restart + exit lines from run-forever.sh's log format."""
+def parse_log_timeline(log_path: str, started_utc: str) -> list[dict]:
+    """publisher start/restart + exit lines from run-forever.sh's log format.
+    Log times are local time-of-day; stored converted to UTC."""
     events = []
     try:
+        start = datetime.strptime(started_utc, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+        local_day = start.astimezone().date()
         with open(log_path, errors="replace") as f:
             for line in f:
                 m = TIMELINE_RE.match(line.strip())
                 if not m:
                     continue
                 detail = m.group(2)
+                t = datetime.strptime(m.group(1), "%H:%M:%S").time()
+                at = datetime.combine(local_day, t).astimezone().astimezone(timezone.utc)
+                if (start - at).total_seconds() > 3600:  # session crossed local midnight
+                    at += timedelta(days=1)
                 events.append({
-                    "at_utc": f"{day}T{m.group(1)}Z",
+                    "at_utc": at.strftime("%Y-%m-%dT%H:%M:%SZ"),
                     "event": "start" if detail.startswith("start") else "exit",
                     "detail": detail,
                 })
@@ -386,6 +393,11 @@ def cmd_open(args: argparse.Namespace) -> int:
 
     started_utc = utc_now_iso()
     sid = session_id(started_utc, args.stack)
+    # Second-granularity ids: bump start until the id is free.
+    while os.path.exists(os.path.join(rdir, "sessions", f"{sid}.json")):
+        bumped = datetime.strptime(started_utc, "%Y-%m-%dT%H:%M:%SZ") + timedelta(seconds=1)
+        started_utc = bumped.strftime("%Y-%m-%dT%H:%M:%SZ")
+        sid = session_id(started_utc, args.stack)
 
     session = {
         "schema": 1,
@@ -457,8 +469,7 @@ def cmd_close(args: argparse.Namespace) -> int:
         try:
             log_path = find_publish_log(args.stack)
             if log_path:
-                day = (session.get("started_utc") or "")[:10]
-                session["timeline"].extend(parse_log_timeline(log_path, day))
+                session["timeline"].extend(parse_log_timeline(log_path, session.get("started_utc") or ""))
                 session["log_excerpt"] = parse_log_excerpt(log_path)
         except Exception:
             pass

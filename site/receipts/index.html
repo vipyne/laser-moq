@@ -20,6 +20,8 @@
   footer { padding: 1rem 1.5rem; color: #777; font-size: .85rem; }
   a { color: #8ab4ff; text-decoration: none; }
   a:hover { text-decoration: underline; }
+  #sessions tr { cursor: pointer; }
+  #sessions tr:hover td { background: #15151c; }
   .stack { display: inline-block; font-size: .75rem; color: #0b0b0f; padding: 0 .4em;
            border-radius: 3px; font-weight: 600; }
   .stack.prod { background: #ff6b6b; }
@@ -88,7 +90,7 @@
       const stateText = stateLabel(s.end);
       const stateCSS = stateClass(s.end);
       rows.push(
-        `<tr><td>${esc(time)}</td><td><span class="stack ${esc(s.stack)}">${esc(s.stack)}</span></td>` +
+        `<tr data-id="${esc(s.id)}"><td>${esc(time)}</td><td><span class="stack ${esc(s.stack)}">${esc(s.stack)}</span></td>` +
         `<td>${esc(s.source)}</td><td class="num">${esc(duration)}</td>` +
         `<td class="end-state ${esc(stateCSS)}">${esc(stateText)}</td>` +
         `<td>${esc(s.machine ?? "")}</td>` +
@@ -96,6 +98,11 @@
       );
     }
     document.getElementById("sessions").innerHTML = rows.join("");
+    // Whole row navigates; the → link keeps middle-click/new-tab.
+    document.getElementById("sessions").addEventListener("click", e => {
+      const id = e.target.closest("tr")?.dataset.id;
+      if (id && e.target.tagName !== "A") location.href = `session.html?id=${id}`;
+    });
   }).catch(() => { const e = document.getElementById("empty"); e.textContent = "could not load data.json"; e.hidden = false; });
 </script>
 </body>

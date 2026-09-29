@@ -209,6 +209,15 @@ def demo_data() -> tuple[dict, dict[str, dict]]:
     return me, eps
 
 
+def relay_software(path: str = "site/receipts/endpoints.json") -> str:
+    """Relay software/version from receipts' facts file."""
+    try:
+        v = json.load(open(path))["relay"]["software"]
+        return v if v and v != "FILL_ME" else ""
+    except Exception:
+        return ""
+
+
 def norm_geo(g: dict | None) -> dict:
     """Stored coarse geo ({city,region,country,lat,lon}) → ipinfo-shaped dict
     so place()/latlon() work unchanged."""
@@ -350,8 +359,8 @@ def main() -> int:
         markers["P"] = latlon(me)
     legend.append(f"P  {'publisher':<11} {me.get('ip', '?'):<16} "
                   f"{place(me)}  (this machine)")
-    notes = {"R": "", "H": ":1935 RTMP in, :443 LL-HLS out",
-             "S": "CDN edge near you — the page, not a media hop"}
+    notes = {"R": relay_software(), "H": ":1935 RTMP in, :443 LL-HLS out",
+             "S": "Page host / CDN edge near you — not a media hop"}
     for letter in ("R", "H", "S"):
         e = endpoints[letter]
         ll = latlon(e["geo"])

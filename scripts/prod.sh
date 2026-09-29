@@ -4,7 +4,8 @@
 # via run-forever.sh, and runs the latency measurement from the same machine.
 #   scripts/prod.sh up        start publishing (capture → relay + prod RTMP;
 #                             SOURCE=test smoke-tests the same path pre-hardware)
-#   scripts/prod.sh down      stop publishing
+#   scripts/prod.sh down      measure latency, then stop publishing
+#                             (down fast / SKIP_MEASURE=1 / FORCE=1 skips measure)
 #   scripts/prod.sh status    publisher / public playlist / public page
 #   scripts/prod.sh measure   OCR latency run against the public page
 # Needs: MOQ_RELAY_URL exported; moq on PATH (~/.cargo/bin). RTMP_PUBLISH_PASS
@@ -18,6 +19,14 @@ PAGE_URL="${PAGE_URL:-https://moq-laserdisc.vanessa-dev.com/}"
 mkdir -p logs
 
 alive() { [[ -f "$1" ]] && kill -0 "$(cat "$1")" 2>/dev/null; }
+
+# Serve site/ on :8000 so the session's receipt is browsable right after down.
+serve_receipts() {
+  pkill -f 'http.server 8000' 2>/dev/null
+  (python3 -m http.server 8000 --directory site >/dev/null 2>&1 &)
+  echo
+  echo "open: http://localhost:8000/receipts/"
+}
 
 up() {
   : "${MOQ_RELAY_URL:?export MOQ_RELAY_URL first}"
@@ -37,6 +46,13 @@ up() {
 }
 
 down() {
+  # Measure while stream still up → run lands inside session window on receipt.
+  local skip="${SKIP_MEASURE:-${FORCE:-}}"
+  [[ "${1:-}" == "fast" ]] && skip=1
+  if [[ -z "$skip" ]] && alive "$PID"; then
+    echo "latency measure before teardown ('down fast', SKIP_MEASURE=1, or FORCE=1 to skip)"
+    measure || true
+  fi
   python3 scripts/session_receipt.py close --stack prod || true
   if [[ -f "$PID" ]]; then
     pid="$(cat "$PID")"
@@ -48,6 +64,7 @@ down() {
   pkill -f 'ffmpeg .*overlay.filter' 2>/dev/null
   pkill -f 'moq --client-connect' 2>/dev/null
   echo "publisher down"
+  serve_receipts
 }
 
 status() {
@@ -69,7 +86,13 @@ status() {
 
 measure() {
   # Both clocks are this machine's clock — run it here, not on a viewer machine.
-  scripts/measure-latency.sh --url "$PAGE_URL" --source capture "$@" \
+  # Source: $SOURCE, else open prod session's recorded source, else capture.
+  local src="${SOURCE:-}"
+  [[ -z "$src" ]] && src="$(python3 -c "
+import json
+s = json.load(open('site/receipts/data.json'))['sessions']
+print(next((x['source'] for x in s if x['stack'] == 'prod' and x['end'] is None), ''))" 2>/dev/null)"
+  scripts/measure-latency.sh --url "$PAGE_URL" --source "${src:-capture}" "$@" \
     && python3 scripts/endpoint_map.py --from-run || true
 }
 
@@ -80,7 +103,7 @@ map() {
 help() {
   cat <<'EOF'
 scripts/prod.sh up         # publish capture → relay + prod HLS (run-forever)
-scripts/prod.sh down       # stop publishing
+scripts/prod.sh down       # measure latency, then stop (down fast / SKIP_MEASURE=1 / FORCE=1 skips)
 scripts/prod.sh status     # publisher / public playlist / public page
 scripts/prod.sh measure    # OCR latency run vs the public page (extra flags pass through)
 scripts/prod.sh map        # live prod map
@@ -89,7 +112,7 @@ EOF
 
 case "${1:-}" in
   up)      up;;
-  down)    down;;
+  down)    shift; down "$@";;
   status)  status;;
   measure) shift; measure "$@";;
   map)     shift; map "$@";;
