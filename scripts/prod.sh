@@ -22,6 +22,7 @@ alive() { [[ -f "$1" ]] && kill -0 "$(cat "$1")" 2>/dev/null; }
 
 # Serve site/ on :8000 so the session's receipt is browsable right after down.
 serve_receipts() {
+  [[ "${RECEIPTS_SITE:-1}" == 0 ]] && return 0
   pkill -f 'http.server 8000' 2>/dev/null
   (python3 -m http.server 8000 --directory site >/dev/null 2>&1 &)
   echo
@@ -67,6 +68,13 @@ down() {
   serve_receipts
 }
 
+# Fast full teardown: down without measure, then kill the receipts site.
+downdown() {
+  RECEIPTS_SITE=0 SKIP_MEASURE=1 down "$@"
+  pkill -f 'http.server 8000' 2>/dev/null
+  echo "receipts site down"
+}
+
 status() {
   if alive "$PID"; then
     echo "publisher:  up (pid $(cat "$PID"); newest log: $(/bin/ls -t logs/publish-*.log 2>/dev/null | head -1))"
@@ -104,6 +112,7 @@ help() {
   cat <<'EOF'
 scripts/prod.sh up         # publish capture → relay + prod HLS (run-forever)
 scripts/prod.sh down       # measure latency, then stop (down fast / SKIP_MEASURE=1 / FORCE=1 skips)
+scripts/prod.sh downdown   # fast full teardown: no measure, publisher + :8000 receipts site down
 scripts/prod.sh status     # publisher / public playlist / public page
 scripts/prod.sh measure    # OCR latency run vs the public page (extra flags pass through)
 scripts/prod.sh map        # live prod map
@@ -112,7 +121,8 @@ EOF
 
 case "${1:-}" in
   up)      up;;
-  down)    shift; down "$@";;
+  down)     shift; down "$@";;
+  downdown) shift; downdown "$@";;
   status)  status;;
   measure) shift; measure "$@";;
   map)     shift; map "$@";;

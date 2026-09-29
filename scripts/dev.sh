@@ -19,6 +19,7 @@ alive() { [[ -f "$1" ]] && kill -0 "$(cat "$1")" 2>/dev/null; }
 
 # Serve site/ on :8000 so the session's receipt is browsable right after down.
 serve_receipts() {
+  [[ "${RECEIPTS_SITE:-1}" == 0 ]] && return 0
   pkill -f 'http.server 8000' 2>/dev/null
   (python3 -m http.server 8000 --directory site >/dev/null 2>&1 &)
   echo
@@ -79,6 +80,13 @@ down() {
   serve_receipts
 }
 
+# down + kill the receipts site: the final teardown once receipts are viewed.
+downdown() {
+  RECEIPTS_SITE=0 down
+  pkill -f 'http.server 8000' 2>/dev/null
+  echo "receipts site down"
+}
+
 status() {
   local ok=1
   if [[ -n "$("${COMPOSE[@]}" ps --status running -q 2>/dev/null)" ]]; then
@@ -126,12 +134,14 @@ scripts/dev.sh status        # container / publisher / site / playlist-flowing
 scripts/dev.sh measure       # OCR latency run vs this stack's page (extra flags pass through)
 scripts/dev.sh map           # live map (relay real, HLS/page localhost by design)
 scripts/dev.sh down          # everything, including strays from manual runs
+scripts/dev.sh downdown      # down + kill the :8000 receipts site (final teardown)
 EOF
 }
 
 case "${1:-}" in
   up)      shift; up "$@";;
-  down)    down;;
+  down)     down;;
+  downdown) downdown;;
   status)  status;;
   measure) shift; measure "$@";;
   map)     shift; map "$@";;
