@@ -146,7 +146,8 @@ def collect_versions(stack: str) -> dict:
 
 def collect_publisher_hw() -> dict:
     hw = {"model": None, "cpu": None, "arch": None, "ram_bytes": None,
-          "macos_build": None, "uptime": None, "load_avg": None, "thermal_state": None}
+          "macos_build": None, "uptime": None, "load_avg": None, "thermal_state": None,
+          "ffmpeg_cpu_pct": None}
     try:
         hw["model"] = run(["sysctl", "-n", "hw.model"])
     except Exception:
@@ -272,16 +273,87 @@ def write_json(path: str, data) -> None:
     os.replace(tmp, path)
 
 
-def publish_log_mtime(stack: str) -> str | None:
+def find_publish_log(stack: str) -> str | None:
     try:
         pattern = os.path.join(REPO_ROOT, "logs", "dev-publish.log" if stack == "dev" else "publish-*.log")
         matches = glob.glob(pattern)
-        if not matches:
+        return max(matches, key=os.path.getmtime) if matches else None
+    except Exception:
+        return None
+
+
+def publish_log_mtime(stack: str) -> str | None:
+    try:
+        newest = find_publish_log(stack)
+        if not newest:
             return None
-        newest = max(matches, key=os.path.getmtime)
         return datetime.fromtimestamp(os.path.getmtime(newest), tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     except Exception:
         return None
+
+
+TIMELINE_RE = re.compile(r'^\[(\d{2}:\d{2}:\d{2})\]\s+(start #\d+|exited rc=-?\d+)')
+LOG_EXCERPT_RE = re.compile(r'warn|error', re.IGNORECASE)
+
+
+def parse_log_timeline(log_path: str, day: str) -> list[dict]:
+    """publisher start/restart + exit lines from run-forever.sh's log format."""
+    events = []
+    try:
+        with open(log_path, errors="replace") as f:
+            for line in f:
+                m = TIMELINE_RE.match(line.strip())
+                if not m:
+                    continue
+                detail = m.group(2)
+                events.append({
+                    "at_utc": f"{day}T{m.group(1)}Z",
+                    "event": "start" if detail.startswith("start") else "exit",
+                    "detail": detail,
+                })
+    except Exception:
+        pass
+    return events
+
+
+def parse_log_excerpt(log_path: str) -> list[str]:
+    """First + final log line plus up to 40 total warning/error lines."""
+    try:
+        with open(log_path, errors="replace") as f:
+            lines = [l.rstrip("\n") for l in f]
+        if not lines:
+            return []
+        matched = [l for l in lines if LOG_EXCERPT_RE.search(l)]
+        bookends = [l for l in (lines[0], lines[-1]) if l not in matched]
+        return [redact(l) for l in (bookends + matched)[:40]]
+    except Exception:
+        return []
+
+
+def ffmpeg_cpu_pct() -> float | None:
+    try:
+        out = run(["ps", "-eo", "comm,%cpu"], timeout=3.0)
+        if not out:
+            return None
+        total, found = 0.0, False
+        for line in out.splitlines():
+            parts = line.rsplit(None, 1)
+            if len(parts) == 2 and "ffmpeg" in parts[0]:
+                total += float(parts[1])
+                found = True
+        return total if found else None
+    except Exception:
+        return None
+
+
+def scrub(obj):
+    if isinstance(obj, str):
+        return redact(obj)
+    if isinstance(obj, dict):
+        return {k: scrub(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [scrub(v) for v in obj]
+    return obj
 
 
 def dirty_sweep(data_path: str, stack: str) -> None:
@@ -333,15 +405,6 @@ def cmd_open(args: argparse.Namespace) -> int:
         "viewer_note": "remote viewers unknowable; see measure runs in this window",
     }
 
-    def scrub(obj):
-        if isinstance(obj, str):
-            return redact(obj)
-        if isinstance(obj, dict):
-            return {k: scrub(v) for k, v in obj.items()}
-        if isinstance(obj, list):
-            return [scrub(v) for v in obj]
-        return obj
-
     session = scrub(session)
 
     write_json(os.path.join(rdir, "sessions", f"{sid}.json"), session)
@@ -385,8 +448,22 @@ def cmd_close(args: argparse.Namespace) -> int:
     if session is not None:
         session["end"] = "clean"
         session["ended_utc"] = ended_utc
-        session["publisher_hw"]["at_close"] = collect_publisher_hw()
+        try:
+            at_close = collect_publisher_hw()
+            at_close["ffmpeg_cpu_pct"] = ffmpeg_cpu_pct()
+        except Exception:
+            at_close = collect_publisher_hw()
+        session["publisher_hw"]["at_close"] = at_close
+        try:
+            log_path = find_publish_log(args.stack)
+            if log_path:
+                day = (session.get("started_utc") or "")[:10]
+                session["timeline"].extend(parse_log_timeline(log_path, day))
+                session["log_excerpt"] = parse_log_excerpt(log_path)
+        except Exception:
+            pass
         session["timeline"].append({"at_utc": ended_utc, "event": "close", "detail": None})
+        session = scrub(session)
         write_json(session_path, session)
 
     return 0
