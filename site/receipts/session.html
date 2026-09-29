@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session — LIVE from a LaserDisc</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #0b0b0f; color: #eee; font: 16px/1.4 system-ui, sans-serif; }
+  header { padding: 1rem 1.5rem; border-bottom: 1px solid #222; }
+  header h1 { margin: 0; font-size: 1.4rem; letter-spacing: .02em; }
+  header p { margin: .25rem 0 0; color: #aaa; }
+  main { padding: 1rem 1.5rem; max-width: 64rem; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  th, td { text-align: left; padding: .35rem .6rem; border-bottom: 1px solid #222; }
+  th { color: #aaa; font-weight: 600; }
+  .empty { color: #aaa; padding: 2rem 0; }
+  footer { padding: 1rem 1.5rem; color: #777; font-size: .85rem; }
+  a { color: #8ab4ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  #map, #log { font: 11px/1.2 ui-monospace, monospace; margin: 0; padding: .6rem .8rem;
+         background: #000; border: 1px solid #222; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; }
+  section { margin-top: 1.5rem; }
+  section h2 { font-size: 1.1rem; margin: 0 0 .5rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>📋 Session</h1>
+  <p><a href="./">← back to sessions</a></p>
+</header>
+<main id="main">
+  <div class="empty" id="empty" hidden>no such session</div>
+  <div id="content" hidden>
+    <h2 id="session-title"></h2>
+    <section>
+      <h2>Config</h2>
+      <table id="config-table"><tbody></tbody></table>
+    </section>
+    <section>
+      <h2>Hardware</h2>
+      <div id="hardware-content"></div>
+    </section>
+    <section>
+      <h2>Endpoint Map</h2>
+      <pre id="map"></pre>
+    </section>
+    <section>
+      <h2>Measurement Runs</h2>
+      <div id="runs-content"></div>
+    </section>
+    <section>
+      <h2>Timeline</h2>
+      <div id="timeline-content"></div>
+    </section>
+    <section>
+      <h2>Log Excerpt</h2>
+      <pre id="log"></pre>
+    </section>
+  </div>
+</main>
+<footer>
+  Session data: <a href="sessions/">sessions/</a> — endpoints: <a href="endpoints.json">endpoints.json</a>
+</footer>
+
+<script>
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get('id');
+
+  if (!sessionId) {
+    document.getElementById("empty").textContent = "no such session";
+    document.getElementById("empty").hidden = false;
+  } else {
+    Promise.all([
+      fetch(`sessions/${esc(sessionId)}.json`).then(r => r.json()),
+      fetch('endpoints.json').then(r => r.json()),
+      fetch('../results/data.json').then(r => r.json())
+    ]).then(([session, endpoints, results]) => {
+      document.getElementById("content").hidden = false;
+      document.getElementById("session-title").textContent = `Session: ${esc(session.id)}`;
+
+      // Config table
+      const configRows = [];
+      for (const [key, value] of Object.entries(session.config || {})) {
+        configRows.push(`<tr><td><code>${esc(key)}</code></td><td><code>${esc(String(value))}</code></td></tr>`);
+      }
+      document.getElementById("config-table").querySelector("tbody").innerHTML = configRows.join("");
+
+      // Endpoint map
+      document.getElementById("map").textContent = session.endpoint_map || "(none)";
+
+      // Log excerpt
+      if (Array.isArray(session.log_excerpt) && session.log_excerpt.length) {
+        document.getElementById("log").textContent = session.log_excerpt.join("\n");
+      } else {
+        document.getElementById("log").textContent = "(no log entries)";
+      }
+    }).catch(e => {
+      document.getElementById("empty").textContent = "no such session (or fetch error)";
+      document.getElementById("empty").hidden = false;
+    });
+  }
+</script>
+</body>
+</html>

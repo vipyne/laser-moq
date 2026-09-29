@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session receipts — LIVE from a LaserDisc</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #0b0b0f; color: #eee; font: 16px/1.4 system-ui, sans-serif; }
+  header { padding: 1rem 1.5rem; border-bottom: 1px solid #222; }
+  header h1 { margin: 0; font-size: 1.4rem; letter-spacing: .02em; }
+  header p { margin: .25rem 0 0; color: #aaa; }
+  main { padding: 1rem 1.5rem; max-width: 64rem; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  th, td { text-align: left; padding: .35rem .6rem; border-bottom: 1px solid #222; }
+  th { color: #aaa; font-weight: 600; }
+  td.num { font-family: ui-monospace, monospace; text-align: right; }
+  th.num { text-align: right; }
+  .empty { color: #aaa; padding: 2rem 0; }
+  footer { padding: 1rem 1.5rem; color: #777; font-size: .85rem; }
+  a { color: #8ab4ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .stack { display: inline-block; font-size: .75rem; color: #0b0b0f; padding: 0 .4em;
+           border-radius: 3px; font-weight: 600; }
+  .stack.prod { background: #ff6b6b; }
+  .stack.dev { background: #8ab4ff; }
+  .end-state { font-size: .85rem; }
+  .clean { color: #7cb342; }
+  .dirty { color: #ff9800; }
+  .open { color: #ffb74d; }
+</style>
+</head>
+<body>
+<header>
+  <h1>📋 Session receipts</h1>
+  <p>Publisher sessions with config, versions, hardware, endpoint probes, and logs. <a href="../">← back</a> · <a href="../results/">measurement runs →</a></p>
+</header>
+<main>
+  <div class="empty" id="empty" hidden>no sessions yet</div>
+  <table id="table" hidden>
+    <thead><tr><th>started</th><th>stack</th><th>source</th><th>duration</th><th>state</th><th>machine</th><th></th></tr></thead>
+    <tbody id="sessions"></tbody>
+  </table>
+</main>
+<footer>
+  Data: <a href="data.json">data.json</a> — appended by <code>scripts/session_receipt.py</code>.
+</footer>
+
+<script>
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  function formatDuration(started, ended) {
+    if (!started || !ended) return "—";
+    const start = new Date(started);
+    const end = new Date(ended);
+    const secs = Math.round((end - start) / 1000);
+    const mins = Math.floor(secs / 60);
+    const hrs = Math.floor(mins / 60);
+    if (hrs > 0) return `${hrs}h ${mins % 60}m`;
+    if (mins > 0) return `${mins}m ${secs % 60}s`;
+    return `${secs}s`;
+  }
+
+  function stateClass(end) {
+    if (end === "clean") return "clean";
+    if (end === "dirty") return "dirty";
+    if (end === null) return "open";
+    return "";
+  }
+
+  function stateLabel(end) {
+    if (end === "clean") return "clean";
+    if (end === "dirty") return "dirty";
+    if (end === null) return "open";
+    return end;
+  }
+
+  fetch("./data.json").then(r => r.json()).then(d => {
+    const sessions = (d.schema === 1 && Array.isArray(d.sessions)) ? d.sessions : [];
+    if (!sessions.length) { document.getElementById("empty").hidden = false; return; }
+    document.getElementById("table").hidden = false;
+    const rows = [];
+    for (const s of sessions) {
+      const started = new Date(s.started_utc);
+      const time = started.toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit',
+                                                       hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const duration = formatDuration(s.started_utc, s.ended_utc);
+      const stateText = stateLabel(s.end);
+      const stateCSS = stateClass(s.end);
+      rows.push(
+        `<tr><td>${esc(time)}</td><td><span class="stack ${esc(s.stack)}">${esc(s.stack)}</span></td>` +
+        `<td>${esc(s.source)}</td><td class="num">${esc(duration)}</td>` +
+        `<td class="end-state ${esc(stateCSS)}">${esc(stateText)}</td>` +
+        `<td>${esc(s.machine ?? "")}</td>` +
+        `<td><a href="session.html?id=${esc(s.id)}">→</a></td></tr>`
+      );
+    }
+    document.getElementById("sessions").innerHTML = rows.join("");
+  }).catch(() => { const e = document.getElementById("empty"); e.textContent = "could not load data.json"; e.hidden = false; });
+</script>
+</body>
+</html>
