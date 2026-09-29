@@ -12,6 +12,7 @@ grep -q 'class="stack' $f || { echo "stack badge class missing"; exit 1; }
 grep -q '.stack {' $f || { echo "stack style missing"; exit 1; }
 grep -q 'class="end-state' $f || { echo "end-state column class missing"; exit 1; }
 grep -q 'session.html?id=' $f || { echo "links to session.html?id= missing"; exit 1; }
+grep -q '../results/' $f || { echo "link to ../results/ missing from receipts list"; exit 1; }
 
 # session.html tests
 f=site/receipts/session.html
