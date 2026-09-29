@@ -35,6 +35,7 @@ up() {
     SOURCE="$src" scripts/publish.sh > logs/dev-publish.log 2>&1 &
     echo $! > "$PUB_PID"
     echo "publisher started: SOURCE=$src (log: logs/dev-publish.log)"
+    python3 scripts/session_receipt.py open --stack dev --source "$src" || true
   fi
 
   if alive "$WEB_PID"; then
@@ -52,6 +53,7 @@ up() {
 }
 
 down() {
+  python3 scripts/session_receipt.py close --stack dev || true
   for f in "$PUB_PID" "$WEB_PID"; do
     if [[ -f "$f" ]]; then
       pid="$(cat "$f")"

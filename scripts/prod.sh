@@ -31,11 +31,13 @@ up() {
   scripts/run-forever.sh &
   echo $! > "$PID"
   echo "publishing started (pid $(cat "$PID"); run-forever logs in logs/)"
+  python3 scripts/session_receipt.py open --stack prod --source "$SOURCE" || true
   sleep 5
   status
 }
 
 down() {
+  python3 scripts/session_receipt.py close --stack prod || true
   if [[ -f "$PID" ]]; then
     pid="$(cat "$PID")"
     kill -TERM "$pid" 2>/dev/null      # run-forever traps TERM and stops its child
