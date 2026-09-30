@@ -28,7 +28,8 @@ serve_receipts() {
 
 up() {
   local src="${1:-test}"
-  [[ "$src" == "test" || "$src" == "capture" ]] || { echo "usage: scripts/dev.sh up [test|capture]" >&2; exit 2; }
+  [[ "$src" == "receipts" ]] && { serve_receipts; return; }   # site server only, nothing else
+  [[ "$src" == "test" || "$src" == "capture" ]] || { echo "usage: scripts/dev.sh up [test|capture|receipts]" >&2; exit 2; }
   : "${MOQ_RELAY_URL:?export MOQ_RELAY_URL first (the relay endpoint is deliberately not in the repo)}"
 
   "${COMPOSE[@]}" up -d || exit 1
@@ -130,11 +131,12 @@ help() {
   cat <<'EOF'
 scripts/dev.sh up            # test source (needs MOQ_RELAY_URL exported)
 scripts/dev.sh up capture    # real LaserDisc via the Pengo
+scripts/dev.sh up receipts   # :8000 site server only (browse receipts/results, no stack)
+scripts/dev.sh down          # everything, including strays from manual runs
+scripts/dev.sh downdown      # down + kill the :8000 receipts site (final teardown)
 scripts/dev.sh status        # container / publisher / site / playlist-flowing
 scripts/dev.sh measure       # OCR latency run vs this stack's page (extra flags pass through)
 scripts/dev.sh map           # live map (relay real, HLS/page localhost by design)
-scripts/dev.sh down          # everything, including strays from manual runs
-scripts/dev.sh downdown      # down + kill the :8000 receipts site (final teardown)
 EOF
 }
 

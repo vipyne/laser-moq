@@ -30,6 +30,7 @@ serve_receipts() {
 }
 
 up() {
+  [[ "${1:-}" == "receipts" ]] && { serve_receipts; return; }   # site server only, nothing else
   : "${MOQ_RELAY_URL:?export MOQ_RELAY_URL first}"
   if [[ -z "${RTMP_PUBLISH_PASS:-}" && -f hls-origin/.env ]]; then
     set -a; source hls-origin/.env; set +a
@@ -111,6 +112,7 @@ map() {
 help() {
   cat <<'EOF'
 scripts/prod.sh up         # publish capture → relay + prod HLS (run-forever)
+scripts/prod.sh up receipts # :8000 site server only (browse receipts/results, no publishing)
 scripts/prod.sh down       # measure latency, then stop (down fast / SKIP_MEASURE=1 / FORCE=1 skips)
 scripts/prod.sh downdown   # fast full teardown: no measure, publisher + :8000 receipts site down
 scripts/prod.sh status     # publisher / public playlist / public page
@@ -120,7 +122,7 @@ EOF
 }
 
 case "${1:-}" in
-  up)      up;;
+  up)      shift; up "$@";;
   down)     shift; down "$@";;
   downdown) shift; downdown "$@";;
   status)  status;;
