@@ -31,6 +31,10 @@ serve_receipts() {
 
 up() {
   [[ "${1:-}" == "receipts" ]] && { serve_receipts; return; }   # site server only, nothing else
+  if [[ -n "${1:-}" ]]; then   # positional wins; $SOURCE honored; default capture
+    [[ "$1" == "test" || "$1" == "capture" ]] || { echo "usage: scripts/prod.sh up [test|capture|receipts] (or SOURCE=…)" >&2; exit 2; }
+    SOURCE="$1"
+  fi
   : "${MOQ_RELAY_URL:?export MOQ_RELAY_URL first}"
   if [[ -z "${RTMP_PUBLISH_PASS:-}" && -f hls-origin/.env ]]; then
     set -a; source hls-origin/.env; set +a
@@ -111,13 +115,15 @@ map() {
 
 help() {
   cat <<'EOF'
-scripts/prod.sh up         # publish capture → relay + prod HLS (run-forever)
+scripts/prod.sh up          # publish → relay + prod HLS (source: real physical media via capture card)
+scripts/prod.sh up capture  # same as `up`
+scripts/prod.sh up test     # publish → relay + prod HLS (source: test colorbars)
 scripts/prod.sh up receipts # :8000 site server only (browse receipts/results, no publishing)
-scripts/prod.sh down       # measure latency, then stop (down fast / SKIP_MEASURE=1 / FORCE=1 skips)
-scripts/prod.sh downdown   # fast full teardown: no measure, publisher + :8000 receipts site down
-scripts/prod.sh status     # publisher / public playlist / public page
-scripts/prod.sh measure    # OCR latency run vs the public page (extra flags pass through)
-scripts/prod.sh map        # live prod map
+scripts/prod.sh down        # measure latency, then stop (down fast / SKIP_MEASURE=1 / FORCE=1 skips)
+scripts/prod.sh downdown    # fast full teardown: no measure, publisher + :8000 receipts site down
+scripts/prod.sh status      # publisher / public playlist / public page
+scripts/prod.sh measure     # OCR latency run vs the public page (extra flags pass through)
+scripts/prod.sh map         # live prod map
 EOF
 }
 

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Local dev stack: MediaMTX container + publisher + site server, in one place.
 #   scripts/dev.sh up [test|capture]   start everything (default: test source)
-#   scripts/dev.sh down                stop everything (incl. ad-hoc strays)
+#   scripts/dev.sh down                measure latency, then stop everything
+#                                      (down fast / SKIP_MEASURE=1 / FORCE=1 skips measure)
 #   scripts/dev.sh status              what's running right now
 #   scripts/dev.sh measure             OCR latency run against THIS stack's page
 # `up` needs MOQ_RELAY_URL; writes site/config.js from it if the file is missing.
@@ -27,9 +28,9 @@ serve_receipts() {
 }
 
 up() {
-  local src="${1:-test}"
+  local src="${1:-${SOURCE:-test}}"   # positional wins; $SOURCE honored; default test
   [[ "$src" == "receipts" ]] && { serve_receipts; return; }   # site server only, nothing else
-  [[ "$src" == "test" || "$src" == "capture" ]] || { echo "usage: scripts/dev.sh up [test|capture|receipts]" >&2; exit 2; }
+  [[ "$src" == "test" || "$src" == "capture" ]] || { echo "usage: scripts/dev.sh up [test|capture|receipts] (or SOURCE=…)" >&2; exit 2; }
   : "${MOQ_RELAY_URL:?export MOQ_RELAY_URL first (the relay endpoint is deliberately not in the repo)}"
 
   "${COMPOSE[@]}" up -d || exit 1
@@ -63,6 +64,13 @@ up() {
 }
 
 down() {
+  # Measure while stream still up → run lands inside session window on receipt.
+  local skip="${SKIP_MEASURE:-${FORCE:-}}"
+  [[ "${1:-}" == "fast" ]] && skip=1
+  if [[ -z "$skip" ]] && alive "$PUB_PID"; then
+    echo "latency measure before teardown ('down fast', SKIP_MEASURE=1, or FORCE=1 to skip)"
+    measure || true
+  fi
   python3 scripts/session_receipt.py close --stack dev || true
   for f in "$PUB_PID" "$WEB_PID"; do
     if [[ -f "$f" ]]; then
@@ -81,9 +89,9 @@ down() {
   serve_receipts
 }
 
-# down + kill the receipts site: the final teardown once receipts are viewed.
+# Fast full teardown: down without measure, then kill the receipts site.
 downdown() {
-  RECEIPTS_SITE=0 down
+  RECEIPTS_SITE=0 SKIP_MEASURE=1 down "$@"
   pkill -f 'http.server 8000' 2>/dev/null
   echo "receipts site down"
 }
@@ -129,11 +137,12 @@ map() {
 
 help() {
   cat <<'EOF'
-scripts/dev.sh up            # test source (needs MOQ_RELAY_URL exported)
-scripts/dev.sh up capture    # real LaserDisc via the Pengo
-scripts/dev.sh up receipts   # :8000 site server only (browse receipts/results, no stack)
-scripts/dev.sh down          # everything, including strays from manual runs
-scripts/dev.sh downdown      # down + kill the :8000 receipts site (final teardown)
+scripts/dev.sh up            # publish → relay + HLS (source: test colorbars)
+scripts/dev.sh up test       # same as `up`
+scripts/dev.sh up capture    # publish → relay + HLS (source: real physical media via capture card)
+scripts/dev.sh up receipts   # :8000 site server only (browse receipts/results, no publishing)
+scripts/dev.sh down          # measure latency, then stop (down fast / SKIP_MEASURE=1 / FORCE=1 skips)
+scripts/dev.sh downdown      # fast full teardown: no measure, publisher + :8000 receipts site down
 scripts/dev.sh status        # container / publisher / site / playlist-flowing
 scripts/dev.sh measure       # OCR latency run vs this stack's page (extra flags pass through)
 scripts/dev.sh map           # live map (relay real, HLS/page localhost by design)
@@ -142,8 +151,8 @@ EOF
 
 case "${1:-}" in
   up)      shift; up "$@";;
-  down)     down;;
-  downdown) downdown;;
+  down)     shift; down "$@";;
+  downdown) shift; downdown "$@";;
   status)  status;;
   measure) shift; measure "$@";;
   map)     shift; map "$@";;
