@@ -45,6 +45,13 @@ cargo install moq-cli --locked
 `moq-relay 0.13.5`. ffmpeg 7.1.1 (with avfoundation + videotoolbox) and Docker
 are also required.
 
+The local dev stack (`scripts/dev.sh`) runs its own relay, pinned to prod's
+version:
+
+```bash
+cargo install moq-relay --locked --version 0.13.5
+```
+
 For latency measurement (`scripts/measure-latency.sh`): `brew install tesseract`,
 node + npm, Google Chrome, then `npm install` inside `tools/measure/`.
 
@@ -56,6 +63,13 @@ hardcoded anywhere in this repo:
 ```bash
 export MOQ_RELAY_URL=https://your-relay.example.com/anon
 ```
+
+The exception is `scripts/dev.sh`: the dev stack is **fully local** (its own
+moq-relay on :4443, self-signed cert pinned by fingerprint via the `http://`
+URL scheme) and forces `MOQ_RELAY_URL=http://localhost:4443/anon` itself — on
+loopback the latency difference is protocol architecture alone, the isolation
+run the WAN numbers get contrasted against. See
+[local-architecture.md](local-architecture.md).
 
 (The public page gets it from `site/config.js`, written at deploy time by the
 Pages workflow from the `MOQ_RELAY_URL` repo Actions variable; locally, copy
@@ -115,6 +129,43 @@ burned-in publisher clock; see `tools/measure/`).
 How a run gets there: run `scripts/measure-latency.sh` on the publisher machine
 (both clocks are one clock, no NTP skew), review the run it appended to
 `site/results/data.json`, then commit + push — Pages redeploys the page.
+Each clock-ocr sample records `encoder_to_glass_ms` plus `shot_spread_ms`
+(screenshot window; the timestamp is its midpoint).
+
+## Known caveats — why this benchmark is also bs
+
+The same list ships at the bottom of the live page. For a talk about how most
+benchmarks are bs, these are the slides:
+
+- **Buffer asymmetry.** MoQ runs a 150 ms jitter buffer; HLS "typical" targets
+  1.5 s and "ragged" 300 ms — and ~300 ms (3× the origin's 100 ms parts) is
+  LL-HLS's floor, while MoQ's floor is zero. The matched-buffer comparison is
+  `?moqlatency=300&hlspreset=ragged`.
+- **The 150 ms is a handicap, not a gift.** `<moq-watch>` defaults to
+  `real-time` (zero buffer); reload with `?moqlatency=real-time` to watch MoQ
+  drop lower still — and stutter on any jitter. Latency is a buffer-policy dial
+  on both protocols; what differs is where each protocol's floor sits.
+- **Chain vs chain, not protocol vs protocol.** The "HLS" number includes
+  FLV/RTMP ingest + MediaMTX remux + Caddy TLS; the "MoQ" number includes
+  moq-cli repackaging + relay fanout. Each is a representative single-hop
+  deployment (no CDN on either leg) — not isolated egress-protocol overhead.
+- **Encoder-to-glass, not glass-to-glass.** The clock is burned at encode, so
+  LaserDisc→capture-card latency is invisible — identically for both legs.
+- **The measured numbers are Chrome numbers.** The harness drives Chrome:
+  WebTransport + hls.js/MSE. Safari would be WSS fallback + native HLS —
+  different pipelines entirely.
+- **Harness limits.** Samples are midpoint-timestamped screenshots
+  (±`shot_spread_ms`/2); publisher, browser, and OCR share one machine; ~12
+  samples per run; OCR misreads are filtered only by plausibility; runs are
+  human-curated and the results tiles headline the latest run.
+- **Video only.** Audio latency, A/V sync, startup time, and rebuffering are
+  unmeasured.
+- **Local vs WAN.** The all-local dev stack isolates protocol architecture but
+  hides QUIC's loss-recovery advantages; WAN runs add network + geography.
+  The page's "impair network" button (local stack only; `scripts/impair.sh`,
+  dummynet on viewer ports :8888 + :4443, delay/loss applied per direction;
+  the MoQ ingest leg is exempted via its pinned source port) puts the network
+  variable back under test.
 
 ## Tests
 
@@ -148,7 +199,9 @@ self-skips until MoQ auth is enabled (see `ralph/HUMAN.md` §6).
 | `scripts/list-devices.sh` | Wrapper around `ffmpeg -f avfoundation -list_devices`. |
 | `scripts/watch.sh` | Local subscriber: `moq … export fmp4 \| ffplay -`. |
 | `scripts/preview.sh` | Eyeball the capture card locally (ffplay, no encode/network); `FRAME=x.png` grabs a still. |
-| `scripts/dev.sh` | Local dev stack in one command: `up [test\|capture]` / `down` / `status` / `help`. |
+| `scripts/dev.sh` | Local dev stack in one command (relay + HLS + publisher + site, all localhost): `up [test\|capture]` / `down` / `status` / `help`. |
+| `scripts/impair.sh` | Dummynet impairment (dnctl + pfctl) for the local stack's viewer legs: `on [wifi\|bad]` / `off` / `status`. |
+| `scripts/impair-server.py` | :9900 localhost endpoint behind the page's "impair network" button (started by `dev.sh`). |
 | `scripts/prod.sh` | Publisher runner for the stage x86 Mac: `up` / `down` / `status` / `measure` (needs `MOQ_RELAY_URL` + `RTMP_PUBLISH_PASS`). |
 | `scripts/run-forever.sh` | Restart wrapper around `publish.sh` with backoff + log. |
 | `scripts/measure-latency.sh` | Wrapper around the OCR latency harness; appends a run to `site/results/data.json`. |

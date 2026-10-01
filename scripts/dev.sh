@@ -1,22 +1,53 @@
 #!/usr/bin/env bash
-# Local dev stack: MediaMTX container + publisher + site server, in one place.
+# Local dev stack: moq-relay + MediaMTX container + publisher + site server.
 #   scripts/dev.sh up [test|capture]   start everything (default: test source)
 #   scripts/dev.sh down                measure latency, then stop everything
 #                                      (down fast / SKIP_MEASURE=1 / FORCE=1 skips measure)
 #   scripts/dev.sh status              what's running right now
 #   scripts/dev.sh measure             OCR latency run against THIS stack's page
-# `up` needs MOQ_RELAY_URL; writes site/config.js from it if the file is missing.
+# Fully local by design: both legs run on this machine, isolating protocol
+# architecture from network/geography. Relay is moq-relay on :4443 with a
+# self-signed cert; the http:// URL makes moq-cli and <moq-watch> fetch
+# /certificate.sha256 and pin the fingerprint (needs: cargo install moq-relay
+# --locked --version 0.13.5, see ralph/HUMAN.md §3).
 # Don't run tests/run.sh while the stack is up — its cleanup tears this down.
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 cd "$HERE/.."
 COMPOSE=(docker compose -f hls-origin/compose.local.yml)
+RELAY_PID=logs/dev-relay.pid
 PUB_PID=logs/dev-publish.pid
 WEB_PID=logs/dev-site.pid
+IMPAIR_PID=logs/dev-impair.pid
 PAGE_URL='http://localhost:8000/?hls=http://localhost:8888/laserdisc/index.m3u8'
+# Dev stack is always fully local — overrides any inherited relay env.
+export MOQ_RELAY_URL='http://localhost:4443/anon'
 mkdir -p logs
 
 alive() { [[ -f "$1" ]] && kill -0 "$(cat "$1")" 2>/dev/null; }
+
+relay_up() {
+  if alive "$RELAY_PID"; then
+    echo "relay already running (pid $(cat "$RELAY_PID"))"
+    return
+  fi
+  command -v moq-relay >/dev/null || {
+    echo "moq-relay not installed: cargo install moq-relay --locked --version 0.13.5 (ralph/HUMAN.md §3)" >&2
+    exit 1
+  }
+  # QUIC on UDP :4443; web listener on TCP :4443 serves /certificate.sha256 + WS fallback.
+  moq-relay --server-bind '[::]:4443' --tls-generate localhost \
+    --web-http-listen '[::]:4443' --auth-public anon > logs/dev-relay.log 2>&1 &
+  echo $! > "$RELAY_PID"
+  sleep 1
+  if ! alive "$RELAY_PID"; then
+    echo "moq-relay died at start (port taken? bad flags?) — logs/dev-relay.log:" >&2
+    tail -5 logs/dev-relay.log >&2
+    rm -f "$RELAY_PID"
+    exit 1
+  fi
+  echo "moq-relay started on :4443 (log: logs/dev-relay.log)"
+}
 
 # Serve site/ on :8000 so the session's receipt is browsable right after down.
 serve_receipts() {
@@ -31,14 +62,13 @@ up() {
   local src="${1:-${SOURCE:-test}}"   # positional wins; $SOURCE honored; default test
   [[ "$src" == "receipts" ]] && { serve_receipts; return; }   # site server only, nothing else
   [[ "$src" == "test" || "$src" == "capture" ]] || { echo "usage: scripts/dev.sh up [test|capture|receipts] (or SOURCE=…)" >&2; exit 2; }
-  : "${MOQ_RELAY_URL:?export MOQ_RELAY_URL first (the relay endpoint is deliberately not in the repo)}"
 
+  relay_up
   "${COMPOSE[@]}" up -d || exit 1
 
-  if [[ ! -f site/config.js ]]; then
-    printf 'window.MOQ_RELAY_URL = "%s";\n' "$MOQ_RELAY_URL" > site/config.js
-    echo "wrote site/config.js from \$MOQ_RELAY_URL (gitignored)"
-  fi
+  # Always point the local page at the local relay (gitignored; CI writes prod's).
+  printf 'window.MOQ_RELAY_URL = "%s";\n' "$MOQ_RELAY_URL" > site/config.js
+  echo "wrote site/config.js → $MOQ_RELAY_URL"
 
   if alive "$PUB_PID"; then
     echo "publisher already running (pid $(cat "$PUB_PID"))"
@@ -57,6 +87,14 @@ up() {
     echo "site server started on :8000"
   fi
 
+  if alive "$IMPAIR_PID"; then
+    echo "impair server already running (pid $(cat "$IMPAIR_PID"))"
+  else
+    python3 scripts/impair-server.py > logs/dev-impair.log 2>&1 &
+    echo $! > "$IMPAIR_PID"
+    echo "impair server started on :9900 (page button; sudo rule: ralph/HUMAN.md §4)"
+  fi
+
   sleep 3
   status
   echo
@@ -72,7 +110,11 @@ down() {
     measure || true
   fi
   python3 scripts/session_receipt.py close --stack dev || true
-  for f in "$PUB_PID" "$WEB_PID"; do
+  # Restore the network if an impair profile is still active.
+  if grep -q '"active":true' logs/impair.state 2>/dev/null; then
+    bash scripts/impair.sh off || echo "impair off failed — run scripts/impair.sh off manually" >&2
+  fi
+  for f in "$PUB_PID" "$WEB_PID" "$RELAY_PID" "$IMPAIR_PID"; do
     if [[ -f "$f" ]]; then
       pid="$(cat "$f")"
       pkill -TERM -P "$pid" 2>/dev/null   # publish.sh is `ffmpeg | moq`; kill the children too
@@ -83,6 +125,8 @@ down() {
   # strays from ad-hoc runs outside this script
   pkill -f 'ffmpeg .*overlay.filter' 2>/dev/null
   pkill -f 'moq --client-connect' 2>/dev/null
+  pkill -f 'moq-relay' 2>/dev/null
+  pkill -f 'impair-server.py' 2>/dev/null
   pkill -f 'http.server 8000' 2>/dev/null
   "${COMPOSE[@]}" down 2>/dev/null
   echo "dev stack down"
@@ -98,6 +142,11 @@ downdown() {
 
 status() {
   local ok=1
+  if alive "$RELAY_PID" && curl -sf --max-time 3 http://localhost:4443/certificate.sha256 -o /dev/null; then
+    echo "relay:      up (moq-relay :4443; log logs/dev-relay.log)"
+  else
+    echo "relay:      DOWN"; ok=0
+  fi
   if [[ -n "$("${COMPOSE[@]}" ps --status running -q 2>/dev/null)" ]]; then
     echo "mediamtx:   up (laser-mediamtx; RTMP :1935, LL-HLS :8888)"
   else
@@ -131,21 +180,21 @@ measure() {
 }
 
 map() {
-  # Live map of THIS stack: relay is real; HLS/page are localhost (location unknown by design).
+  # Live map of THIS stack: relay, HLS, and page are all localhost by design.
   python3 scripts/endpoint_map.py --hls localhost --page localhost "$@"
 }
 
 help() {
   cat <<'EOF'
-scripts/dev.sh up            # publish → relay + HLS (source: test colorbars)
+scripts/dev.sh up            # publish → local relay + local HLS (source: test colorbars)
 scripts/dev.sh up test       # same as `up`
-scripts/dev.sh up capture    # publish → relay + HLS (source: real physical media via capture card)
+scripts/dev.sh up capture    # publish → local relay + local HLS (source: real physical media via capture card)
 scripts/dev.sh up receipts   # :8000 site server only (browse receipts/results, no publishing)
 scripts/dev.sh down          # measure latency, then stop (down fast / SKIP_MEASURE=1 / FORCE=1 skips)
 scripts/dev.sh downdown      # fast full teardown: no measure, publisher + :8000 receipts site down
-scripts/dev.sh status        # container / publisher / site / playlist-flowing
+scripts/dev.sh status        # relay / container / publisher / site / playlist-flowing
 scripts/dev.sh measure       # OCR latency run vs this stack's page (extra flags pass through)
-scripts/dev.sh map           # live map (relay real, HLS/page localhost by design)
+scripts/dev.sh map           # live map (everything localhost by design)
 EOF
 }
 

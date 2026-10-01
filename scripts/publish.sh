@@ -46,9 +46,10 @@ if [[ "$SOURCE" == "test" ]]; then MAP=(-map 0:v -map 1:a); else MAP=(-map 0:v -
 if [[ "$HLS" == "1" ]]; then TEE="[f=mpegts]pipe:1|[f=flv:onfail=ignore]${RTMP_URL}"; else TEE="[f=mpegts]pipe:1"; fi
 
 echo "publish: source=$SOURCE relay=$MOQ_RELAY_URL broadcast=$BROADCAST hls=$HLS rtmp=$RTMP_URL" >&2
+# moq pins UDP source port 44431; scripts/impair.sh exempts the ingest leg by it.
 exec ffmpeg -hide_banner -loglevel warning -nostats "${INPUT[@]}" \
   -filter_script:v "$HERE/overlay.filter" \
   -c:v h264_videotoolbox -realtime 1 -b:v 2500k -g "$GOP" -bf 0 -profile:v main -pix_fmt yuv420p \
   -c:a aac -b:a 128k -ar 48000 -ac 2 -flags +global_header \
   "${MAP[@]}" -f tee "$TEE" \
-  | moq --client-connect "$MOQ_RELAY_URL" --broadcast "$BROADCAST" import ts
+  | moq --client-connect "$MOQ_RELAY_URL" --client-bind '[::]:44431' --broadcast "$BROADCAST" import ts

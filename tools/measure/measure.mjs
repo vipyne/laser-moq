@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 // OCR latency harness: drives the installed Chrome over the viewer page,
 // screenshots each player's clock corner, tesseract-reads the burned-in
-// publisher clock, and records glass_to_glass_ms = local clock − burned clock.
+// publisher clock, and records encoder_to_glass_ms = local clock − burned
+// clock (clock burned at encode; capture-chain latency excluded). Local clock
+// is the midpoint of the screenshot; shot_spread_ms records the window.
 // Run on the publisher machine so both clocks are the same clock.
 // Only writes site/results/data.json; committing/pushing stays human.
 import { spawnSync } from "node:child_process";
@@ -218,7 +220,7 @@ const samples = [];
 for (let i = 0; i < opts.samples; i++) {
   for (const { transport, selector } of panes) {
     const el = page.locator(selector);
-    const atEpoch = await page.evaluate(() => Date.now()); // immediately before the shot
+    const tBefore = await page.evaluate(() => Date.now());
     const pane = path.join(opts.debugDir, `sample-${String(i).padStart(2, "0")}-${transport}.png`);
     const crop = pane.replace(/\.png$/, "-crop.png");
     try {
@@ -227,6 +229,11 @@ for (let i = 0; i < opts.samples; i++) {
       console.log(`sample ${i} ${transport}: screenshot failed (${e.message.split("\n")[0]})`);
       continue;
     }
+    // Shot lands between tBefore and tAfter; midpoint, with the window recorded
+    // as shot_spread_ms (±spread/2 residual uncertainty per sample).
+    const tAfter = await page.evaluate(() => Date.now());
+    const atEpoch = Math.round((tBefore + tAfter) / 2);
+    const shotSpread = tAfter - tBefore;
     cropTopLeft(pane, crop);
     fs.rmSync(pane, { force: true });
     const atUtc = new Date(atEpoch).toISOString().replace(/\.\d+Z$/, "Z");
@@ -245,7 +252,7 @@ for (let i = 0; i < opts.samples; i++) {
         console.log(`sample ${i} ${transport}: implausible delta ${delta}ms from burned=${got.text} — dropped as OCR misread (crop kept: ${crop})`);
         continue;
       }
-      samples.push({ transport, method: "clock-ocr", glass_to_glass_ms: delta, at_utc: atUtc });
+      samples.push({ transport, method: "clock-ocr", encoder_to_glass_ms: delta, shot_spread_ms: shotSpread, at_utc: atUtc });
       console.log(`sample ${i} ${transport}: burned=${got.text} delta=${delta}ms`);
     } else {
       console.log(`sample ${i} ${transport}: OCR parse failed (crop kept: ${crop})`);
@@ -317,7 +324,7 @@ console.log(`appended run (${samples.length} samples) to ${opts.out}`);
 const p50 = v => v.slice().sort((a, b) => a - b)[Math.floor((v.length - 1) / 2)];
 for (const transport of ["moq", "hls"]) {
   const v = samples.filter(s => s.transport === transport && s.method === "clock-ocr")
-    .map(s => s.glass_to_glass_ms);
+    .map(s => s.encoder_to_glass_ms);
   console.log(v.length
     ? `${transport}: n=${v.length} p50=${p50(v)}ms min=${Math.min(...v)}ms max=${Math.max(...v)}ms`
     : `${transport}: n=0 (no clock-ocr samples parsed)`);

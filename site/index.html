@@ -35,6 +35,17 @@
                     width: 5.5rem; text-align: right; margin-left: auto; }
   .tc-note { margin-top: .35rem; color: #888; font-size: .8rem; }
   .tc-note span { font: 700 .9rem/1 ui-monospace, monospace; color: #8ab4ff; margin-right: .5rem; }
+  .impair { margin: .5rem 1.5rem 0; display: flex; align-items: center; gap: .75rem; }
+  .impair button { font: inherit; font-size: .85rem; background: #222; color: #ffb74d;
+    border: 1px solid #333; padding: .25rem .75rem; cursor: pointer; }
+  .impair button[data-active="true"] { background: #ffb74d; color: #0b0b0f; border-color: #ffb74d; }
+  .impair span { color: #888; font-size: .85rem; }
+  section.caveats { margin: 1.5rem 1.5rem 0; padding: .75rem 1rem; background: #000;
+    border: 1px solid #222; border-radius: 6px; color: #aaa; font-size: .9rem; max-width: 60rem; }
+  section.caveats h2 { margin: 0 0 .5rem; font-size: 1rem; color: #eee; }
+  section.caveats ul { margin: 0; padding-left: 1.2rem; }
+  section.caveats li { margin: .35rem 0; }
+  section.caveats code { color: #8ab4ff; }
   footer { padding: 1rem 1.5rem; color: #777; font-size: .85rem; }
   a { color: #8ab4ff; }
 </style>
@@ -50,6 +61,10 @@
   <div class="tc-row"><span>HLS</span><canvas id="tc-hls" width="360" height="70"></canvas><span class="tc-lat" id="lat-hls">—</span></div>
   <div class="tc-note"><span id="tc-delta"></span>latency vs this device's clock, ± clock sync · Δ is sync-independent</div>
 </section>
+<div class="impair" id="impair" hidden>
+  <button type="button" id="impair-btn"></button>
+  <span id="impair-state"></span>
+</div>
 <main>
   <section class="player">
     <h2>Media over QUIC</h2>
@@ -68,6 +83,38 @@
     <div class="status" id="status-hls"></div>
   </section>
 </main>
+<section class="caveats" id="caveats">
+  <h2>Known caveats — why this benchmark is also bs</h2>
+  <ul>
+    <li><strong>Buffer asymmetry.</strong> MoQ runs a 150&nbsp;ms jitter buffer; HLS "typical"
+      targets 1.5&nbsp;s and "ragged" 300&nbsp;ms — and ~300&nbsp;ms (3× the origin's 100&nbsp;ms
+      parts) is LL-HLS's floor, while MoQ's floor is zero. The matched-buffer comparison is
+      <code>?moqlatency=300&amp;hlspreset=ragged</code>.</li>
+    <li><strong>The 150&nbsp;ms is a handicap, not a gift.</strong> <code>&lt;moq-watch&gt;</code>
+      defaults to <code>real-time</code> (zero buffer); reload with
+      <code>?moqlatency=real-time</code> to watch MoQ drop lower still — and stutter on any
+      jitter. Latency is a buffer-policy dial on both protocols; what differs is where each
+      protocol's floor sits.</li>
+    <li><strong>Chain vs chain, not protocol vs protocol.</strong> The "HLS" number includes
+      FLV/RTMP ingest + MediaMTX remux + Caddy TLS; the "MoQ" number includes moq-cli
+      repackaging + relay fanout. Each is a representative single-hop deployment (no CDN on
+      either leg) — not isolated egress-protocol overhead.</li>
+    <li><strong>Encoder-to-glass, not glass-to-glass.</strong> The clock is burned at encode,
+      so LaserDisc→capture-card latency is invisible — identically for both legs.</li>
+    <li><strong>The measured numbers are Chrome numbers.</strong> The harness drives Chrome:
+      WebTransport + hls.js/MSE. Safari would be WSS fallback + native HLS — different
+      pipelines entirely.</li>
+    <li><strong>Harness limits.</strong> Samples are midpoint-timestamped screenshots
+      (±<code>shot_spread_ms</code>/2); publisher, browser, and OCR share one machine; ~12
+      samples per run; OCR misreads are filtered only by plausibility; runs are human-curated
+      and the results tiles headline the latest run.</li>
+    <li><strong>Video only.</strong> Audio latency, A/V sync, startup time, and rebuffering are
+      unmeasured.</li>
+    <li><strong>Local vs WAN.</strong> The all-local stack isolates protocol architecture but
+      hides QUIC's loss-recovery advantages; WAN runs add network + geography. Compare both on
+      <a href="results/">results</a>.</li>
+  </ul>
+</section>
 <footer>
   A stunt hack. Source + runbook: <a href="https://github.com/vipyne/laser-moq">github.com/vipyne/laser-moq</a>.
   <a href="receipts/">Session receipts</a> · <a href="results/">Measured latency</a>.
@@ -230,6 +277,33 @@
         ? `Δ HLS−MoQ ${((held.hls - held.moq) / 1000).toFixed(2)}s` : "";
       await new Promise(r => setTimeout(r, 1000));
     }
+  })();
+
+  // --- network impair toggle: local stack only (scripts/impair-server.py :9900) ---
+  (async () => {
+    if (!["localhost", "127.0.0.1"].includes(location.hostname)) return;
+    const box = document.getElementById("impair");
+    const btn = document.getElementById("impair-btn");
+    const state = document.getElementById("impair-state");
+    const api = "http://localhost:9900";
+    const render = s => {
+      box.hidden = false;
+      btn.dataset.active = String(s.active === true);
+      btn.textContent = s.active ? "restore network" : "impair network";
+      state.textContent = s.active ? `dummynet on · ${s.profile}` : "dummynet off · wifi profile (50ms, 1% loss each way) on viewer ports :8888 + :4443";
+    };
+    try { render(await (await fetch(`${api}/status`)).json()); }
+    catch { return; }   // no control server (public page, or stack down) → no button
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      const path = btn.dataset.active === "true" ? "/off" : "/on?profile=wifi";
+      try {
+        const r = await (await fetch(api + path, { method: "POST" })).json();
+        if (r.error) state.textContent = `impair failed: ${r.error}`;
+        else render(r);
+      } catch { state.textContent = "impair server unreachable"; }
+      btn.disabled = false;
+    });
   })();
 </script>
 </body>

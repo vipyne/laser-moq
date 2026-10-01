@@ -23,7 +23,7 @@ Usage:
 
 --from-run renders from the coarse geo the measurement harness stores per run
 in site/results/data.json (cities and coordinates only — no IPs or hostnames
-are ever committed), annotated with that run's measured glass-to-glass p50s.
+are ever committed), annotated with that run's measured encoder-to-glass p50s.
 
 Stdlib only. Sends only endpoint IPs (public infrastructure) to ipinfo.io.
 """
@@ -269,7 +269,7 @@ def from_run(data_path: str, idx: int) -> int:
             markers[letter] = ll
         legend.append(f"{letter}  {label:<11} {place(g)}")
 
-    g2g = {t: p50([s["glass_to_glass_ms"] for s in run.get("samples", [])
+    g2g = {t: p50([s["encoder_to_glass_ms"] for s in run.get("samples", [])
                    if s.get("transport") == t and s.get("method") == "clock-ocr"])
            for t in ("moq", "hls")}
 
@@ -291,7 +291,7 @@ def from_run(data_path: str, idx: int) -> int:
         mid = {"label": f"{letter} {kinds[letter][1]}",
                "place": place(norm_geo(geo.get(key))), "ip": ""}
         ms = g2g[t]
-        down = (f"~{ms:.0f} ms glass-to-glass p50 measured in this run"
+        down = (f"~{ms:.0f} ms encoder-to-glass p50 measured in this run"
                 if ms is not None else "no clock-ocr samples in this run")
         print(render_path(title, p_node, mid, viewer,
                           "publisher → " + kinds[letter][1] + " (RTT not stored per run)",

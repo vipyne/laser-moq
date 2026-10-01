@@ -92,7 +92,7 @@ run is always a human commit.
   │           warm up both players → every ~5s, per player:          │
   │             screenshot pane → crop top-left corner →             │
   │             tesseract OCRs the burned-in publisher clock         │
-  │             glass_to_glass_ms = local now − burned clock         │
+  │             encoder_to_glass_ms = local now − burned clock       │
   │           (+ hls.js self-reported latency, kept as cross-check)  │
   │                                                                  │
   │    appends ONE run ─▶ site/results/data.json                     │

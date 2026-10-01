@@ -114,21 +114,21 @@
           `<tr><td><code>${esc(k)}</code></td><td><code>${esc(fmtVal(v))}</code></td></tr>`).join("")
         || `<tr><td class="empty">(none recorded)</td></tr>`;
 
-      // Latency: measurement runs inside the session window, glass-to-glass medians + delta
+      // Latency: measurement runs inside the session window, encoder-to-glass medians + delta
       const median = a => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
       const inWindow = r => r.started_utc >= session.started_utc && (!session.ended_utc || r.started_utc <= session.ended_utc);
       const runs = (results.runs || []).filter(inWindow).map(r => {
-        const g = t => median((r.samples || []).filter(s => s.transport === t && s.glass_to_glass_ms != null).map(s => s.glass_to_glass_ms));
+        const g = t => median((r.samples || []).filter(s => s.transport === t && s.encoder_to_glass_ms != null).map(s => s.encoder_to_glass_ms));
         return { started_utc: r.started_utc, source: r.source, notes: r.notes, machine: r.machine,
                  samples: (r.samples || []).length, moq_median_ms: g("moq"), hls_median_ms: g("hls"),
                  delta_ms: g("moq") != null && g("hls") != null ? g("hls") - g("moq") : null };
       });
       const ms = v => v == null ? "—" : `${(v / 1000).toFixed(2)}s`;
       document.getElementById("runs-summary").innerHTML = runs.length
-        ? `<table><thead><tr><th>run started</th><th>notes</th><th class="num">samples</th><th class="num">MoQ g2g</th><th class="num">HLS g2g</th><th class="num">Δ HLS−MoQ</th></tr></thead><tbody>` +
+        ? `<table><thead><tr><th>run started</th><th>notes</th><th class="num">samples</th><th class="num">MoQ e2g</th><th class="num">HLS e2g</th><th class="num">Δ HLS−MoQ</th></tr></thead><tbody>` +
           runs.map(r => `<tr><td>${esc(r.started_utc)}</td><td>${esc(r.notes ?? "")}</td><td class="num">${r.samples}</td>` +
             `<td class="num">${ms(r.moq_median_ms)}</td><td class="num">${ms(r.hls_median_ms)}</td><td class="num delta">${ms(r.delta_ms)}</td></tr>`).join("") +
-          `</tbody></table><p class="hint">glass-to-glass medians per run (clock-ocr) · details on <a href="../results/">results</a></p>`
+          `</tbody></table><p class="hint">encoder-to-glass medians per run (clock-ocr) · details on <a href="../results/">results</a></p>`
         : `<p class="hint">no measurement runs during this session — run <code>scripts/prod.sh measure</code> while up</p>`;
 
       // Hardware: publisher snapshots side by side, then relay/origin facts + probes

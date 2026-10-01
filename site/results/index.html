@@ -48,7 +48,7 @@
 <body>
 <header>
   <h1>📊 Measured latency</h1>
-  <p>Glass-to-glass: the burned-in publisher clock, OCR'd out of each player, minus the local clock — measured on the publisher machine, so both clocks are one clock. <a href="../receipts/">← receipts</a> · <a href="../">back to the live streams</a></p>
+  <p>Encoder-to-glass: the burned-in publisher clock, OCR'd out of each player, minus the local clock — measured on the publisher machine, so both clocks are one clock. (The clock is burned at encode, so capture-chain latency is excluded — identically for both legs.) <a href="../receipts/">← receipts</a> · <a href="../">back to the live streams</a></p>
   <p id="how-to-read">How to read this page: each <em>run</em> is one invocation of
   <code>scripts/measure-latency.sh</code> on the publisher machine, reviewed and committed by a
   human. The tiles summarize the <strong>latest run only</strong>; the chart and table show
@@ -92,9 +92,10 @@
     <div class="caveats">
       Both streams come from one ffmpeg encode (same bitrate, GOP, encoder), so the comparison is
       apples to apples. Measurements run on the publisher machine: the burned-in clock and the
-      local clock are the same clock, so there is no NTP skew — but screenshot timing adds about
-      ±50&nbsp;ms of noise to every glass-to-glass sample. <code>hlsjs-api</code> rows are the
-      latency hls.js itself reports, not glass-to-glass, shown for cross-checking only.
+      local clock are the same clock, so there is no NTP skew. Each sample is timestamped at the
+      midpoint of its screenshot; <code>shot_spread_ms</code> records the window, so the residual
+      timing uncertainty is ±spread/2. <code>hlsjs-api</code> rows are the
+      latency hls.js itself reports, not encoder-to-glass, shown for cross-checking only.
       Since Task 6, the harness records each run's HLS tuning receipt (client preset,
       part target, sync target) straight off <code>window.__hls</code> — shown as a
       hover tooltip on hls table rows and appended to the HLS tile's subtitle; runs from
@@ -111,7 +112,7 @@
   const COLOR = { moq: "#8ab4ff", hls: "#ffb74d" };
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const p50 = v => { const s = [...v].sort((a, b) => a - b); const m = s.length >> 1; return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2); };
-  const ocr = (run, t) => run.samples.filter(s => s.transport === t && s.method === "clock-ocr").map(s => s.glass_to_glass_ms);
+  const ocr = (run, t) => run.samples.filter(s => s.transport === t && s.method === "clock-ocr").map(s => s.encoder_to_glass_ms);
 
   function tuningLabel(run) {
     const t = run.tuning;
@@ -160,8 +161,8 @@
     const dots = pts.map((p, n) =>
       `<circle cx="${(x(p.i) + (n % 7 - 3) * 2.5).toFixed(1)}" cy="${y(p.ms).toFixed(1)}" r="4" fill="${COLOR[p.t]}" fill-opacity="0.85"><title>${p.t} ${p.ms} ms</title></circle>`).join("");
     document.getElementById("chart").innerHTML =
-      `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="glass-to-glass latency per run">` +
-      `<text x="14" y="${(T + H - B) / 2}" fill="#aaa" font-size="11" transform="rotate(-90 14 ${(T + H - B) / 2})" text-anchor="middle">glass-to-glass ms</text>` +
+      `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="encoder-to-glass latency per run">` +
+      `<text x="14" y="${(T + H - B) / 2}" fill="#aaa" font-size="11" transform="rotate(-90 14 ${(T + H - B) / 2})" text-anchor="middle">encoder-to-glass ms</text>` +
       g + xl + dots + `</svg>`;
   }
 

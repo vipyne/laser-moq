@@ -11,8 +11,8 @@
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 563,
-          "at_utc": "2026-09-13T15:44:40Z"
+          "at_utc": "2026-09-13T15:44:40Z",
+          "encoder_to_glass_ms": 563
         },
         {
           "transport": "hls",
@@ -23,8 +23,8 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1413,
-          "at_utc": "2026-09-13T15:44:40Z"
+          "at_utc": "2026-09-13T15:44:40Z",
+          "encoder_to_glass_ms": 1413
         },
         {
           "transport": "hls",
@@ -35,14 +35,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1406,
-          "at_utc": "2026-09-13T15:44:45Z"
+          "at_utc": "2026-09-13T15:44:45Z",
+          "encoder_to_glass_ms": 1406
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 706,
-          "at_utc": "2026-09-13T15:44:50Z"
+          "at_utc": "2026-09-13T15:44:50Z",
+          "encoder_to_glass_ms": 706
         },
         {
           "transport": "hls",
@@ -53,14 +53,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1427,
-          "at_utc": "2026-09-13T15:44:51Z"
+          "at_utc": "2026-09-13T15:44:51Z",
+          "encoder_to_glass_ms": 1427
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 691,
-          "at_utc": "2026-09-13T15:44:56Z"
+          "at_utc": "2026-09-13T15:44:56Z",
+          "encoder_to_glass_ms": 691
         },
         {
           "transport": "hls",
@@ -71,14 +71,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1404,
-          "at_utc": "2026-09-13T15:44:56Z"
+          "at_utc": "2026-09-13T15:44:56Z",
+          "encoder_to_glass_ms": 1404
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 672,
-          "at_utc": "2026-09-13T15:45:01Z"
+          "at_utc": "2026-09-13T15:45:01Z",
+          "encoder_to_glass_ms": 672
         },
         {
           "transport": "hls",
@@ -89,14 +89,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1415,
-          "at_utc": "2026-09-13T15:45:01Z"
+          "at_utc": "2026-09-13T15:45:01Z",
+          "encoder_to_glass_ms": 1415
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 658,
-          "at_utc": "2026-09-13T15:45:07Z"
+          "at_utc": "2026-09-13T15:45:07Z",
+          "encoder_to_glass_ms": 658
         },
         {
           "transport": "hls",
@@ -122,8 +122,8 @@
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 716,
-          "at_utc": "2026-09-16T03:32:10Z"
+          "at_utc": "2026-09-16T03:32:10Z",
+          "encoder_to_glass_ms": 716
         },
         {
           "transport": "hls",
@@ -134,8 +134,8 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1862,
-          "at_utc": "2026-09-16T03:32:10Z"
+          "at_utc": "2026-09-16T03:32:10Z",
+          "encoder_to_glass_ms": 1862
         },
         {
           "transport": "hls",
@@ -146,14 +146,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1891,
-          "at_utc": "2026-09-16T03:32:16Z"
+          "at_utc": "2026-09-16T03:32:16Z",
+          "encoder_to_glass_ms": 1891
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 655,
-          "at_utc": "2026-09-16T03:32:21Z"
+          "at_utc": "2026-09-16T03:32:21Z",
+          "encoder_to_glass_ms": 655
         },
         {
           "transport": "hls",
@@ -164,14 +164,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1830,
-          "at_utc": "2026-09-16T03:32:21Z"
+          "at_utc": "2026-09-16T03:32:21Z",
+          "encoder_to_glass_ms": 1830
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 669,
-          "at_utc": "2026-09-16T03:32:26Z"
+          "at_utc": "2026-09-16T03:32:26Z",
+          "encoder_to_glass_ms": 669
         },
         {
           "transport": "hls",
@@ -182,8 +182,8 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1889,
-          "at_utc": "2026-09-16T03:32:27Z"
+          "at_utc": "2026-09-16T03:32:27Z",
+          "encoder_to_glass_ms": 1889
         },
         {
           "transport": "hls",
@@ -194,14 +194,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1859,
-          "at_utc": "2026-09-16T03:32:32Z"
+          "at_utc": "2026-09-16T03:32:32Z",
+          "encoder_to_glass_ms": 1859
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 651,
-          "at_utc": "2026-09-16T03:32:37Z"
+          "at_utc": "2026-09-16T03:32:37Z",
+          "encoder_to_glass_ms": 651
         },
         {
           "transport": "hls",
@@ -212,14 +212,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1863,
-          "at_utc": "2026-09-16T03:32:37Z"
+          "at_utc": "2026-09-16T03:32:37Z",
+          "encoder_to_glass_ms": 1863
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 669,
-          "at_utc": "2026-09-16T03:32:43Z"
+          "at_utc": "2026-09-16T03:32:43Z",
+          "encoder_to_glass_ms": 669
         },
         {
           "transport": "hls",
@@ -230,8 +230,8 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1884,
-          "at_utc": "2026-09-16T03:32:43Z"
+          "at_utc": "2026-09-16T03:32:43Z",
+          "encoder_to_glass_ms": 1884
         },
         {
           "transport": "hls",
@@ -242,14 +242,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1859,
-          "at_utc": "2026-09-16T03:32:48Z"
+          "at_utc": "2026-09-16T03:32:48Z",
+          "encoder_to_glass_ms": 1859
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 652,
-          "at_utc": "2026-09-16T03:32:53Z"
+          "at_utc": "2026-09-16T03:32:53Z",
+          "encoder_to_glass_ms": 652
         },
         {
           "transport": "hls",
@@ -260,8 +260,8 @@
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 652,
-          "at_utc": "2026-09-16T03:32:59Z"
+          "at_utc": "2026-09-16T03:32:59Z",
+          "encoder_to_glass_ms": 652
         },
         {
           "transport": "hls",
@@ -272,8 +272,8 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1831,
-          "at_utc": "2026-09-16T03:32:59Z"
+          "at_utc": "2026-09-16T03:32:59Z",
+          "encoder_to_glass_ms": 1831
         },
         {
           "transport": "hls",
@@ -311,8 +311,8 @@
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 614,
-          "at_utc": "2026-09-16T03:40:45Z"
+          "at_utc": "2026-09-16T03:40:45Z",
+          "encoder_to_glass_ms": 614
         },
         {
           "transport": "hls",
@@ -323,8 +323,8 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1712,
-          "at_utc": "2026-09-16T03:40:46Z"
+          "at_utc": "2026-09-16T03:40:46Z",
+          "encoder_to_glass_ms": 1712
         },
         {
           "transport": "hls",
@@ -335,8 +335,8 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1729,
-          "at_utc": "2026-09-16T03:40:51Z"
+          "at_utc": "2026-09-16T03:40:51Z",
+          "encoder_to_glass_ms": 1729
         },
         {
           "transport": "hls",
@@ -347,14 +347,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1736,
-          "at_utc": "2026-09-16T03:40:57Z"
+          "at_utc": "2026-09-16T03:40:57Z",
+          "encoder_to_glass_ms": 1736
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 669,
-          "at_utc": "2026-09-16T03:41:02Z"
+          "at_utc": "2026-09-16T03:41:02Z",
+          "encoder_to_glass_ms": 669
         },
         {
           "transport": "hls",
@@ -365,8 +365,8 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1711,
-          "at_utc": "2026-09-16T03:41:02Z"
+          "at_utc": "2026-09-16T03:41:02Z",
+          "encoder_to_glass_ms": 1711
         },
         {
           "transport": "hls",
@@ -377,8 +377,8 @@
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 572,
-          "at_utc": "2026-09-16T03:41:13Z"
+          "at_utc": "2026-09-16T03:41:13Z",
+          "encoder_to_glass_ms": 572
         },
         {
           "transport": "hls",
@@ -389,14 +389,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1727,
-          "at_utc": "2026-09-16T03:41:13Z"
+          "at_utc": "2026-09-16T03:41:13Z",
+          "encoder_to_glass_ms": 1727
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 671,
-          "at_utc": "2026-09-16T03:41:18Z"
+          "at_utc": "2026-09-16T03:41:18Z",
+          "encoder_to_glass_ms": 671
         },
         {
           "transport": "hls",
@@ -407,14 +407,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1709,
-          "at_utc": "2026-09-16T03:41:18Z"
+          "at_utc": "2026-09-16T03:41:18Z",
+          "encoder_to_glass_ms": 1709
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 653,
-          "at_utc": "2026-09-16T03:41:23Z"
+          "at_utc": "2026-09-16T03:41:23Z",
+          "encoder_to_glass_ms": 653
         },
         {
           "transport": "hls",
@@ -425,14 +425,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1712,
-          "at_utc": "2026-09-16T03:41:24Z"
+          "at_utc": "2026-09-16T03:41:24Z",
+          "encoder_to_glass_ms": 1712
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 650,
-          "at_utc": "2026-09-16T03:41:29Z"
+          "at_utc": "2026-09-16T03:41:29Z",
+          "encoder_to_glass_ms": 650
         },
         {
           "transport": "hls",
@@ -443,8 +443,8 @@
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 661,
-          "at_utc": "2026-09-16T03:41:34Z"
+          "at_utc": "2026-09-16T03:41:34Z",
+          "encoder_to_glass_ms": 661
         },
         {
           "transport": "hls",
@@ -455,8 +455,8 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1712,
-          "at_utc": "2026-09-16T03:41:34Z"
+          "at_utc": "2026-09-16T03:41:34Z",
+          "encoder_to_glass_ms": 1712
         },
         {
           "transport": "hls",
@@ -467,14 +467,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1727,
-          "at_utc": "2026-09-16T03:41:40Z"
+          "at_utc": "2026-09-16T03:41:40Z",
+          "encoder_to_glass_ms": 1727
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 697,
-          "at_utc": "2026-09-16T03:41:45Z"
+          "at_utc": "2026-09-16T03:41:45Z",
+          "encoder_to_glass_ms": 697
         },
         {
           "transport": "hls",
@@ -512,8 +512,8 @@
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 630,
-          "at_utc": "2026-09-17T03:45:22Z"
+          "at_utc": "2026-09-17T03:45:22Z",
+          "encoder_to_glass_ms": 630
         },
         {
           "transport": "hls",
@@ -530,14 +530,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 2182,
-          "at_utc": "2026-09-17T03:45:27Z"
+          "at_utc": "2026-09-17T03:45:27Z",
+          "encoder_to_glass_ms": 2182
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 667,
-          "at_utc": "2026-09-17T03:45:33Z"
+          "at_utc": "2026-09-17T03:45:33Z",
+          "encoder_to_glass_ms": 667
         },
         {
           "transport": "hls",
@@ -548,8 +548,8 @@
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 636,
-          "at_utc": "2026-09-17T03:45:38Z"
+          "at_utc": "2026-09-17T03:45:38Z",
+          "encoder_to_glass_ms": 636
         },
         {
           "transport": "hls",
@@ -560,8 +560,8 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 2192,
-          "at_utc": "2026-09-17T03:45:38Z"
+          "at_utc": "2026-09-17T03:45:38Z",
+          "encoder_to_glass_ms": 2192
         },
         {
           "transport": "hls",
@@ -572,14 +572,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 2197,
-          "at_utc": "2026-09-17T03:45:44Z"
+          "at_utc": "2026-09-17T03:45:44Z",
+          "encoder_to_glass_ms": 2197
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 606,
-          "at_utc": "2026-09-17T03:45:49Z"
+          "at_utc": "2026-09-17T03:45:49Z",
+          "encoder_to_glass_ms": 606
         },
         {
           "transport": "hls",
@@ -590,14 +590,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 2212,
-          "at_utc": "2026-09-17T03:45:49Z"
+          "at_utc": "2026-09-17T03:45:49Z",
+          "encoder_to_glass_ms": 2212
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 655,
-          "at_utc": "2026-09-17T03:45:54Z"
+          "at_utc": "2026-09-17T03:45:54Z",
+          "encoder_to_glass_ms": 655
         },
         {
           "transport": "hls",
@@ -608,14 +608,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 2158,
-          "at_utc": "2026-09-17T03:45:54Z"
+          "at_utc": "2026-09-17T03:45:54Z",
+          "encoder_to_glass_ms": 2158
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 664,
-          "at_utc": "2026-09-17T03:45:59Z"
+          "at_utc": "2026-09-17T03:45:59Z",
+          "encoder_to_glass_ms": 664
         },
         {
           "transport": "hls",
@@ -626,14 +626,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 2217,
-          "at_utc": "2026-09-17T03:46:00Z"
+          "at_utc": "2026-09-17T03:46:00Z",
+          "encoder_to_glass_ms": 2217
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 648,
-          "at_utc": "2026-09-17T03:46:05Z"
+          "at_utc": "2026-09-17T03:46:05Z",
+          "encoder_to_glass_ms": 648
         },
         {
           "transport": "hls",
@@ -644,8 +644,8 @@
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 597,
-          "at_utc": "2026-09-17T03:46:10Z"
+          "at_utc": "2026-09-17T03:46:10Z",
+          "encoder_to_glass_ms": 597
         },
         {
           "transport": "hls",
@@ -656,8 +656,8 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 2216,
-          "at_utc": "2026-09-17T03:46:10Z"
+          "at_utc": "2026-09-17T03:46:10Z",
+          "encoder_to_glass_ms": 2216
         },
         {
           "transport": "hls",
@@ -668,14 +668,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 2158,
-          "at_utc": "2026-09-17T03:46:16Z"
+          "at_utc": "2026-09-17T03:46:16Z",
+          "encoder_to_glass_ms": 2158
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 655,
-          "at_utc": "2026-09-17T03:46:21Z"
+          "at_utc": "2026-09-17T03:46:21Z",
+          "encoder_to_glass_ms": 655
         },
         {
           "transport": "hls",
@@ -686,8 +686,8 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 2190,
-          "at_utc": "2026-09-17T03:46:21Z"
+          "at_utc": "2026-09-17T03:46:21Z",
+          "encoder_to_glass_ms": 2190
         }
       ],
       "geo": {
@@ -728,8 +728,8 @@
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 648,
-          "at_utc": "2026-09-17T03:46:44Z"
+          "at_utc": "2026-09-17T03:46:44Z",
+          "encoder_to_glass_ms": 648
         },
         {
           "transport": "hls",
@@ -740,8 +740,8 @@
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 669,
-          "at_utc": "2026-09-17T03:46:50Z"
+          "at_utc": "2026-09-17T03:46:50Z",
+          "encoder_to_glass_ms": 669
         },
         {
           "transport": "hls",
@@ -752,8 +752,8 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1054,
-          "at_utc": "2026-09-17T03:46:50Z"
+          "at_utc": "2026-09-17T03:46:50Z",
+          "encoder_to_glass_ms": 1054
         },
         {
           "transport": "hls",
@@ -764,8 +764,8 @@
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 656,
-          "at_utc": "2026-09-17T03:47:01Z"
+          "at_utc": "2026-09-17T03:47:01Z",
+          "encoder_to_glass_ms": 656
         },
         {
           "transport": "hls",
@@ -776,14 +776,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1073,
-          "at_utc": "2026-09-17T03:47:01Z"
+          "at_utc": "2026-09-17T03:47:01Z",
+          "encoder_to_glass_ms": 1073
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 577,
-          "at_utc": "2026-09-17T03:47:06Z"
+          "at_utc": "2026-09-17T03:47:06Z",
+          "encoder_to_glass_ms": 577
         },
         {
           "transport": "hls",
@@ -794,14 +794,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1017,
-          "at_utc": "2026-09-17T03:47:06Z"
+          "at_utc": "2026-09-17T03:47:06Z",
+          "encoder_to_glass_ms": 1017
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 654,
-          "at_utc": "2026-09-17T03:47:12Z"
+          "at_utc": "2026-09-17T03:47:12Z",
+          "encoder_to_glass_ms": 654
         },
         {
           "transport": "hls",
@@ -812,14 +812,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1082,
-          "at_utc": "2026-09-17T03:47:12Z"
+          "at_utc": "2026-09-17T03:47:12Z",
+          "encoder_to_glass_ms": 1082
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 672,
-          "at_utc": "2026-09-17T03:47:17Z"
+          "at_utc": "2026-09-17T03:47:17Z",
+          "encoder_to_glass_ms": 672
         },
         {
           "transport": "hls",
@@ -830,14 +830,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1056,
-          "at_utc": "2026-09-17T03:47:17Z"
+          "at_utc": "2026-09-17T03:47:17Z",
+          "encoder_to_glass_ms": 1056
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 589,
-          "at_utc": "2026-09-17T03:47:22Z"
+          "at_utc": "2026-09-17T03:47:22Z",
+          "encoder_to_glass_ms": 589
         },
         {
           "transport": "hls",
@@ -848,8 +848,8 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1075,
-          "at_utc": "2026-09-17T03:47:22Z"
+          "at_utc": "2026-09-17T03:47:22Z",
+          "encoder_to_glass_ms": 1075
         },
         {
           "transport": "hls",
@@ -860,8 +860,8 @@
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 660,
-          "at_utc": "2026-09-17T03:47:33Z"
+          "at_utc": "2026-09-17T03:47:33Z",
+          "encoder_to_glass_ms": 660
         },
         {
           "transport": "hls",
@@ -872,14 +872,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1074,
-          "at_utc": "2026-09-17T03:47:33Z"
+          "at_utc": "2026-09-17T03:47:33Z",
+          "encoder_to_glass_ms": 1074
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 674,
-          "at_utc": "2026-09-17T03:47:38Z"
+          "at_utc": "2026-09-17T03:47:38Z",
+          "encoder_to_glass_ms": 674
         },
         {
           "transport": "hls",
@@ -890,14 +890,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1060,
-          "at_utc": "2026-09-17T03:47:39Z"
+          "at_utc": "2026-09-17T03:47:39Z",
+          "encoder_to_glass_ms": 1060
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1259,
-          "at_utc": "2026-09-17T03:47:44Z"
+          "at_utc": "2026-09-17T03:47:44Z",
+          "encoder_to_glass_ms": 1259
         },
         {
           "transport": "hls",
@@ -908,8 +908,8 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 1064,
-          "at_utc": "2026-09-17T03:47:44Z"
+          "at_utc": "2026-09-17T03:47:44Z",
+          "encoder_to_glass_ms": 1064
         }
       ],
       "geo": {
@@ -950,8 +950,8 @@
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 612,
-          "at_utc": "2026-09-30T23:12:51Z"
+          "at_utc": "2026-09-30T23:12:51Z",
+          "encoder_to_glass_ms": 612
         },
         {
           "transport": "hls",
@@ -962,8 +962,8 @@
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 696,
-          "at_utc": "2026-09-30T23:12:56Z"
+          "at_utc": "2026-09-30T23:12:56Z",
+          "encoder_to_glass_ms": 696
         },
         {
           "transport": "hls",
@@ -974,8 +974,8 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 2541,
-          "at_utc": "2026-09-30T23:12:56Z"
+          "at_utc": "2026-09-30T23:12:56Z",
+          "encoder_to_glass_ms": 2541
         },
         {
           "transport": "hls",
@@ -986,14 +986,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 2573,
-          "at_utc": "2026-09-30T23:13:02Z"
+          "at_utc": "2026-09-30T23:13:02Z",
+          "encoder_to_glass_ms": 2573
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 675,
-          "at_utc": "2026-09-30T23:13:07Z"
+          "at_utc": "2026-09-30T23:13:07Z",
+          "encoder_to_glass_ms": 675
         },
         {
           "transport": "hls",
@@ -1004,8 +1004,8 @@
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 660,
-          "at_utc": "2026-09-30T23:13:12Z"
+          "at_utc": "2026-09-30T23:13:12Z",
+          "encoder_to_glass_ms": 660
         },
         {
           "transport": "hls",
@@ -1016,14 +1016,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 2569,
-          "at_utc": "2026-09-30T23:13:13Z"
+          "at_utc": "2026-09-30T23:13:13Z",
+          "encoder_to_glass_ms": 2569
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 646,
-          "at_utc": "2026-09-30T23:13:18Z"
+          "at_utc": "2026-09-30T23:13:18Z",
+          "encoder_to_glass_ms": 646
         },
         {
           "transport": "hls",
@@ -1034,14 +1034,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 2583,
-          "at_utc": "2026-09-30T23:13:18Z"
+          "at_utc": "2026-09-30T23:13:18Z",
+          "encoder_to_glass_ms": 2583
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 680,
-          "at_utc": "2026-09-30T23:13:23Z"
+          "at_utc": "2026-09-30T23:13:23Z",
+          "encoder_to_glass_ms": 680
         },
         {
           "transport": "hls",
@@ -1052,14 +1052,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 2561,
-          "at_utc": "2026-09-30T23:13:23Z"
+          "at_utc": "2026-09-30T23:13:23Z",
+          "encoder_to_glass_ms": 2561
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 660,
-          "at_utc": "2026-09-30T23:13:28Z"
+          "at_utc": "2026-09-30T23:13:28Z",
+          "encoder_to_glass_ms": 660
         },
         {
           "transport": "hls",
@@ -1070,14 +1070,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 2571,
-          "at_utc": "2026-09-30T23:13:29Z"
+          "at_utc": "2026-09-30T23:13:29Z",
+          "encoder_to_glass_ms": 2571
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 675,
-          "at_utc": "2026-09-30T23:13:34Z"
+          "at_utc": "2026-09-30T23:13:34Z",
+          "encoder_to_glass_ms": 675
         },
         {
           "transport": "hls",
@@ -1088,14 +1088,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 2585,
-          "at_utc": "2026-09-30T23:13:34Z"
+          "at_utc": "2026-09-30T23:13:34Z",
+          "encoder_to_glass_ms": 2585
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 696,
-          "at_utc": "2026-09-30T23:13:39Z"
+          "at_utc": "2026-09-30T23:13:39Z",
+          "encoder_to_glass_ms": 696
         },
         {
           "transport": "hls",
@@ -1106,8 +1106,8 @@
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 661,
-          "at_utc": "2026-09-30T23:13:45Z"
+          "at_utc": "2026-09-30T23:13:45Z",
+          "encoder_to_glass_ms": 661
         },
         {
           "transport": "hls",
@@ -1118,14 +1118,14 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 2559,
-          "at_utc": "2026-09-30T23:13:45Z"
+          "at_utc": "2026-09-30T23:13:45Z",
+          "encoder_to_glass_ms": 2559
         },
         {
           "transport": "moq",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 723,
-          "at_utc": "2026-09-30T23:13:50Z"
+          "at_utc": "2026-09-30T23:13:50Z",
+          "encoder_to_glass_ms": 723
         },
         {
           "transport": "hls",
@@ -1136,8 +1136,8 @@
         {
           "transport": "hls",
           "method": "clock-ocr",
-          "glass_to_glass_ms": 2587,
-          "at_utc": "2026-09-30T23:13:50Z"
+          "at_utc": "2026-09-30T23:13:50Z",
+          "encoder_to_glass_ms": 2587
         }
       ],
       "geo": {

@@ -12,6 +12,8 @@ for r in d["runs"]:
     assert "?" not in r["target"], "target must be query-stripped"
     for s in r["samples"]:
         assert s["transport"] in ("moq", "hls") and s["method"] in ("clock-ocr", "hlsjs-api")
+        if s["method"] == "clock-ocr":
+            assert "encoder_to_glass_ms" in s, "clock-ocr samples use encoder_to_glass_ms"
     g = r.get("geo")
     if g:
         assert set(g) <= {"publisher", "relay", "hls", "page"}
@@ -28,6 +30,9 @@ assert '"ip"' not in raw and '"hostname"' not in raw and '"host"' not in raw, \
     "endpoint identifiers must never be committed"
 PY
 grep -q '"tuning"' tools/measure/measure.mjs || { echo "harness does not record tuning receipts"; exit 1; }
+grep -q 'encoder_to_glass_ms' tools/measure/measure.mjs || { echo "harness does not record encoder_to_glass_ms"; exit 1; }
+grep -q 'shot_spread_ms' tools/measure/measure.mjs || { echo "harness does not record shot_spread_ms"; exit 1; }
+grep -rq 'glass_to_glass_ms' tools/measure site/results site/receipts scripts tests/fixtures && { echo "stale glass_to_glass_ms reference"; exit 1; }
 [[ -f tools/measure/package.json ]] || { echo "missing tools/measure/package.json"; exit 1; }
 grep -q '"playwright"' tools/measure/package.json || { echo "playwright not pinned"; exit 1; }
 [[ -x scripts/measure-latency.sh ]] || { echo "measure-latency.sh missing or not executable"; exit 1; }
