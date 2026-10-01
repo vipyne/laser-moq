@@ -40,7 +40,7 @@
 <main>
   <div class="empty" id="empty" hidden>no sessions yet</div>
   <table id="table" hidden>
-    <thead><tr><th>started</th><th>stack</th><th>source</th><th>duration</th><th>state</th><th>machine</th><th></th></tr></thead>
+    <thead><tr><th>started</th><th>stack</th><th>source</th><th>machine</th><th>duration</th><th>state</th><th></th></tr></thead>
     <tbody id="sessions"></tbody>
   </table>
 </main>
@@ -91,9 +91,9 @@
       const stateCSS = stateClass(s.end);
       rows.push(
         `<tr data-id="${esc(s.id)}"><td>${esc(time)}</td><td><span class="stack ${esc(s.stack)}">${esc(s.stack)}</span></td>` +
-        `<td>${esc(s.source)}</td><td class="num">${esc(duration)}</td>` +
+        `<td>${esc(s.source)}</td><td>${esc(s.machine ?? "")}</td>` +
+        `<td class="num">${esc(duration)}</td>` +
         `<td class="end-state ${esc(stateCSS)}">${esc(stateText)}</td>` +
-        `<td>${esc(s.machine ?? "")}</td>` +
         `<td><a href="session.html?id=${esc(s.id)}">→</a></td></tr>`
       );
     }

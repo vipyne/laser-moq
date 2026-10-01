@@ -939,6 +939,246 @@
         "part_target_s": 0.134,
         "target_duration_s": 1
       }
+    },
+    {
+      "started_utc": "2026-09-30T23:12:33Z",
+      "target": "https://moq-laserdisc.vanessa-dev.com/",
+      "source": "test",
+      "machine": "arm64 mac",
+      "notes": "",
+      "samples": [
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 612,
+          "at_utc": "2026-09-30T23:12:51Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1937,
+          "at_utc": "2026-09-30T23:12:51Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 696,
+          "at_utc": "2026-09-30T23:12:56Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 2093,
+          "at_utc": "2026-09-30T23:12:56Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 2541,
+          "at_utc": "2026-09-30T23:12:56Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 2024,
+          "at_utc": "2026-09-30T23:13:02Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 2573,
+          "at_utc": "2026-09-30T23:13:02Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 675,
+          "at_utc": "2026-09-30T23:13:07Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 2106,
+          "at_utc": "2026-09-30T23:13:07Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 660,
+          "at_utc": "2026-09-30T23:13:12Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 2108,
+          "at_utc": "2026-09-30T23:13:13Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 2569,
+          "at_utc": "2026-09-30T23:13:13Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 646,
+          "at_utc": "2026-09-30T23:13:18Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 2074,
+          "at_utc": "2026-09-30T23:13:18Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 2583,
+          "at_utc": "2026-09-30T23:13:18Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 680,
+          "at_utc": "2026-09-30T23:13:23Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 2087,
+          "at_utc": "2026-09-30T23:13:23Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 2561,
+          "at_utc": "2026-09-30T23:13:23Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 660,
+          "at_utc": "2026-09-30T23:13:28Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 2118,
+          "at_utc": "2026-09-30T23:13:29Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 2571,
+          "at_utc": "2026-09-30T23:13:29Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 675,
+          "at_utc": "2026-09-30T23:13:34Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 2117,
+          "at_utc": "2026-09-30T23:13:34Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 2585,
+          "at_utc": "2026-09-30T23:13:34Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 696,
+          "at_utc": "2026-09-30T23:13:39Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 2042,
+          "at_utc": "2026-09-30T23:13:39Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 661,
+          "at_utc": "2026-09-30T23:13:45Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 2117,
+          "at_utc": "2026-09-30T23:13:45Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 2559,
+          "at_utc": "2026-09-30T23:13:45Z"
+        },
+        {
+          "transport": "moq",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 723,
+          "at_utc": "2026-09-30T23:13:50Z"
+        },
+        {
+          "transport": "hls",
+          "method": "hlsjs-api",
+          "latency_ms": 1597,
+          "at_utc": "2026-09-30T23:13:50Z"
+        },
+        {
+          "transport": "hls",
+          "method": "clock-ocr",
+          "glass_to_glass_ms": 2587,
+          "at_utc": "2026-09-30T23:13:50Z"
+        }
+      ],
+      "geo": {
+        "publisher": {
+          "city": "New Orleans",
+          "region": "Louisiana",
+          "country": "US",
+          "lat": 29.9547,
+          "lon": -90.0751
+        },
+        "relay": {
+          "city": "San Jose",
+          "region": "California",
+          "country": "US",
+          "lat": 37.2329,
+          "lon": -121.7875
+        },
+        "hls": {
+          "city": "San Jose",
+          "region": "California",
+          "country": "US",
+          "lat": 37.2329,
+          "lon": -121.7875
+        },
+        "page": {
+          "city": "San Francisco",
+          "region": "California",
+          "country": "US",
+          "lat": 37.7621,
+          "lon": -122.3971
+        }
+      },
+      "tuning": {
+        "preset": "typical",
+        "live_sync_s": 1.5,
+        "max_latency_s": 3,
+        "max_catchup_rate": 1,
+        "low_latency": true,
+        "part_target_s": 0.134,
+        "target_duration_s": 1
+      }
     }
   ]
 }

@@ -21,6 +21,10 @@
                  border-radius: 3px; padding: 0 .4em; vertical-align: middle; }
   .tile.hls .badge { background: #ffb74d; }
   .moq { color: #8ab4ff; } .hls-c { color: #ffb74d; }
+  .stack { display: inline-block; font-size: .75rem; color: #0b0b0f; padding: 0 .4em;
+           border-radius: 3px; font-weight: 600; }
+  .stack.prod { background: #ff6b6b; }
+  .stack.dev { background: #8ab4ff; }
   section { margin-top: 1.5rem; }
   section h2 { font-size: 1.1rem; margin: 0 0 .5rem; }
   svg { display: block; width: 100%; height: auto; background: #000; border: 1px solid #222; border-radius: 6px; }
@@ -78,7 +82,7 @@
     <h2>Runs</h2>
     <p class="sub">Every committed run; p50/min/max are that run's clock-ocr samples. <code>hlsjs-api</code> rows are player-reported latency, shown for cross-checking.</p>
     <table>
-      <thead><tr><th>date</th><th>source</th><th>machine</th><th>transport</th>
+      <thead><tr><th>started</th><th>stack</th><th>source</th><th>machine</th><th>transport</th>
         <th class="num">n</th><th class="num">p50 ms</th><th class="num">min</th><th class="num">max</th><th>notes</th></tr></thead>
       <tbody id="rows"></tbody>
     </table>
@@ -161,6 +165,10 @@
       g + xl + dots + `</svg>`;
   }
 
+  // Stack derived from the run's measured target: localhost page → dev stack.
+  const stackOf = run => (run.target || "").includes("localhost") ? "dev" : "prod";
+  const stackCell = run => `<td><span class="stack ${stackOf(run)}">${stackOf(run)}</span></td>`;
+
   function table(runs) {
     const rows = [];
     for (const run of [...runs].reverse()) {
@@ -168,14 +176,14 @@
         const v = ocr(run, t);
         if (!v.length) continue;
         const label = t === "hls" ? tuningLabel(run) : "";
-        rows.push(`<tr${label ? ` title="${esc(label)}"` : ""}><td>${esc(run.started_utc.slice(0, 10))}</td><td>${esc(run.source)}</td><td>${esc(run.machine ?? "")}</td>` +
+        rows.push(`<tr${label ? ` title="${esc(label)}"` : ""}><td>${esc(run.started_utc.slice(0, 10))}</td>${stackCell(run)}<td>${esc(run.source)}</td><td>${esc(run.machine ?? "")}</td>` +
           `<td><span class="${t === "moq" ? "moq" : "hls-c"}">${t}</span>${label ? ` <small>${esc(label)}</small>` : ""}</td><td class="num">${v.length}</td>` +
           `<td class="num">${p50(v).toLocaleString()}</td><td class="num">${Math.min(...v).toLocaleString()}</td>` +
           `<td class="num">${Math.max(...v).toLocaleString()}</td><td>${esc(run.notes ?? "")}</td></tr>`);
       }
       const api = run.samples.filter(s => s.method === "hlsjs-api").map(s => s.latency_ms);
       if (api.length)
-        rows.push(`<tr><td>${esc(run.started_utc.slice(0, 10))}</td><td>${esc(run.source)}</td><td>${esc(run.machine ?? "")}</td>` +
+        rows.push(`<tr><td>${esc(run.started_utc.slice(0, 10))}</td>${stackCell(run)}<td>${esc(run.source)}</td><td>${esc(run.machine ?? "")}</td>` +
           `<td><span class="hls-c">hls</span> <small>(hlsjs-api)</small></td><td class="num">${api.length}</td>` +
           `<td class="num">${p50(api).toLocaleString()}</td><td class="num">${Math.min(...api).toLocaleString()}</td>` +
           `<td class="num">${Math.max(...api).toLocaleString()}</td><td>player-reported</td></tr>`);
