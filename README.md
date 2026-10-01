@@ -2,10 +2,42 @@
 everything is cooler with lasers.
 
 ## What this is
+a demo 'benchmarking' MoQ and HLS. it's more about the journey than the destination.
 
-A conference stunt hack.
+### tl;dr (no physical / hardware / media required)
 
-## Architecture
+1. do setup / installation stuff (see below)
+2.
+
+```bash
+./scripts/dev.sh
+==>
+scripts/dev.sh up            # publish → local relay + local HLS (source: test colorbars)
+scripts/dev.sh up test       # same as `up`
+scripts/dev.sh up capture    # publish → local relay + local HLS (source: real physical media via capture card)
+scripts/dev.sh up receipts   # :8000 site server only (browse receipts/results, no publishing)
+scripts/dev.sh down          # measure latency, then stop (down fast / SKIP_MEASURE=1 / FORCE=1 skips)
+scripts/dev.sh downdown      # fast full teardown: no measure, publisher + :8000 receipts site down
+scripts/dev.sh status        # relay / container / publisher / site / playlist-flowing
+scripts/dev.sh measure       # OCR latency run vs this stack's page (extra flags pass through)
+scripts/dev.sh map           # live map (everything localhost by design)
+```
+
+typically:
+
+`./scripts/dev.sh up` 
+<see colorbars; watch until bored>
+`./scripts/dev.sh down`
+<wait for measuremnts>
+<open http://localhost:8000/receipts>
+<see info and stuff>
+`./scripts/dev.sh downdown`
+<profi†‡>
+
+†not really.
+‡typo intentional.
+
+### Architecture
 
 One ffmpeg process encodes once and **tees** the identical h264/aac stream to two
 legs, so the MoQ-vs-HLS comparison is apples to apples (same bitrate, same GOP,
@@ -29,36 +61,43 @@ LaserDisc ─RCA─▶ Ocean Matrix ─HDMI─▶ Pengo ─USB─▶ ffmpeg (avf
                           (GitHub Pages for this repo + Route 53 CNAME)
 ```
 
-## Hardware chain
+### Hardware chain
 
-LaserDisc player (RCA composite + stereo) → Ocean Matrix analog→HDMI converter →
-Pengo HDMI→USB capture card (UVC: shows up as camera + audio device in
-avfoundation) → Mac.
+LaserDisc player / VHS player / DVD player (RCA composite + stereo)
+→ Ocean Matrix analog→HDMI converter
+→ Pengo HDMI→USB capture card 
+→ Mac.
 
-## Install
+## Setup
 
+### Dependencies
+- ffmpeg 7.1.1 (with avfoundation + videotoolbox)
+- Docker
+- rust
+  - moq-cli 0.11.0
+  - moq-relay 0.13.5
+- Google Chrome (for playwright stuff)
+- node/npm (>=20)
+
+### Installation
 ```bash
 cargo install moq-cli --locked
-```
-
-`moq-cli 0.11.0` (crates.io, 2026-09-10) round-trips cleanly against the relay's
-`moq-relay 0.13.5`. ffmpeg 7.1.1 (with avfoundation + videotoolbox) and Docker
-are also required.
-
-The local dev stack (`scripts/dev.sh`) runs its own relay, pinned to prod's
-version:
-
-```bash
 cargo install moq-relay --locked --version 0.13.5
 ```
 
-For latency measurement (`scripts/measure-latency.sh`): `brew install tesseract`,
-node + npm, Google Chrome, then `npm install` inside `tools/measure/`.
+for latency measurement-ing
+```bash
+brew install tesseract
+cd tools/measure
+npm install
+```
 
 ## Run
+### Dev
+see #tl;dr-(no-physical-/-hardware-/-media-required)
 
-Everything needs `MOQ_RELAY_URL` — the MoQ relay endpoint, deliberately not
-hardcoded anywhere in this repo:
+### "Prod"
+deploy a moq relay.
 
 ```bash
 export MOQ_RELAY_URL=https://your-relay.example.com/anon
