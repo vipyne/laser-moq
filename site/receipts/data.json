@@ -1,0 +1,85 @@
+{
+  "schema": 1,
+  "sessions": [
+    {
+      "id": "20260930-230246Z-prod",
+      "stack": "prod",
+      "source": "test",
+      "started_utc": "2026-09-30T23:02:46Z",
+      "ended_utc": "2026-09-30T23:13:51Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "relay.vanessa-dev.com"
+    },
+    {
+      "id": "20260930-225155Z-prod",
+      "stack": "prod",
+      "source": "test",
+      "started_utc": "2026-09-30T22:51:55Z",
+      "ended_utc": "2026-09-30T22:52:35Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "relay.vanessa-dev.com"
+    },
+    {
+      "id": "20260929-212426Z-prod",
+      "stack": "prod",
+      "source": "test",
+      "started_utc": "2026-09-29T21:24:26Z",
+      "ended_utc": "2026-09-29T21:26:11Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "relay.vanessa-dev.com"
+    },
+    {
+      "id": "20260929-212208Z-prod",
+      "stack": "prod",
+      "source": "test",
+      "started_utc": "2026-09-29T21:22:08Z",
+      "ended_utc": "2026-09-29T21:24:25Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "relay.vanessa-dev.com"
+    },
+    {
+      "id": "20260929-211038Z-prod",
+      "stack": "prod",
+      "source": "test",
+      "started_utc": "2026-09-29T21:10:38Z",
+      "ended_utc": "2026-09-29T21:14:53Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "relay.vanessa-dev.com"
+    },
+    {
+      "id": "20260929-202241Z-prod",
+      "stack": "prod",
+      "source": "test",
+      "started_utc": "2026-09-29T20:22:41Z",
+      "ended_utc": "2026-09-29T20:27:33Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "relay.vanessa-dev.com"
+    },
+    {
+      "id": "20260929-202130Z-prod",
+      "stack": "prod",
+      "source": "test",
+      "started_utc": "2026-09-29T20:21:30Z",
+      "ended_utc": "2026-09-29T20:22:00Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "relay.vanessa-dev.com"
+    },
+    {
+      "id": "20260929-194406Z-prod",
+      "stack": "prod",
+      "source": "test",
+      "started_utc": "2026-09-29T19:44:06Z",
+      "ended_utc": "2026-09-29T19:46:41Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "relay.vanessa-dev.com"
+    }
+  ]
+}

@@ -1,0 +1,778 @@
+{
+  "schema": 1,
+  "id": "20260929-212208Z-prod",
+  "stack": "prod",
+  "source": "test",
+  "started_utc": "2026-09-29T21:22:08Z",
+  "ended_utc": "2026-09-29T21:24:25Z",
+  "end": "clean",
+  "config": {
+    "source": "test",
+    "size": "1280x720",
+    "fps": "30",
+    "gop": "15",
+    "relay": "https://relay.vanessa-dev.com/livestream",
+    "rtmp_host": "hls-laserdisc.vanessa-dev.com",
+    "hls_playlist_url": "https://hls-laserdisc.vanessa-dev.com/laserdisc/index.m3u8",
+    "page_url": "https://moq-laserdisc.vanessa-dev.com/",
+    "pins": {
+      "moq_watch": "0.5.4",
+      "hls_js": "1.7.1",
+      "tesseract_js": "5.1.1"
+    },
+    "mediamtx_tuning": {
+      "hlsSegmentDuration": "500ms",
+      "hlsPartDuration": "100ms",
+      "hlsSegmentCount": "7",
+      "hlsVariant": "lowLatency"
+    }
+  },
+  "versions": {
+    "moq": null,
+    "ffmpeg": "ffmpeg version 7.1.1 Copyright (c) 2000-2025 the FFmpeg developers",
+    "mediamtx": "1.20.1",
+    "macos": "15.7.4"
+  },
+  "publisher_hw": {
+    "at_open": {
+      "model": "Mac16,7",
+      "cpu": "Apple M4 Pro",
+      "arch": "arm64",
+      "ram_bytes": 51539607552,
+      "macos_build": "24G517",
+      "uptime": "16:22  up 33 days, 14:50, 20 users, load averages: 3.88 3.88 3.37",
+      "load_avg": [
+        3.88232421875,
+        3.8759765625,
+        3.373046875
+      ],
+      "thermal_state": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+      "ffmpeg_cpu_pct": null
+    },
+    "at_close": {
+      "model": "Mac16,7",
+      "cpu": "Apple M4 Pro",
+      "arch": "arm64",
+      "ram_bytes": 51539607552,
+      "macos_build": "24G517",
+      "uptime": "16:24  up 33 days, 14:52, 20 users, load averages: 5.41 4.61 3.75",
+      "load_avg": [
+        5.41357421875,
+        4.609375,
+        3.7548828125
+      ],
+      "thermal_state": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+      "ffmpeg_cpu_pct": null
+    }
+  },
+  "probes": {
+    "relay": {
+      "ping_avg_ms": null,
+      "status": 404,
+      "server_header": null
+    },
+    "hls_origin": {
+      "ping_avg_ms": null,
+      "status": 302,
+      "server_header": "mediamtx"
+    }
+  },
+  "endpoint_map": "\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502                                                                        \u2502\n\u2502                        .........                                       \u2502\n\u2502                        ........        ..... ......................... \u2502\n\u2502   ......   ...................        .................................\u2502\n\u2502          ...............         ... ..................................\u2502\n\u2502        .................         ..................................... \u2502\n\u2502         ..S............          ...............................       \u2502\n\u2502          .RH..........          .................. .............       \u2502\n\u2502            .....P...           ...............................         \u2502\n\u2502            ......              ............... ...... .......          \u2502\n\u2502              .....           .................  ...   ........         \u2502\n\u2502                .....           .............          ..........       \u2502\n\u2502                ...........       .........             ...........     \u2502\n\u2502                  ..........      .........                  ....       \u2502\n\u2502                  .........       .......                  .........    \u2502\n\u2502                  .........       ......                  ..........    \u2502\n\u2502                  ......           ...                     ........     \u2502\n\u2502                  .....                                             ..  \u2502\n\u2502                  ....                                             ..   \u2502\n\u2502                   ..                                                   \u2502\n\u2502                                                                        \u2502\n\u2502                                                                        \u2502\n\u2502        .......................................................         \u2502\n\u2502    ...............................................................     \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n\n  P  publisher   184.186.29.106   New Orleans, Louisiana, US \u00b7 AS22773 Cox Communications Inc.  (this machine)\n  R  moq relay   163.192.23.32    San Jose, California, US \u00b7 AS31898 Oracle Corporation  rtt :443 64ms  (moq-relay 0.13.5)\n  H  hls origin  165.1.77.246     San Jose, California, US \u00b7 AS31898 Oracle Corporation  rtt :443 62ms :1935 64ms  (:1935 RTMP in, :443 LL-HLS out)\n  S  subscriber  185.199.110.153  San Francisco, California, US \u00b7 AS54113 Fastly, Inc.  rtt :443 25ms  (Page host / CDN edge near you \u2014 not a media hop)\n\n  paths:  moq     P (publisher) \u2500\u2500\u25b6 R (relay) \u25c0\u2500\u2500 viewers\n          ll-hls  P (publisher) \u2500\u2500\u25b6 H (:1935) \u25c0\u2500\u2500 viewers (:443)\n          page    viewers load the site itself from S\n\n\u250c\u2500\u2500 MoQ media path \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502                                                                       \u2502\n\u2502 \u25c9 P publisher  \u00b7  New Orleans, Louisiana, US  \u00b7  184.186.29.106       \u2502\n\u2502 \u2502                                                                     \u2502\n\u2502 \u2502  ~64 ms   publisher \u2192 relay (TCP connect, from this machine)        \u2502\n\u2502 \u25bc                                                                     \u2502\n\u2502 \u25c9 R moq relay  \u00b7  San Jose, California, US  \u00b7  163.192.23.32          \u2502\n\u2502 \u250a                                                                     \u2502\n\u2502 \u250a  viewers \u2192 relay  (measured in the viewer's browser \u2014 see /results) \u2502\n\u2502 \u25c9 viewers  \u00b7  wherever the audience is                                \u2502\n\u2502                                                                       \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n\n\u250c\u2500\u2500 LL-HLS media path \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502                                                                                    \u2502\n\u2502 \u25c9 P publisher  \u00b7  New Orleans, Louisiana, US  \u00b7  184.186.29.106                    \u2502\n\u2502 \u2502                                                                                  \u2502\n\u2502 \u2502  ~64 ms   publisher \u2192 origin :1935 RTMP (TCP connect, from this machine)         \u2502\n\u2502 \u25bc                                                                                  \u2502\n\u2502 \u25c9 H hls origin  \u00b7  San Jose, California, US  \u00b7  165.1.77.246                       \u2502\n\u2502 \u250a                                                                                  \u2502\n\u2502 \u250a  viewers \u2192 origin :443 LL-HLS  (measured in the viewer's browser \u2014 see /results) \u2502\n\u2502 \u25c9 viewers  \u00b7  wherever the audience is                                             \u2502\n\u2502                                                                                    \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n\n  P is wherever this script runs \u2014 run it on the publisher box (the machine wired to the LaserDisc)\n  for the map to tell the truth.",
+  "timeline": [
+    {
+      "at_utc": "2026-09-29T21:22:08Z",
+      "event": "open",
+      "detail": null
+    },
+    {
+      "at_utc": "2026-09-29T21:22:08Z",
+      "event": "start",
+      "detail": "start #1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:08Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:10Z",
+      "event": "start",
+      "detail": "start #2"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:10Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:12Z",
+      "event": "start",
+      "detail": "start #3"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:12Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:14Z",
+      "event": "start",
+      "detail": "start #4"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:14Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:16Z",
+      "event": "start",
+      "detail": "start #5"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:16Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:18Z",
+      "event": "start",
+      "detail": "start #6"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:18Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:20Z",
+      "event": "start",
+      "detail": "start #7"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:20Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:22Z",
+      "event": "start",
+      "detail": "start #8"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:22Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:24Z",
+      "event": "start",
+      "detail": "start #9"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:24Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:26Z",
+      "event": "start",
+      "detail": "start #10"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:26Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:28Z",
+      "event": "start",
+      "detail": "start #11"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:28Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:30Z",
+      "event": "start",
+      "detail": "start #12"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:30Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:32Z",
+      "event": "start",
+      "detail": "start #13"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:32Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:34Z",
+      "event": "start",
+      "detail": "start #14"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:34Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:36Z",
+      "event": "start",
+      "detail": "start #15"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:36Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:38Z",
+      "event": "start",
+      "detail": "start #16"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:38Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:40Z",
+      "event": "start",
+      "detail": "start #17"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:40Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:43Z",
+      "event": "start",
+      "detail": "start #18"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:43Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:45Z",
+      "event": "start",
+      "detail": "start #19"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:45Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:47Z",
+      "event": "start",
+      "detail": "start #20"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:47Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:49Z",
+      "event": "start",
+      "detail": "start #21"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:49Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:51Z",
+      "event": "start",
+      "detail": "start #22"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:51Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:53Z",
+      "event": "start",
+      "detail": "start #23"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:53Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:55Z",
+      "event": "start",
+      "detail": "start #24"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:55Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:57Z",
+      "event": "start",
+      "detail": "start #25"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:57Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:59Z",
+      "event": "start",
+      "detail": "start #26"
+    },
+    {
+      "at_utc": "2026-09-29T21:22:59Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:01Z",
+      "event": "start",
+      "detail": "start #27"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:01Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:03Z",
+      "event": "start",
+      "detail": "start #28"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:03Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:05Z",
+      "event": "start",
+      "detail": "start #29"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:05Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:07Z",
+      "event": "start",
+      "detail": "start #30"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:07Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:09Z",
+      "event": "start",
+      "detail": "start #31"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:09Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:11Z",
+      "event": "start",
+      "detail": "start #32"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:11Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:13Z",
+      "event": "start",
+      "detail": "start #33"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:13Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:15Z",
+      "event": "start",
+      "detail": "start #34"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:15Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:17Z",
+      "event": "start",
+      "detail": "start #35"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:17Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:19Z",
+      "event": "start",
+      "detail": "start #36"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:19Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:21Z",
+      "event": "start",
+      "detail": "start #37"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:21Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:23Z",
+      "event": "start",
+      "detail": "start #38"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:23Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:25Z",
+      "event": "start",
+      "detail": "start #39"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:25Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:27Z",
+      "event": "start",
+      "detail": "start #40"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:28Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:30Z",
+      "event": "start",
+      "detail": "start #41"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:30Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:32Z",
+      "event": "start",
+      "detail": "start #42"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:32Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:34Z",
+      "event": "start",
+      "detail": "start #43"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:34Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:36Z",
+      "event": "start",
+      "detail": "start #44"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:36Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:38Z",
+      "event": "start",
+      "detail": "start #45"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:38Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:40Z",
+      "event": "start",
+      "detail": "start #46"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:40Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:42Z",
+      "event": "start",
+      "detail": "start #47"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:42Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:44Z",
+      "event": "start",
+      "detail": "start #48"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:44Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:46Z",
+      "event": "start",
+      "detail": "start #49"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:46Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:48Z",
+      "event": "start",
+      "detail": "start #50"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:48Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:50Z",
+      "event": "start",
+      "detail": "start #51"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:50Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:52Z",
+      "event": "start",
+      "detail": "start #52"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:52Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:54Z",
+      "event": "start",
+      "detail": "start #53"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:54Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:56Z",
+      "event": "start",
+      "detail": "start #54"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:56Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:58Z",
+      "event": "start",
+      "detail": "start #55"
+    },
+    {
+      "at_utc": "2026-09-29T21:23:58Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:00Z",
+      "event": "start",
+      "detail": "start #56"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:00Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:02Z",
+      "event": "start",
+      "detail": "start #57"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:02Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:04Z",
+      "event": "start",
+      "detail": "start #58"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:04Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:06Z",
+      "event": "start",
+      "detail": "start #59"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:06Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:08Z",
+      "event": "start",
+      "detail": "start #60"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:08Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:10Z",
+      "event": "start",
+      "detail": "start #61"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:10Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:12Z",
+      "event": "start",
+      "detail": "start #62"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:12Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:15Z",
+      "event": "start",
+      "detail": "start #63"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:15Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:17Z",
+      "event": "start",
+      "detail": "start #64"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:17Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:19Z",
+      "event": "start",
+      "detail": "start #65"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:19Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:21Z",
+      "event": "start",
+      "detail": "start #66"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:21Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:23Z",
+      "event": "start",
+      "detail": "start #67"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:23Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:25Z",
+      "event": "start",
+      "detail": "start #68"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:25Z",
+      "event": "exit",
+      "detail": "exited rc=1"
+    },
+    {
+      "at_utc": "2026-09-29T21:24:25Z",
+      "event": "close",
+      "detail": null
+    }
+  ],
+  "log_excerpt": [
+    "[16:22:08] start #1",
+    "[16:24:25] exited rc=1"
+  ],
+  "viewer_note": "remote viewers unknowable; see measure runs in this window"
+}
