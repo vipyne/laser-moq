@@ -141,6 +141,7 @@
         ["load avg (1/5/15m)", h => la(h.load_avg)], ["thermal", h => therm(h.thermal_state)],
         ["ffmpeg CPU %", h => h.ffmpeg_cpu_pct ?? "—"]];
       const cell = v => esc(fmtVal(v ?? "—"));
+      const hostOf = u => { try { return new URL(u).host; } catch { return ""; } };
       const fact = v => v === "FILL_ME" ? `<em>not recorded — fill endpoints.json</em>` : esc(fmtVal(v ?? "—"));
       const box = (title, facts, probe, versionNote) => {
         const rows = Object.entries(facts || {}).map(([k, v]) =>
@@ -154,9 +155,16 @@
         HW_ROWS.map(([label, f]) =>
           `<tr><td><code>${esc(label)}</code></td><td>${cell(hw.at_open && f(hw.at_open))}</td><td>${cell(hw.at_close && f(hw.at_close))}</td></tr>`).join("") +
         `</tbody></table>` +
-        box("moq relay", endpoints.relay, session.probes?.relay) +
-        box("hls origin", endpoints.hls_origin, session.probes?.hls_origin,
-            session.versions?.mediamtx ? `${session.versions.mediamtx} (image tag in hls-origin/compose.yml)` : null);
+        (session.stack === "prod"
+          ? box("moq relay", endpoints.relay, session.probes?.relay) +
+            box("hls origin", endpoints.hls_origin, session.probes?.hls_origin,
+                session.versions?.mediamtx ? `${session.versions.mediamtx} (image tag in hls-origin/compose.yml)` : null)
+          : box("moq relay (local)", { host: hostOf(session.config?.relay) || "localhost:4443",
+                where: "runs on the publisher machine — hardware above" }, session.probes?.relay) +
+            box("hls origin (local)", { host: hostOf(session.config?.hls_playlist_url) || "localhost:8888",
+                where: "runs on the publisher machine — hardware above",
+                software: session.versions?.mediamtx ? `MediaMTX ${session.versions.mediamtx}` : "MediaMTX" },
+                session.probes?.hls_origin));
 
       // Timeline
       const tl = [...(session.timeline || [])].sort((a, b) => String(a.at_utc).localeCompare(String(b.at_utc)));
@@ -167,7 +175,8 @@
 
       // Download: whole receipt minus the ASCII map, plus endpoint facts + latency summaries
       document.getElementById("download").addEventListener("click", () => {
-        const dl = { ...session, endpoints, measurement_runs: runs };
+        const dl = { ...session, measurement_runs: runs };
+        if (session.stack === "prod") dl.endpoints = endpoints;   // facts file describes the prod boxes only
         delete dl.endpoint_map;
         const url = URL.createObjectURL(new Blob([JSON.stringify(dl, null, 2)], { type: "application/json" }));
         const a = document.createElement("a");
