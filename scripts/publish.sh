@@ -35,7 +35,8 @@ case "$SOURCE" in
            -f lavfi -i "sine=frequency=440:sample_rate=48000")
     ;;
   capture)
-    DEV="$("$HERE/resolve-device.sh" "${VIDEO_DEV:-HDMI to U3 capture}" "${AUDIO_DEV:-HDMI to U3 capture}")"   # "vidx:aidx"
+    # rc 69 = device missing: permanent config error; run-forever stops instead of retrying.
+    DEV="$("$HERE/resolve-device.sh" "${VIDEO_DEV:-HDMI to U3 capture}" "${AUDIO_DEV:-HDMI to U3 capture}")" || exit 69   # "vidx:aidx"
     INPUT=(-f avfoundation -framerate "$FPS" -video_size "$SIZE" -pixel_format uyvy422
            -i "$DEV")
     ;;

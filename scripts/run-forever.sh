@@ -15,6 +15,10 @@ while :; do
   child=$!
   wait "$child"; rc=$?
   echo "[$(date +%T)] exited rc=$rc" | tee -a "$LOG"
+  if [[ "$rc" == "69" ]]; then
+    echo "[$(date +%T)] permanent error (capture device missing — see log above), not retrying" | tee -a "$LOG"
+    exit 69
+  fi
   [[ "$MAX_RESTARTS" != "0" && "$n" -ge "$MAX_RESTARTS" ]] && exit "$rc"
   sleep 2
 done
