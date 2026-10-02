@@ -43,6 +43,15 @@ One ffmpeg process encodes once and **tees** the identical h264/aac stream to tw
 legs, so the MoQ-vs-HLS comparison is apples to apples (same bitrate, same GOP,
 same encoder).
 
+Two stacks run that pipeline at different distances:
+
+- **`scripts/dev.sh` — fully local.** Own moq-relay on :4443 (self-signed,
+  fingerprint-pinned), MediaMTX in Docker, page on :8000. Both legs on
+  loopback → the latency difference is protocol architecture alone. Diagram
+  + rationale: [local-architecture.md](local-architecture.md).
+- **`scripts/prod.sh` — the WAN path below.** Real relay + HLS origin VMs
+  (OCI San Jose), public page on GitHub Pages; network + geography included.
+
 ```
 LaserDisc ─RCA─▶ Ocean Matrix ─HDMI─▶ Pengo ─USB─▶ ffmpeg (avfoundation)
                                                      │ h264_videotoolbox + aac, -f tee
@@ -97,10 +106,19 @@ npm install
 see #tl;dr-(no-physical-/-hardware-/-media-required)
 
 ### "Prod"
-deploy a moq relay.
+Everything remote: the real relay, the HLS origin VM, the public page. Deploy
+a moq relay, then:
 
 ```bash
 export MOQ_RELAY_URL=https://your-relay.example.com/anon
+```
+
+Typically (`prod.sh` wraps publish + receipts + measure):
+
+```bash
+./scripts/prod.sh up [test|capture]   # default capture
+# … stream runs; https://moq-laserdisc.vanessa-dev.com shows it …
+./scripts/prod.sh down                # measures, writes the session receipt
 ```
 
 The exception is `scripts/dev.sh`: the dev stack is **fully local** (its own
@@ -154,10 +172,13 @@ Watch the MoQ leg locally with `scripts/watch.sh`.
    lists (set `VIDEO_DEV`/`AUDIO_DEV` if its name differs).
 3. HLS origin up: prod VM per `docs/deploy-hls-origin.md`, or locally
    `docker compose -f hls-origin/compose.local.yml up -d`.
-4. `SOURCE=capture RTMP_URL="rtmp://hls-laserdisc.vanessa-dev.com:1935/laserdisc?user=laserdisc&pass=$RTMP_PUBLISH_PASS" scripts/run-forever.sh`
-   (restart wrapper; logs to `logs/`).
+4. `./scripts/prod.sh up` (capture source; wraps `run-forever.sh`, opens the
+   session receipt; `RTMP_PUBLISH_PASS` read from `hls-origin/.env`).
 5. Open https://moq-laserdisc.vanessa-dev.com — both players, clocks under each.
-6. If it dies: Ctrl-C the wrapper and rerun it; viewers auto-reconnect.
+6. If it dies: `run-forever.sh` restarts the pipeline itself; viewers
+   auto-reconnect. Hard reset: `./scripts/prod.sh down fast` then `up` again.
+7. After: `./scripts/prod.sh down` — measures latency, closes the receipt,
+   serves it at http://localhost:8000/receipts/.
 
 ## Measured latency
 
@@ -241,7 +262,7 @@ self-skips until MoQ auth is enabled (see `ralph/HUMAN.md` §6).
 | `scripts/dev.sh` | Local dev stack in one command (relay + HLS + publisher + site, all localhost): `up [test\|capture]` / `down` / `status` / `help`. |
 | `scripts/impair.sh` | Dummynet impairment (dnctl + pfctl) for the local stack's viewer legs: `on [wifi\|bad]` / `off` / `status`. |
 | `scripts/impair-server.py` | :9900 localhost endpoint behind the page's "impair network" button (started by `dev.sh`). |
-| `scripts/prod.sh` | Publisher runner for the stage x86 Mac: `up` / `down` / `status` / `measure` (needs `MOQ_RELAY_URL` + `RTMP_PUBLISH_PASS`). |
+| `scripts/prod.sh` | WAN-path runner for the stage x86 Mac (real relay + origin + public page): `up [test\|capture]` / `down` / `downdown` / `status` / `measure` (needs `MOQ_RELAY_URL`; RTMP pass from `hls-origin/.env`). |
 | `scripts/run-forever.sh` | Restart wrapper around `publish.sh` with backoff + log. |
 | `scripts/measure-latency.sh` | Wrapper around the OCR latency harness; appends a run to `site/results/data.json`. |
 | `scripts/endpoint_map.py` | ASCII world map of the deployment (publisher, relay, HLS origin, page CDN) + path diagrams; `--demo` for offline. |
