@@ -202,7 +202,7 @@
     b.addEventListener("click", () => startHls(b.dataset.preset));
   });
 
-  startHls(q.get("hlspreset") ?? "typical");
+  startHls(q.get("hlspreset") ?? "ragged");   // TEMP: ragged default for the savvy-audience showing
 
   // --- timecode strip: live-crop the burned-in clock out of each stream ---
   // overlay.filter draws at x=20,y=20 fontsize=48 (absolute pixels, same for
