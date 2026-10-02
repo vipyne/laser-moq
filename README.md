@@ -227,23 +227,24 @@ uv run scripts/graph_media_bars.py /tmp/graph-local.json -o media-bars-m4-local.
   --ymax 1900 --title "Latency by media type — local stack · M4 publisher"
 ```
 
-x86 charts (runs labeled `100 …`; `--data` points at that machine's results
-copy — note LaserDisc prod is the `take 2` run, the first had a dead MoQ pane):
+Intel-Mac charts (runs labeled `100 …`; `--data` points at that machine's
+results copy — note LaserDisc prod is the `take 2` run, the first had a dead
+MoQ pane):
 
 ```bash
-cat > /tmp/graph-x86-prod.json <<'EOF'
+cat > /tmp/graph-intel-prod.json <<'EOF'
 {"graph": {"LaserDisc": "100 prod LD take 2", "VHS": "100 prod vhs", "DVD": "100 prod dvd"}}
 EOF
-uv run scripts/graph_media_bars.py /tmp/graph-x86-prod.json --data <x86-results-data.json> \
-  -o media-bars-x86-prod.png --ymax 1900 --title "Latency by media type — prod (WAN) · x86 publisher"
+uv run scripts/graph_media_bars.py /tmp/graph-intel-prod.json --data <intel-results-data.json> \
+  -o media-bars-intel-prod.png --ymax 1900 --title "Latency by media type — prod (WAN) · Intel publisher"
 ```
 
 ```bash
-cat > /tmp/graph-x86-local.json <<'EOF'
+cat > /tmp/graph-intel-local.json <<'EOF'
 {"graph": {"LaserDisc": "100 local LD", "VHS": "100 local vhs", "DVD": "100 local dvd"}}
 EOF
-uv run scripts/graph_media_bars.py /tmp/graph-x86-local.json --data <x86-results-data.json> \
-  -o media-bars-x86-local.png --ymax 1900 --title "Latency by media type — local stack · x86 publisher"
+uv run scripts/graph_media_bars.py /tmp/graph-intel-local.json --data <intel-results-data.json> \
+  -o media-bars-intel-local.png --ymax 1900 --title "Latency by media type — local stack · Intel publisher"
 ```
 
 ## Known caveats — why this benchmark is also bs
