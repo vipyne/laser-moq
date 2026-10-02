@@ -147,7 +147,7 @@ def collect_versions(stack: str) -> dict:
 def collect_publisher_hw() -> dict:
     hw = {"model": None, "cpu": None, "arch": None, "ram_bytes": None,
           "macos_build": None, "uptime": None, "load_avg": None, "thermal_state": None,
-          "ffmpeg_cpu_pct": None}
+          "power_source": None, "battery_pct": None, "ffmpeg_cpu_pct": None}
     try:
         hw["model"] = run(["sysctl", "-n", "hw.model"])
     except Exception:
@@ -179,6 +179,15 @@ def collect_publisher_hw() -> dict:
         pass
     try:
         hw["thermal_state"] = run(["pmset", "-g", "therm"])
+    except Exception:
+        pass
+    try:
+        # "AC Power" vs "Battery Power" + charge %; battery throttles timers → latency drift.
+        batt = run(["pmset", "-g", "batt"])
+        hw["power_source"] = ("battery" if "Battery Power" in batt else
+                              "AC" if "AC Power" in batt else None)
+        m = re.search(r"(\d+)%", batt)
+        hw["battery_pct"] = int(m.group(1)) if m else None
     except Exception:
         pass
     return hw

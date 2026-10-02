@@ -176,7 +176,13 @@ status() {
 measure() {
   # Measure the dev stack's own page — not the public one — so the HLS pane
   # points at the local MediaMTX this stack is actually publishing to.
-  scripts/measure-latency.sh --url "$PAGE_URL" --notes "dev stack" "$@"
+  # Source: $SOURCE, else open dev session's recorded source, else test.
+  local src="${SOURCE:-}"
+  [[ -z "$src" ]] && src="$(python3 -c "
+import json
+s = json.load(open('site/receipts/data.json'))['sessions']
+print(next((x['source'] for x in s if x['stack'] == 'dev' and x['end'] is None), ''))" 2>/dev/null)"
+  scripts/measure-latency.sh --url "$PAGE_URL" --source "${src:-test}" --notes "dev stack" "$@"
 }
 
 map() {

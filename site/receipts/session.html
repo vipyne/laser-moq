@@ -136,6 +136,7 @@
       const HW_ROWS = [["model", h => h.model], ["cpu", h => h.cpu], ["arch", h => h.arch],
         ["ram", h => gb(h.ram_bytes)], ["macOS build", h => h.macos_build],
         ["load avg (1/5/15m)", h => la(h.load_avg)], ["thermal", h => therm(h.thermal_state)],
+        ["power", h => h.power_source ? `${h.power_source}${h.battery_pct != null ? ` (${h.battery_pct}%)` : ""}` : "—"],
         ["ffmpeg CPU %", h => h.ffmpeg_cpu_pct ?? "—"]];
       const cell = v => esc(fmtVal(v ?? "—"));
       const hostOf = u => { try { return new URL(u).host; } catch { return ""; } };

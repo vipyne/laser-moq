@@ -83,7 +83,7 @@ LaserDisc player / VHS player / DVD player (RCA composite + stereo)
 - ffmpeg 7.1.1 (with avfoundation + videotoolbox)
 - Docker
 - rust
-  - moq-cli 0.11.0
+  - moq-cli 0.11.2
   - moq-relay 0.13.5
 - Google Chrome (for playwright stuff)
 - node/npm (>=20)
