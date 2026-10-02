@@ -63,10 +63,6 @@
       <pre id="map"></pre>
     </section>
     <section>
-      <h2>Measurement Runs</h2>
-      <div id="runs-content"></div>
-    </section>
-    <section>
       <h2>Timeline</h2>
       <div id="timeline-content"></div>
     </section>
@@ -120,13 +116,14 @@
       const runs = (results.runs || []).filter(inWindow).map(r => {
         const g = t => median((r.samples || []).filter(s => s.transport === t && s.encoder_to_glass_ms != null).map(s => s.encoder_to_glass_ms));
         return { started_utc: r.started_utc, source: r.source, notes: r.notes, machine: r.machine,
-                 samples: (r.samples || []).length, moq_median_ms: g("moq"), hls_median_ms: g("hls"),
+                 browser_version: r.browser_version, samples: (r.samples || []).length,
+                 moq_median_ms: g("moq"), hls_median_ms: g("hls"),
                  delta_ms: g("moq") != null && g("hls") != null ? g("hls") - g("moq") : null };
       });
       const ms = v => v == null ? "—" : `${(v / 1000).toFixed(2)}s`;
       document.getElementById("runs-summary").innerHTML = runs.length
-        ? `<table><thead><tr><th>run started</th><th>notes</th><th class="num">samples</th><th class="num">MoQ e2g</th><th class="num">HLS e2g</th><th class="num">Δ HLS−MoQ</th></tr></thead><tbody>` +
-          runs.map(r => `<tr><td>${esc(r.started_utc)}</td><td>${esc(r.notes ?? "")}</td><td class="num">${r.samples}</td>` +
+        ? `<table><thead><tr><th>run started</th><th>notes</th><th>chrome</th><th class="num">samples</th><th class="num">MoQ e2g</th><th class="num">HLS e2g</th><th class="num">Δ HLS−MoQ</th></tr></thead><tbody>` +
+          runs.map(r => `<tr><td>${esc(r.started_utc)}</td><td>${esc(r.notes ?? "")}</td><td>${esc(r.browser_version ?? "—")}</td><td class="num">${r.samples}</td>` +
             `<td class="num">${ms(r.moq_median_ms)}</td><td class="num">${ms(r.hls_median_ms)}</td><td class="num delta">${ms(r.delta_ms)}</td></tr>`).join("") +
           `</tbody></table><p class="hint">encoder-to-glass medians per run (clock-ocr) · details on <a href="../results/">results</a></p>`
         : `<p class="hint">no measurement runs during this session — run <code>scripts/prod.sh measure</code> while up</p>`;

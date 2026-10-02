@@ -177,14 +177,15 @@
         const v = ocr(run, t);
         if (!v.length) continue;
         const label = t === "hls" ? tuningLabel(run) : "";
-        rows.push(`<tr${label ? ` title="${esc(label)}"` : ""}><td>${esc(run.started_utc.slice(0, 10))}</td>${stackCell(run)}<td>${esc(run.source)}</td><td>${esc(run.machine ?? "")}</td>` +
+        const tip = [label, run.browser_version].filter(Boolean).join(" · ");
+        rows.push(`<tr${tip ? ` title="${esc(tip)}"` : ""}><td>${esc(run.started_utc.slice(0, 10))}</td>${stackCell(run)}<td>${esc(run.source)}</td><td>${esc(run.machine ?? "")}</td>` +
           `<td><span class="${t === "moq" ? "moq" : "hls-c"}">${t}</span>${label ? ` <small>${esc(label)}</small>` : ""}</td><td class="num">${v.length}</td>` +
           `<td class="num">${p50(v).toLocaleString()}</td><td class="num">${Math.min(...v).toLocaleString()}</td>` +
           `<td class="num">${Math.max(...v).toLocaleString()}</td><td>${esc(run.notes ?? "")}</td></tr>`);
       }
       const api = run.samples.filter(s => s.method === "hlsjs-api").map(s => s.latency_ms);
       if (api.length)
-        rows.push(`<tr><td>${esc(run.started_utc.slice(0, 10))}</td>${stackCell(run)}<td>${esc(run.source)}</td><td>${esc(run.machine ?? "")}</td>` +
+        rows.push(`<tr${run.browser_version ? ` title="${esc(run.browser_version)}"` : ""}><td>${esc(run.started_utc.slice(0, 10))}</td>${stackCell(run)}<td>${esc(run.source)}</td><td>${esc(run.machine ?? "")}</td>` +
           `<td><span class="hls-c">hls</span> <small>(hlsjs-api)</small></td><td class="num">${api.length}</td>` +
           `<td class="num">${p50(api).toLocaleString()}</td><td class="num">${Math.min(...api).toLocaleString()}</td>` +
           `<td class="num">${Math.max(...api).toLocaleString()}</td><td>player-reported</td></tr>`);

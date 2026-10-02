@@ -201,6 +201,51 @@ How a run gets there: run `scripts/measure-latency.sh` on the publisher machine
 Each clock-ocr sample records `encoder_to_glass_ms` plus `shot_spread_ms`
 (screenshot window; the timestamp is its midpoint).
 
+### Media-type bar charts (the "variables that don't matter" slides)
+
+`scripts/graph_media_bars.py` turns labeled runs into a grouped bar PNG
+(per-run clock-ocr medians, min–max whiskers, OCR outliers >2.5× median
+excluded + disclosed in the caption). Input maps bar label → run `notes`,
+matched exactly in the results data. Same `--ymax` across charts keeps the
+axis pixel-identical when toggling slides.
+
+M4 charts (runs labeled `200 …`, in this repo's `site/results/data.json`):
+
+```bash
+cat > /tmp/graph-prod.json <<'EOF'
+{"graph": {"LaserDisc": "200 prod LD", "VHS": "200 prod vhs", "DVD": "200 prod dvd"}}
+EOF
+uv run scripts/graph_media_bars.py /tmp/graph-prod.json -o media-bars-m4-prod.png \
+  --ymax 1900 --title "Latency by media type — prod (WAN) · M4 publisher"
+```
+
+```bash
+cat > /tmp/graph-local.json <<'EOF'
+{"graph": {"LaserDisc": "200 local LD", "VHS": "200 local vhs", "DVD": "200 local dvd"}}
+EOF
+uv run scripts/graph_media_bars.py /tmp/graph-local.json -o media-bars-m4-local.png \
+  --ymax 1900 --title "Latency by media type — local stack · M4 publisher"
+```
+
+x86 charts (runs labeled `100 …`; `--data` points at that machine's results
+copy — note LaserDisc prod is the `take 2` run, the first had a dead MoQ pane):
+
+```bash
+cat > /tmp/graph-x86-prod.json <<'EOF'
+{"graph": {"LaserDisc": "100 prod LD take 2", "VHS": "100 prod vhs", "DVD": "100 prod dvd"}}
+EOF
+uv run scripts/graph_media_bars.py /tmp/graph-x86-prod.json --data <x86-results-data.json> \
+  -o media-bars-x86-prod.png --ymax 1900 --title "Latency by media type — prod (WAN) · x86 publisher"
+```
+
+```bash
+cat > /tmp/graph-x86-local.json <<'EOF'
+{"graph": {"LaserDisc": "100 local LD", "VHS": "100 local vhs", "DVD": "100 local dvd"}}
+EOF
+uv run scripts/graph_media_bars.py /tmp/graph-x86-local.json --data <x86-results-data.json> \
+  -o media-bars-x86-local.png --ymax 1900 --title "Latency by media type — local stack · x86 publisher"
+```
+
 ## Known caveats — why this benchmark is also bs
 
 The same list ships at the bottom of the live page. For a talk about how most
@@ -275,6 +320,7 @@ self-skips until MoQ auth is enabled (see `ralph/HUMAN.md` §6).
 | `scripts/run-forever.sh` | Restart wrapper around `publish.sh` with backoff + log. |
 | `scripts/measure-latency.sh` | Wrapper around the OCR latency harness; appends a run to `site/results/data.json`. |
 | `scripts/endpoint_map.py` | ASCII world map of the deployment (publisher, relay, HLS origin, page CDN) + path diagrams; `--demo` for offline. |
+| `scripts/graph_media_bars.py` | Media-type bar chart PNGs from labeled runs (`uv run`; see "Media-type bar charts"). |
 | `tools/measure/` | The harness: Playwright drives installed Chrome, tesseract reads the burned-in clock. |
 | `hls-origin/mediamtx.yml` | MediaMTX config (RTMP in, LL-HLS out). |
 | `hls-origin/compose.local.yml` | Laptop: mediamtx only. |

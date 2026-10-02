@@ -139,6 +139,7 @@ const localMsOfDay = epochMs => {
 const DAY = 24 * 60 * 60 * 1000;
 
 const browser = await chromium.launch({ channel: "chrome", headless: !opts.headed });
+const browserVersion = browser.version();   // recorded per run: the numbers are Chrome numbers
 const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
 const startedUtc = new Date().toISOString().replace(/\.\d+Z$/, "Z");
 console.log(`measure: ${opts.url} samples=${opts.samples} interval=${opts.intervalMs}ms debug=${opts.debugDir}`);
@@ -317,7 +318,7 @@ async function collectGeo(hosts) {
 const target = (() => { const u = new URL(opts.url); u.search = ""; u.hash = ""; return u.toString(); })();
 const machine = `${process.arch} ${process.platform === "darwin" ? "mac" : process.platform}`;
 const data = JSON.parse(fs.readFileSync(opts.out, "utf8"));
-data.runs.push({ started_utc: startedUtc, target, source: opts.source, machine, notes: opts.notes, samples, geo, "tuning": tuning });
+data.runs.push({ started_utc: startedUtc, target, source: opts.source, machine, browser_version: browserVersion, notes: opts.notes, samples, geo, "tuning": tuning });
 fs.writeFileSync(opts.out, JSON.stringify(data, null, 2) + "\n");
 console.log(`appended run (${samples.length} samples) to ${opts.out}`);
 
