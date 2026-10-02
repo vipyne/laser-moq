@@ -2,7 +2,7 @@
 # Local dev stack: moq-relay + MediaMTX container + publisher + site server.
 #   scripts/dev.sh up [test|capture]   start everything (default: test source)
 #   scripts/dev.sh down                measure latency, then stop everything
-#                                      (down fast / SKIP_MEASURE=1 / FORCE=1 skips measure)
+#                                      (SKIP_MEASURE=1 or FORCE=1 skips measure)
 #   scripts/dev.sh status              what's running right now
 #   scripts/dev.sh measure             OCR latency run against THIS stack's page
 # Fully local by design: both legs run on this machine, isolating protocol
@@ -102,11 +102,11 @@ up() {
 }
 
 down() {
+  [[ -n "${1:-}" ]] && { echo "usage: scripts/dev.sh down  (skip measure: SKIP_MEASURE=1, FORCE=1, or downdown)" >&2; exit 2; }
   # Measure while stream still up → run lands inside session window on receipt.
   local skip="${SKIP_MEASURE:-${FORCE:-}}"
-  [[ "${1:-}" == "fast" ]] && skip=1
   if [[ -z "$skip" ]] && alive "$PUB_PID"; then
-    echo "latency measure before teardown ('down fast', SKIP_MEASURE=1, or FORCE=1 to skip)"
+    echo "latency measure before teardown (SKIP_MEASURE=1 / FORCE=1 / downdown to skip)"
     measure || true
   fi
   python3 scripts/session_receipt.py close --stack dev || true
@@ -190,7 +190,7 @@ scripts/dev.sh up            # publish → local relay + local HLS (source: test
 scripts/dev.sh up test       # same as `up`
 scripts/dev.sh up capture    # publish → local relay + local HLS (source: real physical media via capture card)
 scripts/dev.sh up receipts   # :8000 site server only (browse receipts/results, no publishing)
-scripts/dev.sh down          # measure latency, then stop (down fast / SKIP_MEASURE=1 / FORCE=1 skips)
+scripts/dev.sh down          # measure latency, then stop (SKIP_MEASURE=1 or FORCE=1 skips measure)
 scripts/dev.sh downdown      # fast full teardown: no measure, publisher + :8000 receipts site down
 scripts/dev.sh status        # relay / container / publisher / site / playlist-flowing
 scripts/dev.sh measure       # OCR latency run vs this stack's page (extra flags pass through)

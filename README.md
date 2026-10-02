@@ -16,7 +16,7 @@ scripts/dev.sh up            # publish → local relay + local HLS (source: test
 scripts/dev.sh up test       # same as `up`
 scripts/dev.sh up capture    # publish → local relay + local HLS (source: real physical media via capture card)
 scripts/dev.sh up receipts   # :8000 site server only (browse receipts/results, no publishing)
-scripts/dev.sh down          # measure latency, then stop (down fast / SKIP_MEASURE=1 / FORCE=1 skips)
+scripts/dev.sh down          # measure latency, then stop (SKIP_MEASURE=1 or FORCE=1 skips measure)
 scripts/dev.sh downdown      # fast full teardown: no measure, publisher + :8000 receipts site down
 scripts/dev.sh status        # relay / container / publisher / site / playlist-flowing
 scripts/dev.sh measure       # OCR latency run vs this stack's page (extra flags pass through)
@@ -101,6 +101,15 @@ cd tools/measure
 npm install
 ```
 
+for the page's "impair network" button (optional; local stack only) — dummynet
+needs `dnctl`/`pfctl` via non-interactive sudo, so add a one-time rule scoped
+to exactly those two binaries:
+```bash
+sudo sh -c 'echo "$SUDO_USER ALL=(root) NOPASSWD: /usr/sbin/dnctl, /sbin/pfctl" > /etc/sudoers.d/laser-moq-impair'
+```
+verify with the dev stack up (`./scripts/impair.sh on wifi && ./scripts/impair.sh status && ./scripts/impair.sh off`);
+remove anytime with `sudo rm /etc/sudoers.d/laser-moq-impair`.
+
 ## Run
 ### Dev
 see #tl;dr-(no-physical-/-hardware-/-media-required)
@@ -176,7 +185,7 @@ Watch the MoQ leg locally with `scripts/watch.sh`.
    session receipt; `RTMP_PUBLISH_PASS` read from `hls-origin/.env`).
 5. Open https://moq-laserdisc.vanessa-dev.com — both players, clocks under each.
 6. If it dies: `run-forever.sh` restarts the pipeline itself; viewers
-   auto-reconnect. Hard reset: `./scripts/prod.sh down fast` then `up` again.
+   auto-reconnect. Hard reset: `./scripts/prod.sh downdown` then `up` again.
 7. After: `./scripts/prod.sh down` — measures latency, closes the receipt,
    serves it at http://localhost:8000/receipts/.
 

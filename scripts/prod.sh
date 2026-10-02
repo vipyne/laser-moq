@@ -5,7 +5,7 @@
 #   scripts/prod.sh up        start publishing (capture → relay + prod RTMP;
 #                             SOURCE=test smoke-tests the same path pre-hardware)
 #   scripts/prod.sh down      measure latency, then stop publishing
-#                             (down fast / SKIP_MEASURE=1 / FORCE=1 skips measure)
+#                             (SKIP_MEASURE=1 or FORCE=1 skips measure)
 #   scripts/prod.sh status    publisher / public playlist / public page
 #   scripts/prod.sh measure   OCR latency run against the public page
 # Needs: MOQ_RELAY_URL exported; moq on PATH (~/.cargo/bin). RTMP_PUBLISH_PASS
@@ -52,11 +52,11 @@ up() {
 }
 
 down() {
+  [[ -n "${1:-}" ]] && { echo "usage: scripts/prod.sh down  (skip measure: SKIP_MEASURE=1, FORCE=1, or downdown)" >&2; exit 2; }
   # Measure while stream still up → run lands inside session window on receipt.
   local skip="${SKIP_MEASURE:-${FORCE:-}}"
-  [[ "${1:-}" == "fast" ]] && skip=1
   if [[ -z "$skip" ]] && alive "$PID"; then
-    echo "latency measure before teardown ('down fast', SKIP_MEASURE=1, or FORCE=1 to skip)"
+    echo "latency measure before teardown (SKIP_MEASURE=1 / FORCE=1 / downdown to skip)"
     measure || true
   fi
   python3 scripts/session_receipt.py close --stack prod || true
@@ -75,7 +75,7 @@ down() {
 
 # Fast full teardown: down without measure, then kill the receipts site.
 downdown() {
-  RECEIPTS_SITE=0 SKIP_MEASURE=1 down "$@"
+  RECEIPTS_SITE=0 SKIP_MEASURE=1 down
   pkill -f 'http.server 8000' 2>/dev/null
   echo "receipts site down"
 }
@@ -119,7 +119,7 @@ scripts/prod.sh up          # publish → relay + prod HLS (source: real physica
 scripts/prod.sh up capture  # same as `up`
 scripts/prod.sh up test     # publish → relay + prod HLS (source: test colorbars)
 scripts/prod.sh up receipts # :8000 site server only (browse receipts/results, no publishing)
-scripts/prod.sh down        # measure latency, then stop (down fast / SKIP_MEASURE=1 / FORCE=1 skips)
+scripts/prod.sh down        # measure latency, then stop (SKIP_MEASURE=1 or FORCE=1 skips measure)
 scripts/prod.sh downdown    # fast full teardown: no measure, publisher + :8000 receipts site down
 scripts/prod.sh status      # publisher / public playlist / public page
 scripts/prod.sh measure     # OCR latency run vs the public page (extra flags pass through)
