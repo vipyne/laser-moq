@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session — bro, do you even bench</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #0b0b0f; color: #eee; font: 16px/1.4 system-ui, sans-serif; }
+  header { padding: 1rem 1.5rem; border-bottom: 1px solid #222; }
+  header h1 { margin: 0; font-size: 1.4rem; letter-spacing: .02em; }
+  header p { margin: .25rem 0 0; color: #aaa; }
+  main { padding: 1rem 1.5rem; max-width: 64rem; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  th, td { text-align: left; padding: .35rem .6rem; border-bottom: 1px solid #222; }
+  th { color: #aaa; font-weight: 600; }
+  .empty { color: #aaa; padding: 2rem 0; }
+  footer { padding: 1rem 1.5rem; color: #777; font-size: .85rem; }
+  a { color: #8ab4ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  #map, #log { font: 11px/1.2 ui-monospace, monospace; margin: 0; padding: .6rem .8rem;
+         background: #000; border: 1px solid #222; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; }
+  section { margin-top: 1.5rem; }
+  section h2 { font-size: 1.1rem; margin: 0 0 .5rem; }
+  section h3 { font-size: .95rem; margin: 1rem 0 .35rem; color: #aaa; }
+  #download { font: inherit; font-size: .85rem; background: #15151c; color: #8ab4ff;
+              border: 1px solid #333; border-radius: 4px; padding: .3rem .7rem; cursor: pointer; }
+  #download:hover { border-color: #8ab4ff; }
+  .hint { color: #777; font-size: .8rem; margin-left: .5rem; }
+  td.num, th.num { font-family: ui-monospace, monospace; text-align: right; }
+  .delta { color: #8ab4ff; font-weight: 700; }
+</style>
+</head>
+<body>
+<header>
+  <h1>📋 Session</h1>
+  <p><a href="./">← back to sessions</a></p>
+</header>
+<main id="main">
+  <div class="empty" id="empty" hidden>no such session</div>
+  <div id="content" hidden>
+    <h2 id="session-title"></h2>
+    <p><button id="download" type="button">⬇ download receipt JSON</button>
+       <span class="hint">everything below (minus the ASCII map) as one file</span></p>
+    <section>
+      <h2>Config</h2>
+      <table id="config-table"><tbody></tbody></table>
+    </section>
+    <section>
+      <h2>Versions</h2>
+      <table id="versions-table"><tbody></tbody></table>
+    </section>
+    <section>
+      <h2>Latency</h2>
+      <div id="runs-summary"></div>
+    </section>
+    <section>
+      <h2>Hardware</h2>
+      <div id="hardware-content"></div>
+    </section>
+    <section>
+      <h2>Endpoint Map</h2>
+      <pre id="map"></pre>
+    </section>
+    <section>
+      <h2>Timeline</h2>
+      <div id="timeline-content"></div>
+    </section>
+    <section>
+      <h2>Log Excerpt</h2>
+      <pre id="log"></pre>
+    </section>
+  </div>
+</main>
+<footer>
+  Session data: <a href="sessions/">sessions/</a> — endpoints: <a href="endpoints.json">endpoints.json</a>
+</footer>
+
+<script>
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get('id');
+
+  if (!sessionId) {
+    document.getElementById("empty").textContent = "no such session";
+    document.getElementById("empty").hidden = false;
+  } else {
+    Promise.all([
+      fetch(`sessions/${esc(sessionId)}.json`).then(r => r.json()),
+      fetch('endpoints.json').then(r => r.json()),
+      fetch('../results/data.json').then(r => r.json())
+    ]).then(([session, endpoints, results]) => {
+      document.getElementById("content").hidden = false;
+      document.getElementById("session-title").textContent = `Session: ${esc(session.id)}`;
+
+      // Config table
+      const configRows = [];
+      const fmtVal = v => Array.isArray(v) ? v.map(fmtVal).join(", ")
+        : (v && typeof v === "object") ? Object.entries(v).map(([k, x]) => `${k} ${fmtVal(x)}`).join(" · ")
+        : String(v);
+      for (const [key, value] of Object.entries(session.config || {})) {
+        configRows.push(`<tr><td><code>${esc(key)}</code></td><td><code>${esc(fmtVal(value))}</code></td></tr>`);
+      }
+      document.getElementById("config-table").querySelector("tbody").innerHTML = configRows.join("");
+
+      // Versions
+      document.getElementById("versions-table").querySelector("tbody").innerHTML =
+        Object.entries(session.versions || {}).map(([k, v]) =>
+          `<tr><td><code>${esc(k)}</code></td><td><code>${esc(fmtVal(v))}</code></td></tr>`).join("")
+        || `<tr><td class="empty">(none recorded)</td></tr>`;
+
+      // Latency: measurement runs inside the session window, encoder-to-glass medians + delta
+      const median = a => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
+      const inWindow = r => r.started_utc >= session.started_utc && (!session.ended_utc || r.started_utc <= session.ended_utc);
+      const runs = (results.runs || []).filter(inWindow).map(r => {
+        const g = t => median((r.samples || []).filter(s => s.transport === t && s.encoder_to_glass_ms != null).map(s => s.encoder_to_glass_ms));
+        return { started_utc: r.started_utc, source: r.source, notes: r.notes, machine: r.machine,
+                 browser_version: r.browser_version, samples: (r.samples || []).length,
+                 moq_median_ms: g("moq"), hls_median_ms: g("hls"),
+                 delta_ms: g("moq") != null && g("hls") != null ? g("hls") - g("moq") : null };
+      });
+      const ms = v => v == null ? "—" : `${(v / 1000).toFixed(2)}s`;
+      document.getElementById("runs-summary").innerHTML = runs.length
+        ? `<table><thead><tr><th>run started</th><th>notes</th><th>chrome</th><th class="num">samples</th><th class="num">MoQ e2g</th><th class="num">HLS e2g</th><th class="num">Δ HLS−MoQ</th></tr></thead><tbody>` +
+          runs.map(r => `<tr><td>${esc(r.started_utc)}</td><td>${esc(r.notes ?? "")}</td><td>${esc(r.browser_version ?? "—")}</td><td class="num">${r.samples}</td>` +
+            `<td class="num">${ms(r.moq_median_ms)}</td><td class="num">${ms(r.hls_median_ms)}</td><td class="num delta">${ms(r.delta_ms)}</td></tr>`).join("") +
+          `</tbody></table><p class="hint">encoder-to-glass medians per run (clock-ocr) · details on <a href="../results/">results</a></p>`
+        : `<p class="hint">no measurement runs during this session — run <code>scripts/prod.sh measure</code> while up</p>`;
+
+      // Hardware: publisher snapshots side by side, then relay/origin facts + probes
+      const hw = session.publisher_hw || {};
+      const gb = b => b == null ? "—" : `${Math.round(b / 2 ** 30)} GB`;
+      const la = a => Array.isArray(a) ? a.map(x => x.toFixed(2)).join(" ") : "—";
+      const therm = t => t == null ? "—" : /No thermal warning/.test(t) ? "nominal" : String(t).split("\n")[0];
+      const HW_ROWS = [["model", h => h.model], ["cpu", h => h.cpu], ["arch", h => h.arch],
+        ["ram", h => gb(h.ram_bytes)], ["macOS build", h => h.macos_build],
+        ["load avg (1/5/15m)", h => la(h.load_avg)], ["thermal", h => therm(h.thermal_state)],
+        ["power", h => h.power_source ? `${h.power_source}${h.battery_pct != null ? ` (${h.battery_pct}%)` : ""}` : "—"],
+        ["ffmpeg CPU %", h => h.ffmpeg_cpu_pct ?? "—"]];
+      const cell = v => esc(fmtVal(v ?? "—"));
+      const hostOf = u => { try { return new URL(u).host; } catch { return ""; } };
+      const fact = v => v === "FILL_ME" ? `<em>not recorded — fill endpoints.json</em>` : esc(fmtVal(v ?? "—"));
+      const box = (title, facts, probe, versionNote) => {
+        const rows = Object.entries(facts || {}).map(([k, v]) =>
+          `<tr><td><code>${esc(k)}</code></td><td>${fact(v)}${k === "software" && versionNote ? ` <code>${esc(versionNote)}</code>` : ""}</td></tr>`);
+        for (const [k, v] of Object.entries(probe || {}))
+          rows.push(`<tr><td><code>probe ${esc(k)}</code></td><td>${cell(v)}</td></tr>`);
+        return `<h3>${esc(title)}</h3><table><tbody>${rows.join("")}</tbody></table>`;
+      };
+      document.getElementById("hardware-content").innerHTML =
+        `<h3>publisher</h3><table><thead><tr><th></th><th>at open</th><th>at close</th></tr></thead><tbody>` +
+        HW_ROWS.map(([label, f]) =>
+          `<tr><td><code>${esc(label)}</code></td><td>${cell(hw.at_open && f(hw.at_open))}</td><td>${cell(hw.at_close && f(hw.at_close))}</td></tr>`).join("") +
+        `</tbody></table>` +
+        (session.stack === "prod"
+          ? box("moq relay", endpoints.relay, session.probes?.relay) +
+            box("hls origin", endpoints.hls_origin, session.probes?.hls_origin,
+                session.versions?.mediamtx ? `${session.versions.mediamtx} (image tag in hls-origin/compose.yml)` : null)
+          : box("moq relay (local)", { host: hostOf(session.config?.relay) || "localhost:4443",
+                where: "runs on the publisher machine — hardware above" }, session.probes?.relay) +
+            box("hls origin (local)", { host: hostOf(session.config?.hls_playlist_url) || "localhost:8888",
+                where: "runs on the publisher machine — hardware above",
+                software: session.versions?.mediamtx ? `MediaMTX ${session.versions.mediamtx}` : "MediaMTX" },
+                session.probes?.hls_origin));
+
+      // Timeline
+      const tl = [...(session.timeline || [])].sort((a, b) => String(a.at_utc).localeCompare(String(b.at_utc)));
+      document.getElementById("timeline-content").innerHTML = tl.length
+        ? `<table><tbody>` + tl.map(t =>
+            `<tr><td><code>${esc(t.at_utc ?? "—")}</code></td><td>${esc(t.event ?? "")}</td><td>${esc(t.detail ?? "")}</td></tr>`).join("") + `</tbody></table>`
+        : `<p class="hint">(no events)</p>`;
+
+      // Download: whole receipt minus the ASCII map, plus endpoint facts + latency summaries
+      document.getElementById("download").addEventListener("click", () => {
+        const dl = { ...session, measurement_runs: runs };
+        if (session.stack === "prod") dl.endpoints = endpoints;   // facts file describes the prod boxes only
+        delete dl.endpoint_map;
+        const url = URL.createObjectURL(new Blob([JSON.stringify(dl, null, 2)], { type: "application/json" }));
+        const a = document.createElement("a");
+        a.href = url; a.download = `receipt-${session.id}.json`; a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      // Endpoint map
+      document.getElementById("map").textContent = session.endpoint_map || "(none)";
+
+      // Log excerpt
+      if (Array.isArray(session.log_excerpt) && session.log_excerpt.length) {
+        document.getElementById("log").textContent = session.log_excerpt.join("\n");
+      } else {
+        document.getElementById("log").textContent = "(no log entries)";
+      }
+    }).catch(e => {
+      document.getElementById("empty").textContent = "no such session (or fetch error)";
+      document.getElementById("empty").hidden = false;
+    });
+  }
+</script>
+</body>
+</html>

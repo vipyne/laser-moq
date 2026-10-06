@@ -1,0 +1,38 @@
+# MediaMTX: RTMP in from ffmpeg, Low-Latency HLS out.
+logLevel: info
+
+# Auth: viewing (HLS) is anonymous; publishing (RTMP) needs credentials.
+# `changeme` is the local-dev password; prod overrides it via the
+# MTX_AUTHINTERNALUSERS_1_PASS env var in compose.yml (value from .env,
+# never committed). Publish URL: rtmp://<host>:1935/laserdisc?user=laserdisc&pass=<pass>
+authInternalUsers:
+  - user: any
+    permissions:
+      - action: read
+      - action: playback
+  - user: laserdisc
+    pass: changeme
+    permissions:
+      - action: publish
+api: no
+metrics: no
+rtsp: no
+webrtc: no
+srt: no
+
+rtmp: yes
+rtmpAddress: :1935
+
+hls: yes
+hlsAddress: :8888
+hlsAllowOrigins: ['*']
+hlsAlwaysRemux: yes          # prepare the playlist even with zero viewers
+hlsVariant: lowLatency
+hlsSegmentCount: 7
+hlsSegmentDuration: 500ms   # latency floor ≈ 3x part duration
+hlsPartDuration: 100ms
+hlsMuxerCloseAfter: 60s
+
+paths:
+  laserdisc:
+    source: publisher

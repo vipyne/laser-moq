@@ -1,0 +1,11 @@
+# Laptop-only: MediaMTX with plain HTTP. Prod uses compose.yml (adds Caddy/TLS).
+services:
+  mediamtx:
+    image: bluenviron/mediamtx:1.20.1
+    container_name: laser-mediamtx
+    restart: unless-stopped
+    ports:
+      - "1935:1935"
+      - "8888:8888"
+    volumes:
+      - ./mediamtx.yml:/mediamtx.yml:ro

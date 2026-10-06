@@ -1,0 +1,25 @@
+# Production: moq-relay with real TLS (certs copied from certbot, see
+# docs/deploy-moq-relay.md §4). Host network: QUIC/WebTransport on 443/udp +
+# WSS fallback on 443/tcp. The WSS listener must be the HTTPS one
+# (MOQ_WEB_HTTPS_*) — Safari's TLS handshake fails against a plaintext
+# web-http listener on 443.
+services:
+  moq-relay:
+    build: .
+    container_name: laser-moq-relay
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - MOQ_SERVER_BIND=[::]:443              # QUIC/WebTransport (UDP)
+      - MOQ_SERVER_TLS_CERT=/etc/moq/tls/fullchain.pem
+      - MOQ_SERVER_TLS_KEY=/etc/moq/tls/privkey.pem
+      - MOQ_WEB_HTTPS_LISTEN=[::]:443         # WSS fallback + /anon landing page (TCP)
+      - MOQ_WEB_HTTPS_CERT=/etc/moq/tls/fullchain.pem
+      - MOQ_WEB_HTTPS_KEY=/etc/moq/tls/privkey.pem
+      - MOQ_AUTH_PUBLIC=anon                  # anonymous pub/sub under /anon
+      # Auth (optional, docs/deploy-moq-relay.md §6): JWTs required outside /anon.
+      # - MOQ_AUTH_KEY=/etc/moq/moq-root.jwk
+    volumes:
+      - /etc/moq/tls:/etc/moq/tls:ro
+      # - /etc/moq/moq-root.jwk:/etc/moq/moq-root.jwk:ro
+    logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }

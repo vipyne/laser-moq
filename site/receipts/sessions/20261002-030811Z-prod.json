@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "id": "20261002-030811Z-prod",
+  "stack": "prod",
+  "source": "capture",
+  "started_utc": "2026-10-02T03:08:11Z",
+  "ended_utc": "2026-10-02T03:09:45Z",
+  "end": "clean",
+  "config": {
+    "source": "capture",
+    "size": "720x480",
+    "fps": "60",
+    "gop": "30",
+    "relay": "https://[REDACTED_RELAY_1]/livestream",
+    "rtmp_host": "hls-laserdisc.vanessa-dev.com",
+    "hls_playlist_url": "https://hls-laserdisc.vanessa-dev.com/laserdisc/index.m3u8",
+    "page_url": "https://moq-laserdisc.vanessa-dev.com/",
+    "pins": {
+      "moq_watch": "0.5.4",
+      "hls_js": "1.7.1",
+      "tesseract_js": "5.1.1"
+    },
+    "mediamtx_tuning": {
+      "hlsSegmentDuration": "500ms",
+      "hlsPartDuration": "100ms",
+      "hlsSegmentCount": "7",
+      "hlsVariant": "lowLatency"
+    }
+  },
+  "versions": {
+    "moq": "moq 0.11.2",
+    "ffmpeg": "ffmpeg version 7.1 Copyright (c) 2000-2024 the FFmpeg developers",
+    "mediamtx": "1.20.1",
+    "macos": "26.5.2"
+  },
+  "publisher_hw": {
+    "at_open": {
+      "model": "MacBookPro16,1",
+      "cpu": "Intel(R) Core(TM) i9-9980HK CPU @ 2.40GHz",
+      "arch": "x86_64",
+      "ram_bytes": 34359738368,
+      "macos_build": "25F84",
+      "uptime": "22:08  up 83 days,  1:13, 4 users, load averages: 2.82 3.81 4.66",
+      "load_avg": [
+        2.8232421875,
+        3.81103515625,
+        4.65966796875
+      ],
+      "thermal_state": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\n2026-10-01 22:08:11 -0500 CPU Power notify\n\tCPU_Scheduler_Limit \t= 100\n\tCPU_Available_CPUs \t= 16\n\tCPU_Speed_Limit \t= 100",
+      "ffmpeg_cpu_pct": null
+    },
+    "at_close": {
+      "model": "MacBookPro16,1",
+      "cpu": "Intel(R) Core(TM) i9-9980HK CPU @ 2.40GHz",
+      "arch": "x86_64",
+      "ram_bytes": 34359738368,
+      "macos_build": "25F84",
+      "uptime": "22:09  up 83 days,  1:15, 4 users, load averages: 3.64 3.76 4.55",
+      "load_avg": [
+        3.64453125,
+        3.75927734375,
+        4.54833984375
+      ],
+      "thermal_state": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\n2026-10-01 22:09:45 -0500 CPU Power notify\n\tCPU_Scheduler_Limit \t= 100\n\tCPU_Available_CPUs \t= 16\n\tCPU_Speed_Limit \t= 100",
+      "ffmpeg_cpu_pct": 18.9
+    }
+  },
+  "probes": {
+    "relay": {
+      "ping_avg_ms": null,
+      "status": 404,
+      "server_header": null
+    },
+    "hls_origin": {
+      "ping_avg_ms": null,
+      "status": 302,
+      "server_header": "mediamtx"
+    }
+  },
+  "endpoint_map": "\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502                                                                        \u2502\n\u2502                        .........                                       \u2502\n\u2502                        ........        ..... ......................... \u2502\n\u2502   ......   ...................        .................................\u2502\n\u2502          ...............         ... ..................................\u2502\n\u2502        .................         ..................................... \u2502\n\u2502         ..S............          ...............................       \u2502\n\u2502          .RH..........          .................. .............       \u2502\n\u2502            .....P...           ...............................         \u2502\n\u2502            ......              ............... ...... .......          \u2502\n\u2502              .....           .................  ...   ........         \u2502\n\u2502                .....           .............          ..........       \u2502\n\u2502                ...........       .........             ...........     \u2502\n\u2502                  ..........      .........                  ....       \u2502\n\u2502                  .........       .......                  .........    \u2502\n\u2502                  .........       ......                  ..........    \u2502\n\u2502                  ......           ...                     ........     \u2502\n\u2502                  .....                                             ..  \u2502\n\u2502                  ....                                             ..   \u2502\n\u2502                   ..                                                   \u2502\n\u2502                                                                        \u2502\n\u2502                                                                        \u2502\n\u2502        .......................................................         \u2502\n\u2502    ...............................................................     \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n\n  P  publisher   [REDACTED_IP_1]   New Orleans, Louisiana, US \u00b7 AS22773 Cox Communications Inc.  (this machine)\n  R  moq relay   [REDACTED_IP_3]    San Jose, California, US \u00b7 AS31898 Oracle Corporation  rtt :443 61ms  (moq-relay 0.13.5)\n  H  hls origin  [REDACTED_IP_4]     San Jose, California, US \u00b7 AS31898 Oracle Corporation  rtt :443 62ms :1935 63ms  (:1935 RTMP in, :443 LL-HLS out)\n  S  subscriber  185.199.109.153  San Francisco, California, US \u00b7 AS54113 Fastly, Inc.  rtt :443 23ms  (Page host / CDN edge near you \u2014 not a media hop)\n\n  paths:  moq     P (publisher) \u2500\u2500\u25b6 R (relay) \u25c0\u2500\u2500 viewers\n          ll-hls  P (publisher) \u2500\u2500\u25b6 H (:1935) \u25c0\u2500\u2500 viewers (:443)\n          page    viewers load the site itself from S\n\n\u250c\u2500\u2500 MoQ media path \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502                                                                       \u2502\n\u2502 \u25c9 P publisher  \u00b7  New Orleans, Louisiana, US  \u00b7  [REDACTED_IP_1]       \u2502\n\u2502 \u2502                                                                     \u2502\n\u2502 \u2502  ~61 ms   publisher \u2192 relay (TCP connect, from this machine)        \u2502\n\u2502 \u25bc                                                                     \u2502\n\u2502 \u25c9 R moq relay  \u00b7  San Jose, California, US  \u00b7  [REDACTED_IP_3]          \u2502\n\u2502 \u250a                                                                     \u2502\n\u2502 \u250a  viewers \u2192 relay  (measured in the viewer's browser \u2014 see /results) \u2502\n\u2502 \u25c9 viewers  \u00b7  wherever the audience is                                \u2502\n\u2502                                                                       \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n\n\u250c\u2500\u2500 LL-HLS media path \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502                                                                                    \u2502\n\u2502 \u25c9 P publisher  \u00b7  New Orleans, Louisiana, US  \u00b7  [REDACTED_IP_1]                    \u2502\n\u2502 \u2502                                                                                  \u2502\n\u2502 \u2502  ~63 ms   publisher \u2192 origin :1935 RTMP (TCP connect, from this machine)         \u2502\n\u2502 \u25bc                                                                                  \u2502\n\u2502 \u25c9 H hls origin  \u00b7  San Jose, California, US  \u00b7  [REDACTED_IP_4]                       \u2502\n\u2502 \u250a                                                                                  \u2502\n\u2502 \u250a  viewers \u2192 origin :443 LL-HLS  (measured in the viewer's browser \u2014 see /results) \u2502\n\u2502 \u25c9 viewers  \u00b7  wherever the audience is                                             \u2502\n\u2502                                                                                    \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n\n  P is wherever this script runs \u2014 run it on the publisher box (the machine wired to the LaserDisc)\n  for the map to tell the truth.",
+  "timeline": [
+    {
+      "at_utc": "2026-10-02T03:08:11Z",
+      "event": "open",
+      "detail": null
+    },
+    {
+      "at_utc": "2026-10-02T03:08:11Z",
+      "event": "start",
+      "detail": "start #1"
+    },
+    {
+      "at_utc": "2026-10-02T03:09:45Z",
+      "event": "close",
+      "detail": null
+    }
+  ],
+  "log_excerpt": [
+    "[22:08:11] start #1",
+    "\u001b[2m2026-10-02T03:08:42.710052Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mmoq_net::lite::publisher\u001b[0m\u001b[2m:\u001b[0m subscribed started \u001b[3mid\u001b[0m\u001b[2m=\u001b[0m1 \u001b[3mbroadcast\u001b[0m\u001b[2m=\u001b[0mlaserdisc.hang \u001b[3mtrack\u001b[0m\u001b[2m=\u001b[0m1.aac"
+  ],
+  "viewer_note": "remote viewers unknowable; see measure runs in this window"
+}

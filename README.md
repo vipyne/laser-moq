@@ -1,0 +1,385 @@
+# laser-moq
+everything is cooler with lasers.
+
+## What this is
+a demo "benchmarking" MoQ and HLS. it's intentionally tongue-in-cheek and
+suggests livestreaming physical media (ie. LaserDisc) as a source stream.
+physical media is not required and this is intented to be a jumping off point 
+for a more useful benchmarking and measurement tool/service tailored to a 
+user's specific needs.
+<div align="center">
+<img alt="colorbars" width="500px" height="auto" src="https://raw.githubusercontent.com/vipyne/laser-moq/main/readme_screengrab.png">
+</div>
+
+## tl;dr (no physical / hardware / media required)
+
+1. Install [dependencies](#setup)
+```bash
+./scripts/setup.sh
+```
+
+2. FYI
+```bash
+./scripts/dev.sh
+==>
+scripts/dev.sh up            # publish → local relay + local HLS (source: test colorbars)
+scripts/dev.sh up test       # same as `up`
+scripts/dev.sh up capture    # publish → local relay + local HLS (source: real physical media via capture card)
+scripts/dev.sh up receipts   # :8000 site server only (browse receipts/results, no publishing)
+scripts/dev.sh down          # measure latency, then stop (SKIP_MEASURE=1 or FORCE=1 skips measure)
+scripts/dev.sh downdown      # fast full teardown: no measure, publisher + :8000 receipts site down
+scripts/dev.sh status        # relay / container / publisher / site / playlist-flowing
+scripts/dev.sh measure       # OCR latency run vs this stack's page (extra flags pass through)
+scripts/dev.sh map           # live map (everything localhost by design)
+```
+
+3. typical run:
+
+- `./scripts/dev.sh up`
+- see colorbars; watch until bored
+- `./scripts/dev.sh down`
+- wait for measurements
+- open http://localhost:8000/results
+- see info and stuff; look at 'receipt'
+- `./scripts/dev.sh downdown`
+- profi†‡
+
+†not really.
+‡typo intentional.
+
+## Architecture
+
+One ffmpeg process encodes once and **tees** the identical h264/aac stream to two
+legs, so the MoQ-vs-HLS comparison is apples to apples (same bitrate, same GOP,
+same encoder).
+
+Two stacks run that pipeline at different distances:
+
+- **`scripts/dev.sh` — fully local.** Own moq-relay on :4443 (self-signed,
+  fingerprint-pinned), MediaMTX in Docker, page on :8000. Both legs on
+  loopback → the latency difference is protocol architecture alone. Diagram
+  + rationale: [local-architecture.md](local-architecture.md).
+- **`scripts/prod.sh` — the WAN path below.** Real relay + HLS origin VMs
+  (OCI San Jose), public page on GitHub Pages; network + geography included.
+
+```
+LaserDisc ─RCA─▶ Ocean Matrix ─HDMI─▶ Pengo ─USB─▶ ffmpeg (avfoundation)
+                                                     │ h264_videotoolbox + aac, -f tee
+                                    ┌────────────────┴─────────────────┐
+                              [f=mpegts]pipe:1                 [f=flv]rtmp://HLS_HOST/laserdisc
+                                    │                                  │
+                   moq --client-connect $MOQ_RELAY_URL    MediaMTX (HLS origin VM)
+                       --broadcast laserdisc.hang import ts          RTMP in → LL-HLS out
+                                    │ QUIC                             │ HTTPS via Caddy
+                                    ▼                                  ▼
+                       MoQ relay ($MOQ_RELAY_URL)      https://<hls-host>/laserdisc/index.m3u8
+                                    │ WebTransport / WSS               │ hls.js (lowLatencyMode)
+                                    └──────────────┬───────────────────┘
+                                                   ▼
+                          https://moq-laserdisc.vanessa-dev.com — one page, two players side by side
+                          (GitHub Pages for this repo + Route 53 CNAME)
+```
+
+### Hardware chain
+
+```
+LaserDisc player / VHS player / DVD player (RCA composite + stereo)
+→ Ocean Matrix analog→HDMI converter
+→ Pengo HDMI→USB capture card 
+→ Mac.
+```
+
+### Software chain
+
+#### MoQ
+
+```
+ffmpeg (avfoundation in; one encode: h264_videotoolbox + aac; `-f tee`)
+→ MoQ leg: moq-cli `import ts` 
+→ moq-relay (QUIC/WebTransport, WSS fallback) 
+→ `<moq-watch>`
+→ one page, two players side by side.
+```
+
+#### HLS
+
+```
+ffmpeg (avfoundation in; one encode: h264_videotoolbox + aac; `-f tee`)
+→ HLS leg: RTMP 
+→ MediaMTX (LL-HLS)
+→ Caddy (TLS) 
+→ hls.js `<video>`
+→ one page, two players side by side.
+```
+
+## Setup
+
+### Dependencies
+- ffmpeg 7.1.1 (with avfoundation + videotoolbox)
+- Docker
+- rust
+  - moq-cli 0.11.2
+  - moq-relay 0.13.5
+- Google Chrome (for playwright stuff)
+- node/npm (>=20)
+
+### Installation
+
+one script, run once (idempotent — rerun anytime):
+
+```bash
+./scripts/setup.sh
+```
+
+it installs the pinned moq binaries (`moq-cli` 0.11.2 + `moq-relay` 0.13.5
+via cargo), tesseract + node deps for latency measurement, and checks the
+Docker daemon. the HLS server needs zero install — MediaMTX runs as a Docker
+image (`bluenviron/mediamtx:1.20.1`, pinned in `hls-origin/compose.local.yml`),
+pulled automatically on the first `dev.sh up`. if `dev.sh` ever reports a
+missing binary, it points you back at `scripts/setup.sh`.
+
+#### Optional
+
+> Note: honestly haven't tested this part yet- seems cool though right?
+
+for the page's "impair network" button (optional; local stack only) — dummynet
+needs `dnctl`/`pfctl` via non-interactive sudo, so add a one-time rule scoped
+to exactly those two binaries:
+```bash
+sudo sh -c 'echo "$SUDO_USER ALL=(root) NOPASSWD: /usr/sbin/dnctl, /sbin/pfctl" > /etc/sudoers.d/laser-moq-impair'
+```
+verify with the dev stack up (`./scripts/impair.sh on wifi && ./scripts/impair.sh status && ./scripts/impair.sh off`);
+remove anytime with `sudo rm /etc/sudoers.d/laser-moq-impair`.
+
+## Run
+### Dev
+
+> `./scripts/dev.sh`
+
+see [tl;dr](#tldr-no-physical--hardware--media-required)
+
+`scripts/dev.sh` is **fully local**: it runs its own moq-relay on :4443
+(self-signed cert, pinned by fingerprint via the `http://` URL scheme) and
+sets `MOQ_RELAY_URL=http://localhost:4443/anon` itself. On loopback the
+latency difference is protocol architecture alone — the isolation run the
+WAN numbers get contrasted against. See
+[local-architecture.md](local-architecture.md).
+
+### "Prod"
+
+> `./scripts/prod.sh`
+
+Everything remote: the real relay, the HLS origin VM, the public page. Deploy
+a moq relay (`moq-relay/deploy-moq-relay.md`) and hls server 
+(`hls-origin/deploy-hls-origin.md`), then:
+
+```bash
+export MOQ_RELAY_URL=https://your-relay.example.com/anon
+```
+
+Typically (`prod.sh` wraps publish + receipts + measure):
+
+```bash
+./scripts/prod.sh up [test|capture]   # default capture
+# … stream runs; https://moq-laserdisc.vanessa-dev.com shows it …
+./scripts/prod.sh down                # measures, writes the session receipt
+```
+
+The page reads the relay URL from `site/config.js`:
+
+locally — copy the example config (or pass `?relay=<url>` in the page URL):
+
+```bash
+cp site/config.example.js site/config.js
+```
+
+public page — set the repo Actions variable; the Pages workflow writes
+`site/config.js` from it at deploy time:
+
+```bash
+gh variable set MOQ_RELAY_URL --body 'https://your-relay.example.com/anon'
+```
+
+If the relay requires tokens, they ride inside the same value — e.g.
+`https://relay.example.com/laserdisc?jwt=<token>` — a publish-capable token in
+the shell env, a subscribe-only token in the Actions variable (tokens minted
+with `moq token sign` against the relay's root key). Once enabled,
+`bash tests/test-auth.sh` verifies the token protects publish while viewing
+stays anonymous.
+
+Quick start with the built-in test source (colour bars + 440 Hz tone), MoQ leg only:
+
+```bash
+SOURCE=test HLS=0 scripts/publish.sh
+```
+
+Both legs (start local MediaMTX first: `docker compose -f hls-origin/compose.local.yml up -d`):
+
+```bash
+SOURCE=test scripts/publish.sh
+```
+
+Real capture: `SOURCE=capture scripts/publish.sh` (resolves the Pengo — "HDMI to U3 capture" — by name; sanity-check the card first with `scripts/preview.sh`).
+Watch the MoQ leg locally with `scripts/watch.sh`.
+
+| Env var | Default | Meaning |
+|---|---|---|
+| `SOURCE` | `capture` | `test` (testsrc2 + sine) or `capture` (avfoundation) |
+| `MOQ_RELAY_URL` | *(required, no default)* | MoQ relay endpoint |
+| `BROADCAST` | `laserdisc.hang` | broadcast name on the relay |
+| `HLS` | `1` | `1` = tee to RTMP too, `0` = MoQ only |
+| `RTMP_URL` | `rtmp://localhost:1935/laserdisc?user=laserdisc&pass=changeme` | MediaMTX RTMP ingest. Publishing needs credentials (user `laserdisc`); `changeme` is the local-dev password, prod's comes from `.env` on the VM |
+| `VIDEO_DEV` | `HDMI to U3 capture` | capture video device (name substring or index) — the Pengo announces itself as "HDMI to U3 capture" |
+| `AUDIO_DEV` | `HDMI to U3 capture` | capture audio device (name substring or index) |
+| `SIZE` | capture `720x480`, test `1280x720` | frame size (the card only does NTSC 720x480) |
+| `FPS` | capture `60`, test `30` | frame rate |
+
+## Stage runbook
+
+1. Plug in: LaserDisc → Ocean Matrix → Pengo → Mac.
+2. `scripts/list-devices.sh` — confirm the Pengo appears in both video and audio
+   lists (set `VIDEO_DEV`/`AUDIO_DEV` if its name differs).
+3. Relay up: VM per `moq-relay/deploy-moq-relay.md` (`curl -s https://<relay-host>/anon | head -1`
+   answers). HLS origin up: prod VM per `hls-origin/deploy-hls-origin.md`, or locally
+   `docker compose -f hls-origin/compose.local.yml up -d`.
+4. `./scripts/prod.sh up` (capture source; wraps `run-forever.sh`, opens the
+   session receipt; `RTMP_PUBLISH_PASS` read from `hls-origin/.env`).
+5. Open https://moq-laserdisc.vanessa-dev.com — both players, clocks under each.
+6. If it dies: `run-forever.sh` restarts the pipeline itself; viewers
+   auto-reconnect. Hard reset: `./scripts/prod.sh downdown` then `up` again.
+7. After: `./scripts/prod.sh down` — measures latency, closes the receipt,
+   serves it at http://localhost:8000/receipts/ and http://localhost:8000/results/.
+
+## Measured latency
+
+Live numbers: **https://moq-laserdisc.vanessa-dev.com/results/** — measured
+programmatically (Playwright screenshots the players, tesseract OCRs the
+burned-in publisher clock; see `tools/measure/`).
+
+How a run gets there: run `scripts/measure-latency.sh` on the publisher machine
+(both clocks are one clock, no NTP skew), review the run it appended to
+`site/results/data.json`, then commit + push — Pages redeploys the page.
+Each clock-ocr sample records `encoder_to_glass_ms` plus `shot_spread_ms`
+(screenshot window; the timestamp is its midpoint).
+
+### Media-type bar charts (intentional callout of inconsequential variables)
+
+`scripts/graph_media_bars.py` turns labeled runs into a grouped bar PNG
+(per-run clock-ocr medians, min–max whiskers, OCR outliers >2.5× median
+excluded + disclosed in the caption). Input maps bar label → run `notes`,
+matched exactly in the results data. Same `--ymax` across charts keeps the
+axis pixel-identical when toggling slides. data is from `site/results/data.json`.
+
+command to create bar chart:
+
+```bash
+cat > /tmp/graph-local.json <<'EOF'
+{"graph": {"LaserDisc": <"notes" from run>, "VHS": <"notes" from run>, "DVD": <"notes" from run>}}
+EOF
+uv run scripts/graph_media_bars.py /tmp/graph-local.json -o BAR_CHART_NAME.png \
+  --ymax 1900 --title "<Title of Bar Chart - Detail here"
+```
+
+example:
+
+```bash
+cat > /tmp/graph-prod.json <<'EOF'
+{"graph": {"LaserDisc": "200 prod LD", "VHS": "200 prod vhs", "DVD": "200 prod dvd"}}
+EOF
+uv run scripts/graph_media_bars.py /tmp/graph-prod.json -o media-bars-m4-prod.png \
+  --ymax 1900 --title "Latency by media type — prod (WAN) · M4 publisher"
+```
+
+## Known caveats
+
+The same list ships at the bottom of the live page. For a talk about how most
+benchmarks are bs, these are the slides:
+
+- **Buffer asymmetry.** MoQ runs a 150 ms jitter buffer; HLS "typical" targets
+  1.5 s and "ragged" 300 ms — and ~300 ms (3× the origin's 100 ms parts) is
+  LL-HLS's floor, while MoQ's floor is zero. The matched-buffer comparison is
+  `?moqlatency=300&hlspreset=ragged`.
+- **The 150 ms is a handicap, not a gift.** `<moq-watch>` defaults to
+  `real-time` (zero buffer); reload with `?moqlatency=real-time` to watch MoQ
+  drop lower still — and stutter on any jitter. Latency is a buffer-policy dial
+  on both protocols; what differs is where each protocol's floor sits.
+- **Chain vs chain, not protocol vs protocol.** The "HLS" number includes
+  FLV/RTMP ingest + MediaMTX remux + Caddy TLS; the "MoQ" number includes
+  moq-cli repackaging + relay fanout. Each is a representative single-hop
+  deployment (no CDN on either leg) — not isolated egress-protocol overhead.
+- **Encoder-to-glass, not glass-to-glass.** The clock is burned at encode, so
+  LaserDisc→capture-card latency is invisible — identically for both legs.
+- **The measured numbers are Chrome numbers.** The harness drives Chrome:
+  WebTransport + hls.js/MSE. Safari would be WSS fallback + native HLS —
+  different pipelines entirely.
+- **Harness limits.** Samples are midpoint-timestamped screenshots
+  (±`shot_spread_ms`/2); publisher, browser, and OCR share one machine; ~12
+  samples per run; OCR misreads are filtered only by plausibility; runs are
+  human-curated and the results tiles headline the latest run.
+- **Video only.** Audio latency, A/V sync, startup time, and rebuffering are
+  unmeasured.
+- **Local vs WAN.** The all-local dev stack isolates protocol architecture but
+  hides QUIC's loss-recovery advantages; WAN runs add network + geography.
+  The page's "impair network" button (local stack only; `scripts/impair.sh`,
+  dummynet on viewer ports :8888 + :4443, delay/loss applied per direction;
+  the MoQ ingest leg is exempted via its pinned source port) puts the network
+  variable back under test.
+
+## Tests
+
+`bash tests/run.sh` runs every `tests/test-*.sh`. `test-roundtrip.sh` and
+`test-run-forever.sh` need network (the relay) + moq-cli; `test-hls.sh` needs
+Docker too. `test-resolve-device.sh`, `test-site.sh`, `test-results-page.sh`,
+`test-receipts-page.sh`, `test-session-receipt.sh`, `test-endpoint-map.sh`, and
+`test-auth.sh` are offline. `test-measure.sh` self-skips its OCR
+self-test when tesseract, node, or `tools/measure/node_modules` is missing. `test-auth.sh`
+self-skips until MoQ auth is enabled (no `?jwt=` in `MOQ_RELAY_URL`).
+
+## Troubleshooting
+
+- **Device index moved** (USB replug renumbers avfoundation): use name
+  substrings — `VIDEO_DEV="HDMI to U3 capture"` — not indices.
+- **Relay down**: `docker logs -f laser-moq-relay` on the relay box; runbook
+  in `moq-relay/deploy-moq-relay.md` §7.
+- **Safari**: no WebTransport; the relay speaks WebSocket on 443, `<moq-watch>`
+  falls back automatically.
+- **HLS origin offline**: the tee uses `onfail=ignore` — the MoQ leg keeps
+  going; fix the origin and restart the publisher to resume the HLS leg.
+
+## Layout
+
+| Path | Responsibility |
+|---|---|
+| `scripts/setup.sh` | One-time install: pinned moq binaries, tesseract + node deps, Docker check. |
+| `scripts/publish.sh` | The demo: ffmpeg (test or capture source) → tee → `moq import ts` + RTMP. |
+| `scripts/overlay.filter` | drawtext filter (wall clock, ms). |
+| `scripts/resolve-device.sh` | Turn a device-name substring into avfoundation `video:audio` indices. |
+| `scripts/list-devices.sh` | Wrapper around `ffmpeg -f avfoundation -list_devices`. |
+| `scripts/watch.sh` | Local subscriber: `moq … export fmp4 \| ffplay -`. |
+| `scripts/preview.sh` | Eyeball the capture card locally (ffplay, no encode/network); `FRAME=x.png` grabs a still. |
+| `scripts/dev.sh` | Local dev stack in one command (relay + HLS + publisher + site, all localhost): `up [test\|capture\|receipts]` / `down` / `downdown` / `status` / `measure` / `map`. |
+| `scripts/impair.sh` | Dummynet impairment (dnctl + pfctl) for the local stack's viewer legs: `on [wifi\|bad]` / `off` / `status`. |
+| `scripts/impair-server.py` | :9900 localhost endpoint behind the page's "impair network" button (started by `dev.sh`). |
+| `scripts/prod.sh` | WAN-path runner for the stage x86 Mac (real relay + origin + public page): `up [test\|capture\|receipts]` / `down` / `downdown` / `status` / `measure` / `map` (needs `MOQ_RELAY_URL`; RTMP pass from `hls-origin/.env`). |
+| `scripts/run-forever.sh` | Restart wrapper around `publish.sh` with backoff + log. |
+| `scripts/break-glass.sh` | Panic stop: kill `run-forever.sh`, ffmpeg, and the moq publisher. |
+| `scripts/session_receipt.py` | Opens/closes session receipts (config, versions, hardware, probes, map, timeline, log excerpt); called by `dev.sh`/`prod.sh` `up`/`down`. |
+| `scripts/measure-latency.sh` | Wrapper around the OCR latency harness; appends a run to `site/results/data.json`. |
+| `scripts/endpoint_map.py` | ASCII world map of the deployment (publisher, relay, HLS origin, page CDN) + path diagrams; `--demo` for offline. |
+| `scripts/graph_media_bars.py` | Media-type bar chart PNGs from labeled runs (`uv run`; see "Media-type bar charts"). |
+| `tools/measure/` | The harness: Playwright drives installed Chrome, tesseract reads the burned-in clock. |
+| `hls-origin/mediamtx.yml` | MediaMTX config (RTMP in, LL-HLS out). |
+| `hls-origin/compose.local.yml` | Laptop: mediamtx only. |
+| `hls-origin/compose.yml` | Prod: mediamtx + caddy (TLS for `$HLS_DOMAIN`). |
+| `hls-origin/Caddyfile` | `HLS_DOMAIN → mediamtx:8888`. |
+| `site/index.html` | Public page: `<moq-watch>` + hls.js side by side, clocks. |
+| `site/results/index.html` | `/results`: summary tiles + SVG chart + runs table from `data.json`; no libraries. |
+| `site/results/data.json` | Committed, append-only history of measured runs (schema v1). |
+| `site/receipts/` | `/receipts`: session list + per-session receipt page; `data.json` index, full receipts in `sessions/*.json`, endpoint facts in `endpoints.json`. |
+| `site/CNAME` | `moq-laserdisc.vanessa-dev.com`. |
+| `site/config.example.js` | Template for gitignored `site/config.js` (`window.MOQ_RELAY_URL`). |
+| `.github/workflows/pages.yml` | Publish `site/` to GitHub Pages (writes `config.js` from the `MOQ_RELAY_URL` Actions variable). |
+| `tests/` | Bash tests (`run.sh` + `test-*.sh` + fixtures). |
+| `moq-relay/` | Prod relay: Dockerfile (moq-relay 0.13.5) + compose (TLS, QUIC 443/udp, WSS 443/tcp, `/anon`). |
+| `moq-relay/deploy-moq-relay.md` | Human runbook for the relay VM. |
+| `hls-origin/deploy-hls-origin.md` | Human runbook for the HLS VM. |

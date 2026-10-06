@@ -1,0 +1,515 @@
+{
+  "schema": 1,
+  "sessions": [
+    {
+      "id": "20261006-162133Z-dev",
+      "stack": "dev",
+      "source": "test",
+      "started_utc": "2026-10-06T16:21:33Z",
+      "ended_utc": null,
+      "end": null,
+      "machine": "Mac16,7",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261005-190911Z-dev",
+      "stack": "dev",
+      "source": "capture",
+      "started_utc": "2026-10-05T19:09:11Z",
+      "ended_utc": "2026-10-06T03:05:38Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261005-190502Z-prod",
+      "stack": "prod",
+      "source": "capture",
+      "started_utc": "2026-10-05T19:05:02Z",
+      "ended_utc": "2026-10-05T19:07:10Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20261005-190346Z-dev",
+      "stack": "dev",
+      "source": "capture",
+      "started_utc": "2026-10-05T19:03:46Z",
+      "ended_utc": "2026-10-05T19:07:17Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261005-190309Z-prod",
+      "stack": "prod",
+      "source": "capture",
+      "started_utc": "2026-10-05T19:03:09Z",
+      "ended_utc": "2026-10-05T19:03:38Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20261005-185610Z-prod",
+      "stack": "prod",
+      "source": "capture",
+      "started_utc": "2026-10-05T18:56:10Z",
+      "ended_utc": "2026-10-05T18:57:57Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20261005-183110Z-dev",
+      "stack": "dev",
+      "source": "test",
+      "started_utc": "2026-10-05T18:31:10Z",
+      "ended_utc": "2026-10-05T19:03:46Z",
+      "end": "dirty",
+      "machine": "Mac16,7",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261005-012959Z-dev",
+      "stack": "dev",
+      "source": "test",
+      "started_utc": "2026-10-05T01:29:59Z",
+      "ended_utc": "2026-10-05T18:31:08Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261002-232627Z-prod",
+      "stack": "prod",
+      "source": "test",
+      "started_utc": "2026-10-02T23:26:27Z",
+      "ended_utc": "2026-10-02T23:28:17Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20261002-232538Z-dev",
+      "stack": "dev",
+      "source": "test",
+      "started_utc": "2026-10-02T23:25:38Z",
+      "ended_utc": "2026-10-02T23:26:13Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261002-172058Z-prod",
+      "stack": "prod",
+      "source": "capture",
+      "started_utc": "2026-10-02T17:20:58Z",
+      "ended_utc": "2026-10-02T17:22:41Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20261002-171039Z-dev",
+      "stack": "dev",
+      "source": "test",
+      "started_utc": "2026-10-02T17:10:39Z",
+      "ended_utc": "2026-10-02T17:12:04Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261002-170855Z-dev",
+      "stack": "dev",
+      "source": "capture",
+      "started_utc": "2026-10-02T17:08:55Z",
+      "ended_utc": "2026-10-02T17:10:21Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261002-170552Z-prod",
+      "stack": "prod",
+      "source": "capture",
+      "started_utc": "2026-10-02T17:05:52Z",
+      "ended_utc": "2026-10-02T17:07:37Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20261002-170238Z-prod",
+      "stack": "prod",
+      "source": "capture",
+      "started_utc": "2026-10-02T17:02:38Z",
+      "ended_utc": "2026-10-02T17:04:22Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20261002-165541Z-prod",
+      "stack": "prod",
+      "source": "capture",
+      "started_utc": "2026-10-02T16:55:41Z",
+      "ended_utc": "2026-10-02T17:02:15Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20261002-165042Z-prod",
+      "stack": "prod",
+      "source": "capture",
+      "started_utc": "2026-10-02T16:50:42Z",
+      "ended_utc": "2026-10-02T16:52:24Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20261002-164422Z-dev",
+      "stack": "dev",
+      "source": "test",
+      "started_utc": "2026-10-02T16:44:22Z",
+      "ended_utc": "2026-10-02T16:45:48Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261002-163658Z-dev",
+      "stack": "dev",
+      "source": "test",
+      "started_utc": "2026-10-02T16:36:58Z",
+      "ended_utc": "2026-10-02T16:38:23Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261002-163350Z-dev",
+      "stack": "dev",
+      "source": "test",
+      "started_utc": "2026-10-02T16:33:50Z",
+      "ended_utc": "2026-10-02T16:35:15Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261002-162608Z-dev",
+      "stack": "dev",
+      "source": "test",
+      "started_utc": "2026-10-02T16:26:08Z",
+      "ended_utc": "2026-10-02T16:27:33Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261002-154156Z-prod",
+      "stack": "prod",
+      "source": "capture",
+      "started_utc": "2026-10-02T15:41:56Z",
+      "ended_utc": "2026-10-02T15:49:24Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20261002-043425Z-dev",
+      "stack": "dev",
+      "source": "test",
+      "started_utc": "2026-10-02T04:34:25Z",
+      "ended_utc": "2026-10-02T04:35:52Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261002-041842Z-prod",
+      "stack": "prod",
+      "source": "capture",
+      "started_utc": "2026-10-02T04:18:42Z",
+      "ended_utc": "2026-10-02T04:21:08Z",
+      "end": "clean",
+      "machine": "MacBookPro16,1",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20261002-034415Z-prod",
+      "stack": "prod",
+      "source": "capture",
+      "started_utc": "2026-10-02T03:44:15Z",
+      "ended_utc": "2026-10-02T03:45:58Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20261002-034226Z-dev",
+      "stack": "dev",
+      "source": "capture",
+      "started_utc": "2026-10-02T03:42:26Z",
+      "ended_utc": "2026-10-02T03:43:52Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261002-033931Z-dev",
+      "stack": "dev",
+      "source": "capture",
+      "started_utc": "2026-10-02T03:39:31Z",
+      "ended_utc": "2026-10-02T03:42:09Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261002-033608Z-dev",
+      "stack": "dev",
+      "source": "capture",
+      "started_utc": "2026-10-02T03:36:08Z",
+      "ended_utc": "2026-10-02T03:37:33Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261002-033400Z-prod",
+      "stack": "prod",
+      "source": "capture",
+      "started_utc": "2026-10-02T03:34:00Z",
+      "ended_utc": "2026-10-02T03:35:43Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20261002-033031Z-prod",
+      "stack": "prod",
+      "source": "capture",
+      "started_utc": "2026-10-02T03:30:31Z",
+      "ended_utc": "2026-10-02T03:32:13Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20261002-032805Z-prod",
+      "stack": "prod",
+      "source": "capture",
+      "started_utc": "2026-10-02T03:28:05Z",
+      "ended_utc": "2026-10-02T03:29:48Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20261002-032550Z-dev",
+      "stack": "dev",
+      "source": "capture",
+      "started_utc": "2026-10-02T03:25:50Z",
+      "ended_utc": "2026-10-02T03:27:17Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261002-032351Z-dev",
+      "stack": "dev",
+      "source": "capture",
+      "started_utc": "2026-10-02T03:23:51Z",
+      "ended_utc": "2026-10-02T03:25:24Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261002-030811Z-prod",
+      "stack": "prod",
+      "source": "capture",
+      "started_utc": "2026-10-02T03:08:11Z",
+      "ended_utc": "2026-10-02T03:09:45Z",
+      "end": "clean",
+      "machine": "MacBookPro16,1",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20261002-030555Z-prod",
+      "stack": "prod",
+      "source": "capture",
+      "started_utc": "2026-10-02T03:05:55Z",
+      "ended_utc": "2026-10-02T03:07:56Z",
+      "end": "clean",
+      "machine": "MacBookPro16,1",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20261002-030347Z-dev",
+      "stack": "dev",
+      "source": "capture",
+      "started_utc": "2026-10-02T03:03:47Z",
+      "ended_utc": "2026-10-02T03:05:23Z",
+      "end": "clean",
+      "machine": "MacBookPro16,1",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261002-030104Z-dev",
+      "stack": "dev",
+      "source": "capture",
+      "started_utc": "2026-10-02T03:01:04Z",
+      "ended_utc": "2026-10-02T03:02:56Z",
+      "end": "clean",
+      "machine": "MacBookPro16,1",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261002-025416Z-prod",
+      "stack": "prod",
+      "source": "capture",
+      "started_utc": "2026-10-02T02:54:16Z",
+      "ended_utc": "2026-10-02T02:56:24Z",
+      "end": "clean",
+      "machine": "MacBookPro16,1",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20261002-025104Z-prod",
+      "stack": "prod",
+      "source": "capture",
+      "started_utc": "2026-10-02T02:51:04Z",
+      "ended_utc": "2026-10-02T02:53:22Z",
+      "end": "clean",
+      "machine": "MacBookPro16,1",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20261002-024819Z-dev",
+      "stack": "dev",
+      "source": "capture",
+      "started_utc": "2026-10-02T02:48:19Z",
+      "ended_utc": "2026-10-02T02:50:19Z",
+      "end": "clean",
+      "machine": "MacBookPro16,1",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261002-024728Z-dev",
+      "stack": "dev",
+      "source": "capture",
+      "started_utc": "2026-10-02T02:47:28Z",
+      "ended_utc": "2026-10-02T02:47:57Z",
+      "end": "clean",
+      "machine": "MacBookPro16,1",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261002-024429Z-dev",
+      "stack": "dev",
+      "source": "capture",
+      "started_utc": "2026-10-02T02:44:29Z",
+      "ended_utc": "2026-10-02T02:46:54Z",
+      "end": "clean",
+      "machine": "MacBookPro16,1",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20261002-024043Z-dev",
+      "stack": "dev",
+      "source": "capture",
+      "started_utc": "2026-10-02T02:40:43Z",
+      "ended_utc": "2026-10-02T02:42:30Z",
+      "end": "clean",
+      "machine": "MacBookPro16,1",
+      "relay_host": "localhost:4443"
+    },
+    {
+      "id": "20260930-230246Z-prod",
+      "stack": "prod",
+      "source": "test",
+      "started_utc": "2026-09-30T23:02:46Z",
+      "ended_utc": "2026-09-30T23:13:51Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20260930-225155Z-prod",
+      "stack": "prod",
+      "source": "test",
+      "started_utc": "2026-09-30T22:51:55Z",
+      "ended_utc": "2026-09-30T22:52:35Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20260929-212426Z-prod",
+      "stack": "prod",
+      "source": "test",
+      "started_utc": "2026-09-29T21:24:26Z",
+      "ended_utc": "2026-09-29T21:26:11Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20260929-212208Z-prod",
+      "stack": "prod",
+      "source": "test",
+      "started_utc": "2026-09-29T21:22:08Z",
+      "ended_utc": "2026-09-29T21:24:25Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20260929-211038Z-prod",
+      "stack": "prod",
+      "source": "test",
+      "started_utc": "2026-09-29T21:10:38Z",
+      "ended_utc": "2026-09-29T21:14:53Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20260929-202241Z-prod",
+      "stack": "prod",
+      "source": "test",
+      "started_utc": "2026-09-29T20:22:41Z",
+      "ended_utc": "2026-09-29T20:27:33Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20260929-202130Z-prod",
+      "stack": "prod",
+      "source": "test",
+      "started_utc": "2026-09-29T20:21:30Z",
+      "ended_utc": "2026-09-29T20:22:00Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "[REDACTED_RELAY_1]"
+    },
+    {
+      "id": "20260929-194406Z-prod",
+      "stack": "prod",
+      "source": "test",
+      "started_utc": "2026-09-29T19:44:06Z",
+      "ended_utc": "2026-09-29T19:46:41Z",
+      "end": "clean",
+      "machine": "Mac16,7",
+      "relay_host": "[REDACTED_RELAY_1]"
+    }
+  ]
+}

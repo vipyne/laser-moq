@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Measured latency — bro, do you even bench</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #0b0b0f; color: #eee; font: 16px/1.4 system-ui, sans-serif; }
+  header { padding: 1rem 1.5rem; border-bottom: 1px solid #222; }
+  header h1 { margin: 0; font-size: 1.4rem; letter-spacing: .02em; }
+  header p { margin: .25rem 0 0; color: #aaa; }
+  main { padding: 1rem 1.5rem; max-width: 84rem; }
+  #rows tr[data-receipt] { cursor: pointer; }
+  #rows tr[data-receipt]:hover td { background: #15151c; }
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 700px) { .tiles { grid-template-columns: 1fr; } }
+  .tile { background: #000; border: 1px solid #222; border-radius: 6px; padding: .75rem 1rem; }
+  .tile h2 { margin: 0; font-size: 1rem; color: #aaa; }
+  .tile .big { font: 700 2.4rem/1.2 ui-monospace, monospace; }
+  .tile .sub { color: #aaa; font-size: .9rem; }
+  .tile .badge { display: inline-block; font-size: .75rem; color: #0b0b0f; background: #8ab4ff;
+                 border-radius: 3px; padding: 0 .4em; vertical-align: middle; }
+  .tile.hls .badge { background: #ffb74d; }
+  .moq { color: #8ab4ff; } .hls-c { color: #ffb74d; }
+  .stack { display: inline-block; font-size: .75rem; color: #0b0b0f; padding: 0 .4em;
+           border-radius: 3px; font-weight: 600; }
+  .stack.prod { background: #ff6b6b; }
+  .stack.dev { background: #8ab4ff; }
+  section { margin-top: 1.5rem; }
+  section h2 { font-size: 1.1rem; margin: 0 0 .5rem; }
+  svg { display: block; width: 100%; height: auto; background: #000; border: 1px solid #222; border-radius: 6px; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  th, td { text-align: left; padding: .35rem .6rem; border-bottom: 1px solid #222; }
+  th { color: #aaa; font-weight: 600; }
+  td.num { font-family: ui-monospace, monospace; text-align: right; }
+  th.num { text-align: right; }
+  .caveats { color: #aaa; font-size: .9rem; border-left: 3px solid #222; padding-left: .75rem; }
+  #map { font: 11px/1.2 ui-monospace, monospace; margin: 0; padding: .6rem .8rem;
+         background: #000; border: 1px solid #222; border-radius: 6px; overflow-x: auto; color: #444; }
+  #map .m-P { color: #eee; font-weight: 700; } #map .m-R { color: #8ab4ff; font-weight: 700; }
+  #map .m-H { color: #ffb74d; font-weight: 700; } #map .m-S { color: #9e9e9e; font-weight: 700; }
+  #map-legend { color: #aaa; font-size: .85rem; margin-top: .4rem; }
+  #map-legend span { margin-right: 1.2rem; white-space: nowrap; }
+  .empty { color: #aaa; padding: 2rem 0; }
+  footer { padding: 1rem 1.5rem; color: #777; font-size: .85rem; }
+  a { color: #8ab4ff; }
+</style>
+</head>
+<body>
+<header>
+  <h1>📊 Measured latency</h1>
+  <p>Encoder-to-glass: the burned-in publisher clock, OCR'd out of each player, minus the local clock — measured on the publisher machine, so both clocks are one clock. (The clock is burned at encode, so capture-chain latency is excluded — identically for both legs.) <a href="../receipts/">← receipts</a> · <a href="../">back to the live streams</a></p>
+  <p id="how-to-read">How to read this page: each <em>run</em> is one invocation of
+  <code>scripts/measure-latency.sh</code> on the publisher machine, reviewed and committed by a
+  human. The tiles summarize the <strong>latest run only</strong>; the chart and table show
+  <strong>every committed run</strong>; the map shows the single run named in its title.</p>
+</header>
+<main id="main">
+  <div class="empty" id="empty" hidden>no measured runs yet</div>
+  <h2 id="latest-run-label" hidden></h2>
+  <div class="tiles" id="tiles" hidden>
+    <div class="tile" id="tile-moq">
+      <h2>Media over QUIC <span class="badge">clock-ocr</span></h2>
+      <div class="big moq" id="moq-p50">—</div>
+      <div class="sub" id="moq-sub"></div>
+    </div>
+    <div class="tile hls" id="tile-hls">
+      <h2>Low-Latency HLS <span class="badge">clock-ocr</span></h2>
+      <div class="big hls-c" id="hls-p50">—</div>
+      <div class="sub" id="hls-sub"></div>
+    </div>
+  </div>
+  <section id="chart-section" hidden>
+    <h2>All runs — <span class="moq">MoQ</span> vs <span class="hls-c">HLS</span>, one dot per sample</h2>
+    <div id="chart"></div>
+  </section>
+  <section id="map-section" hidden>
+    <h2 id="map-title">Where the last run ran</h2>
+    <pre id="map"></pre>
+    <div id="map-legend"></div>
+  </section>
+  <section id="table-section" hidden>
+    <h2>Runs</h2>
+    <p class="sub">Every committed run; p50/min/max are that run's clock-ocr samples. <code>hlsjs-api</code> rows are player-reported latency, shown for cross-checking.</p>
+    <table>
+      <thead><tr><th>started</th><th>stack</th><th>source</th><th>machine</th><th>transport</th>
+        <th class="num">n</th><th class="num">p50 ms</th><th class="num">min</th><th class="num">max</th><th>notes</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </section>
+  <section>
+    <h2>Caveats</h2>
+    <div class="caveats">
+      Both streams come from one ffmpeg encode (same bitrate, GOP, encoder), so the comparison is
+      apples to apples. Measurements run on the publisher machine: the burned-in clock and the
+      local clock are the same clock, so there is no NTP skew. Each sample is timestamped at the
+      midpoint of its screenshot; <code>shot_spread_ms</code> records the window, so the residual
+      timing uncertainty is ±spread/2. <code>hlsjs-api</code> rows are the
+      latency hls.js itself reports, not encoder-to-glass, shown for cross-checking only.
+      Since Task 6, the harness records each run's HLS tuning receipt (client preset,
+      part target, sync target) straight off <code>window.__hls</code> — shown as a
+      hover tooltip on hls table rows and appended to the HLS tile's subtitle; runs from
+      before then have no tuning receipt and render as before. The viewer page's Mode A
+      "typical" and Mode B "ragged" presets are the two tuning stories this compares.
+    </div>
+  </section>
+</main>
+<footer>
+  Data: <a href="data.json">data.json</a> — appended by <code>scripts/measure-latency.sh</code>, committed by a human.
+</footer>
+
+<script>
+  const COLOR = { moq: "#8ab4ff", hls: "#ffb74d" };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const p50 = v => { const s = [...v].sort((a, b) => a - b); const m = s.length >> 1; return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2); };
+  const ocr = (run, t) => run.samples.filter(s => s.transport === t && s.method === "clock-ocr").map(s => s.encoder_to_glass_ms);
+
+  function tuningLabel(run) {
+    const t = run.tuning;
+    if (!t) return "";
+    const parts = [];
+    if (t.preset) parts.push(t.preset);
+    if (typeof t.part_target_s === "number") parts.push(`part ${Math.round(t.part_target_s * 1000)}ms`);
+    if (typeof t.live_sync_s === "number") parts.push(`sync ${t.live_sync_s}s`);
+    if (typeof t.max_catchup_rate === "number") parts.push(`≤${t.max_catchup_rate}x`);
+    return parts.join(" · ");
+  }
+
+  function tiles(latest) {
+    for (const t of ["moq", "hls"]) {
+      const v = ocr(latest, t);
+      document.getElementById(t + "-p50").textContent = v.length ? p50(v).toLocaleString() + " ms" : "no samples";
+      const tuning = t === "hls" ? tuningLabel(latest) : "";
+      document.getElementById(t + "-sub").textContent = v.length
+        ? `${v.length} samples · ${Math.min(...v).toLocaleString()}–${Math.max(...v).toLocaleString()} ms · ${latest.started_utc.slice(0, 10)} · ${esc(latest.source)}` +
+          (tuning ? ` · ${esc(tuning)}` : "")
+        : "";
+    }
+  }
+
+  function chart(runs) {
+    const W = 1280, H = 360, L = 70, R = 15, T = 20, B = 70;
+    const pts = [];
+    runs.forEach((run, i) => { for (const t of ["moq", "hls"]) for (const ms of ocr(run, t)) pts.push({ i, t, ms }); });
+    if (!pts.length) return;
+    // Clamp the axis to inliers so one OCR misread (tens of seconds) can't
+    // flatten every real sample into a sliver at the bottom.
+    const cap = p50(pts.map(p => p.ms)) * 5;
+    const inliers = pts.filter(p => p.ms <= cap);
+    const hidden = pts.length - inliers.length;
+    const ymax = (inliers.length ? Math.max(...inliers.map(p => p.ms)) : cap) * 1.1;
+    const x = i => L + (W - L - R) * (runs.length === 1 ? 0.5 : i / (runs.length - 1));
+    const y = ms => T + (H - T - B) * (1 - ms / ymax);
+    // ~5 gridlines at a round step (1/2/5 × 10^k)
+    const raw = ymax / 5, k = Math.pow(10, Math.floor(Math.log10(raw)));
+    const step = [1, 2, 5, 10].map(m => m * k).find(s => ymax / s <= 6);
+    let g = "";
+    for (let v = 0; v <= ymax; v += step)
+      g += `<line x1="${L}" y1="${y(v)}" x2="${W - R}" y2="${y(v)}" stroke="#222"/>` +
+           `<text x="${L - 8}" y="${y(v) + 4}" text-anchor="end" fill="#aaa" font-size="11">${v.toLocaleString()}</text>`;
+    let xl = "";
+    runs.forEach((run, i) => {
+      const lx = x(i);
+      xl += `<text x="${lx}" y="${H - B + 16}" transform="rotate(40 ${lx} ${H - B + 16})" text-anchor="start" fill="#aaa" font-size="10">${esc(run.started_utc.slice(0, 10))} · ${esc(run.source)}</text>`;
+    });
+    // deterministic horizontal spread so same-run dots don't stack into one
+    const dots = inliers.map((p, n) =>
+      `<circle cx="${(x(p.i) + (n % 7 - 3) * 2.5).toFixed(1)}" cy="${y(p.ms).toFixed(1)}" r="4" fill="${COLOR[p.t]}" fill-opacity="0.85"><title>${p.t} ${p.ms} ms</title></circle>`).join("");
+    const note = hidden ? `<text x="${W - R}" y="${T}" text-anchor="end" fill="#777" font-size="10">${hidden} sample${hidden > 1 ? "s" : ""} &gt; ${Math.round(cap).toLocaleString()} ms hidden (OCR misreads)</text>` : "";
+    document.getElementById("chart").innerHTML =
+      `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="encoder-to-glass latency per run">` +
+      `<text x="14" y="${(T + H - B) / 2}" fill="#aaa" font-size="11" transform="rotate(-90 14 ${(T + H - B) / 2})" text-anchor="middle">encoder-to-glass ms</text>` +
+      g + xl + dots + note + `</svg>`;
+  }
+
+  // Stack derived from the run's measured target: localhost page → dev stack.
+  const stackOf = run => (run.target || "").includes("localhost") ? "dev" : "prod";
+  const stackCell = run => `<td><span class="stack ${stackOf(run)}">${stackOf(run)}</span></td>`;
+
+  // Link each run to its session: same stack, run's start inside the window.
+  // (machine fields differ in format between runs and sessions, so not matched;
+  // ties broken by the tightest/most-recent enclosing session.)
+  let SESSIONS = [];
+  const receiptId = run => {
+    const hits = SESSIONS.filter(s => s.stack === stackOf(run)
+      && s.started_utc <= run.started_utc && (!s.ended_utc || run.started_utc <= s.ended_utc));
+    if (!hits.length) return null;
+    return hits.reduce((a, b) => b.started_utc > a.started_utc ? b : a).id;
+  };
+  const startedCell = run => `<td>${esc(run.started_utc.slice(0, 10))}</td>`;
+  const rowAttrs = run => { const id = receiptId(run); return id ? ` data-receipt="${esc(id)}"` : ""; };
+
+  function table(runs) {
+    const rows = [];
+    for (const run of [...runs].reverse()) {
+      for (const t of ["moq", "hls"]) {
+        const v = ocr(run, t);
+        if (!v.length) continue;
+        const label = t === "hls" ? tuningLabel(run) : "";
+        const tip = [label, run.browser_version].filter(Boolean).join(" · ");
+        rows.push(`<tr${rowAttrs(run)}${tip ? ` title="${esc(tip)}"` : ""}>${startedCell(run)}${stackCell(run)}<td>${esc(run.source)}</td><td>${esc(run.machine ?? "")}</td>` +
+          `<td><span class="${t === "moq" ? "moq" : "hls-c"}">${t}</span>${label ? ` <small>${esc(label)}</small>` : ""}</td><td class="num">${v.length}</td>` +
+          `<td class="num">${p50(v).toLocaleString()}</td><td class="num">${Math.min(...v).toLocaleString()}</td>` +
+          `<td class="num">${Math.max(...v).toLocaleString()}</td><td>${esc(run.notes ?? "")}</td></tr>`);
+      }
+      const api = run.samples.filter(s => s.method === "hlsjs-api").map(s => s.latency_ms);
+      if (api.length)
+        rows.push(`<tr${rowAttrs(run)}${run.browser_version ? ` title="${esc(run.browser_version)}"` : ""}>${startedCell(run)}${stackCell(run)}<td>${esc(run.source)}</td><td>${esc(run.machine ?? "")}</td>` +
+          `<td><span class="hls-c">hls</span> <small>(hlsjs-api)</small></td><td class="num">${api.length}</td>` +
+          `<td class="num">${p50(api).toLocaleString()}</td><td class="num">${Math.min(...api).toLocaleString()}</td>` +
+          `<td class="num">${Math.max(...api).toLocaleString()}</td><td>player-reported</td></tr>`);
+    }
+    const tbody = document.getElementById("rows");
+    tbody.innerHTML = rows.join("");
+    // Whole row navigates to its session receipt (rows without one aren't clickable).
+    tbody.addEventListener("click", e => {
+      const id = e.target.closest("tr")?.dataset.receipt;
+      if (id) location.href = `../receipts/session.html?id=${id}`;
+    });
+  }
+
+  // Same coarse world as scripts/endpoint_map.py: 72x24 equirectangular,
+  // 5°/col from 180W, 7.5°/row from 90N; land as per-row column spans.
+  const LAND = { 1: [[24,32]], 2: [[24,31],[40,44],[46,70]], 3: [[3,8],[12,24],[25,30],[39,46],[46,71]],
+    4: [[10,24],[34,36],[38,48],[48,71]], 5: [[8,24],[34,48],[48,70]], 6: [[9,23],[34,46],[46,62],[62,64]],
+    7: [[10,22],[33,46],[46,50],[52,62],[63,64]], 8: [[12,20],[32,46],[46,50],[48,54],[54,62]],
+    9: [[12,17],[32,46],[48,53],[55,61]], 10: [[14,18],[30,46],[49,51],[55,62]], 11: [[16,20],[32,44],[55,64]],
+    12: [[16,26],[34,42],[56,66]], 13: [[18,27],[34,42],[61,64]], 14: [[18,26],[34,40],[59,67]],
+    15: [[18,26],[34,39],[58,67]], 16: [[18,23],[35,37],[59,66]], 17: [[18,22],[68,69]],
+    18: [[18,21],[67,68]], 19: [[19,20]], 22: [[8,62]], 23: [[4,66]] };
+  const MAP_W = 72, MAP_H = 24;
+  const MARKS = [["P", "publisher", "publisher"], ["R", "relay", "moq relay"],
+                 ["H", "hls", "hls origin"], ["S", "page", "page CDN edge"]];
+
+  function drawMap(run, latestRun) {
+    document.getElementById("map-title").textContent =
+      `Where the ${run.started_utc.slice(0, 10)} run ran` +
+      (run === latestRun ? "" : " (latest run with geo)");
+    const grid = Array.from({ length: MAP_H }, () => Array(MAP_W).fill(" "));
+    for (const [row, spans] of Object.entries(LAND))
+      for (const [c1, c2] of spans)
+        for (let c = c1; c <= Math.min(c2, MAP_W - 1); c++) grid[+row][c] = ".";
+    const placed = [];
+    for (const [letter, key, label] of MARKS) {
+      const g = run.geo[key];
+      if (!g || typeof g.lat !== "number" || typeof g.lon !== "number") continue;
+      const r = Math.min(MAP_H - 1, Math.max(0, Math.floor((90 - g.lat) / 7.5)));
+      const c = Math.min(MAP_W - 1, Math.max(0, Math.floor((g.lon + 180) / 5)));
+      for (const [dr, dc] of [[0,0],[0,1],[0,-1],[1,0],[-1,0],[0,2]]) {
+        const rr = r + dr, cc = c + dc;
+        if (rr >= 0 && rr < MAP_H && cc >= 0 && cc < MAP_W && !/[A-Z]/.test(grid[rr][cc])) {
+          grid[rr][cc] = letter; placed.push([letter, label, g]); break;
+        }
+      }
+    }
+    const html = row => row.map(ch => /[A-Z]/.test(ch) ? `<span class="m-${ch}">${ch}</span>` : ch).join("");
+    document.getElementById("map").innerHTML =
+      "┌" + "─".repeat(MAP_W) + "┐\n" + grid.map(r => "│" + html(r) + "│").join("\n") + "\n└" + "─".repeat(MAP_W) + "┘";
+    document.getElementById("map-legend").innerHTML = placed.map(([letter, label, g]) =>
+      `<span><span class="m-${letter}">${letter}</span> ${esc(label)} · ${esc([g.city, g.region].filter(Boolean).join(", "))}</span>`
+    ).join("") + `<span>run ${esc(run.started_utc.slice(0, 10))} · coarse geo, cities only</span>`;
+  }
+
+  Promise.all([
+    fetch("./data.json").then(r => r.json()),
+    fetch("../receipts/data.json").then(r => r.json()).catch(() => ({ sessions: [] })),
+  ]).then(([d, rd]) => {
+    SESSIONS = (rd && Array.isArray(rd.sessions)) ? rd.sessions : [];
+    const runs = (d.schema === 1 && Array.isArray(d.runs)) ? d.runs : [];
+    if (!runs.length) { document.getElementById("empty").hidden = false; return; }
+    for (const id of ["tiles", "chart-section", "table-section"]) document.getElementById(id).hidden = false;
+    const latest = runs[runs.length - 1];
+    const lbl = document.getElementById("latest-run-label");
+    lbl.textContent = `Latest run — ${latest.started_utc.slice(0, 10)} · ${latest.source} · ${latest.machine ?? "?"}`;
+    lbl.hidden = false;
+    tiles(latest);
+    chart(runs);
+    table(runs);
+    const geoRun = [...runs].reverse().find(r => r.geo && Object.values(r.geo).some(Boolean));
+    if (geoRun) { document.getElementById("map-section").hidden = false; drawMap(geoRun, latest); }
+  }).catch(() => { const e = document.getElementById("empty"); e.textContent = "could not load data.json"; e.hidden = false; });
+</script>
+</body>
+</html>

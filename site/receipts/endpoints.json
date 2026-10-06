@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "relay":      { "host": "[REDACTED_RELAY_1]", "provider": "OCI",
+                  "shape": "VM.Standard.A1.Flex — 1 OCPU / 6 GB, Ampere arm64, Ubuntu 24.04",
+                  "region": "us-sanjose-1 (San Jose)", "software": "moq-relay 0.13.5" },
+  "hls_origin": { "host": "hls-laserdisc.vanessa-dev.com", "provider": "OCI",
+                  "shape": "VM.Standard.A1.Flex — 1 OCPU / 6 GB, Ampere arm64, Ubuntu 24.04",
+                  "region": "us-sanjose-1 (San Jose)", "software": "MediaMTX" }
+}

@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "id": "20260930-225155Z-prod",
+  "stack": "prod",
+  "source": "test",
+  "started_utc": "2026-09-30T22:51:55Z",
+  "ended_utc": "2026-09-30T22:52:35Z",
+  "end": "clean",
+  "config": {
+    "source": "test",
+    "size": "1280x720",
+    "fps": "30",
+    "gop": "15",
+    "relay": "https://[REDACTED_RELAY_1]/livestream",
+    "rtmp_host": "hls-laserdisc.vanessa-dev.com",
+    "hls_playlist_url": "https://hls-laserdisc.vanessa-dev.com/laserdisc/index.m3u8",
+    "page_url": "https://moq-laserdisc.vanessa-dev.com/",
+    "pins": {
+      "moq_watch": "0.5.4",
+      "hls_js": "1.7.1",
+      "tesseract_js": "5.1.1"
+    },
+    "mediamtx_tuning": {
+      "hlsSegmentDuration": "500ms",
+      "hlsPartDuration": "100ms",
+      "hlsSegmentCount": "7",
+      "hlsVariant": "lowLatency"
+    }
+  },
+  "versions": {
+    "moq": "moq 0.11.0",
+    "ffmpeg": "ffmpeg version 7.1.1 Copyright (c) 2000-2025 the FFmpeg developers",
+    "mediamtx": "1.20.1",
+    "macos": "15.7.4"
+  },
+  "publisher_hw": {
+    "at_open": {
+      "model": "Mac16,7",
+      "cpu": "Apple M4 Pro",
+      "arch": "arm64",
+      "ram_bytes": 51539607552,
+      "macos_build": "24G517",
+      "uptime": "17:51  up 34 days, 16:20, 22 users, load averages: 3.59 3.38 3.10",
+      "load_avg": [
+        3.59033203125,
+        3.3798828125,
+        3.09912109375
+      ],
+      "thermal_state": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+      "ffmpeg_cpu_pct": null
+    },
+    "at_close": {
+      "model": "Mac16,7",
+      "cpu": "Apple M4 Pro",
+      "arch": "arm64",
+      "ram_bytes": 51539607552,
+      "macos_build": "24G517",
+      "uptime": "17:52  up 34 days, 16:20, 22 users, load averages: 3.27 3.32 3.09",
+      "load_avg": [
+        3.27392578125,
+        3.3173828125,
+        3.08642578125
+      ],
+      "thermal_state": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+      "ffmpeg_cpu_pct": 8.1
+    }
+  },
+  "probes": {
+    "relay": {
+      "ping_avg_ms": null,
+      "status": 404,
+      "server_header": null
+    },
+    "hls_origin": {
+      "ping_avg_ms": null,
+      "status": 302,
+      "server_header": "mediamtx"
+    }
+  },
+  "endpoint_map": "\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502                                                                        \u2502\n\u2502                        .........                                       \u2502\n\u2502                        ........        ..... ......................... \u2502\n\u2502   ......   ...................        .................................\u2502\n\u2502          ...............         ... ..................................\u2502\n\u2502        .................         ..................................... \u2502\n\u2502         ..S............          ...............................       \u2502\n\u2502          .RH..........          .................. .............       \u2502\n\u2502            .....P...           ...............................         \u2502\n\u2502            ......              ............... ...... .......          \u2502\n\u2502              .....           .................  ...   ........         \u2502\n\u2502                .....           .............          ..........       \u2502\n\u2502                ...........       .........             ...........     \u2502\n\u2502                  ..........      .........                  ....       \u2502\n\u2502                  .........       .......                  .........    \u2502\n\u2502                  .........       ......                  ..........    \u2502\n\u2502                  ......           ...                     ........     \u2502\n\u2502                  .....                                             ..  \u2502\n\u2502                  ....                                             ..   \u2502\n\u2502                   ..                                                   \u2502\n\u2502                                                                        \u2502\n\u2502                                                                        \u2502\n\u2502        .......................................................         \u2502\n\u2502    ...............................................................     \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n\n  P  publisher   [REDACTED_IP_1]   New Orleans, Louisiana, US \u00b7 AS22773 Cox Communications Inc.  (this machine)\n  R  moq relay   [REDACTED_IP_3]    San Jose, California, US \u00b7 AS31898 Oracle Corporation  rtt :443 61ms  (moq-relay 0.13.5)\n  H  hls origin  [REDACTED_IP_4]     San Jose, California, US \u00b7 AS31898 Oracle Corporation  rtt :443 68ms :1935 67ms  (:1935 RTMP in, :443 LL-HLS out)\n  S  subscriber  185.199.109.153  San Francisco, California, US \u00b7 AS54113 Fastly, Inc.  rtt :443 21ms  (Page host / CDN edge near you \u2014 not a media hop)\n\n  paths:  moq     P (publisher) \u2500\u2500\u25b6 R (relay) \u25c0\u2500\u2500 viewers\n          ll-hls  P (publisher) \u2500\u2500\u25b6 H (:1935) \u25c0\u2500\u2500 viewers (:443)\n          page    viewers load the site itself from S\n\n\u250c\u2500\u2500 MoQ media path \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502                                                                       \u2502\n\u2502 \u25c9 P publisher  \u00b7  New Orleans, Louisiana, US  \u00b7  [REDACTED_IP_1]       \u2502\n\u2502 \u2502                                                                     \u2502\n\u2502 \u2502  ~61 ms   publisher \u2192 relay (TCP connect, from this machine)        \u2502\n\u2502 \u25bc                                                                     \u2502\n\u2502 \u25c9 R moq relay  \u00b7  San Jose, California, US  \u00b7  [REDACTED_IP_3]          \u2502\n\u2502 \u250a                                                                     \u2502\n\u2502 \u250a  viewers \u2192 relay  (measured in the viewer's browser \u2014 see /results) \u2502\n\u2502 \u25c9 viewers  \u00b7  wherever the audience is                                \u2502\n\u2502                                                                       \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n\n\u250c\u2500\u2500 LL-HLS media path \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502                                                                                    \u2502\n\u2502 \u25c9 P publisher  \u00b7  New Orleans, Louisiana, US  \u00b7  [REDACTED_IP_1]                    \u2502\n\u2502 \u2502                                                                                  \u2502\n\u2502 \u2502  ~67 ms   publisher \u2192 origin :1935 RTMP (TCP connect, from this machine)         \u2502\n\u2502 \u25bc                                                                                  \u2502\n\u2502 \u25c9 H hls origin  \u00b7  San Jose, California, US  \u00b7  [REDACTED_IP_4]                       \u2502\n\u2502 \u250a                                                                                  \u2502\n\u2502 \u250a  viewers \u2192 origin :443 LL-HLS  (measured in the viewer's browser \u2014 see /results) \u2502\n\u2502 \u25c9 viewers  \u00b7  wherever the audience is                                             \u2502\n\u2502                                                                                    \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n\n  P is wherever this script runs \u2014 run it on the publisher box (the machine wired to the LaserDisc)\n  for the map to tell the truth.",
+  "timeline": [
+    {
+      "at_utc": "2026-09-30T22:51:55Z",
+      "event": "open",
+      "detail": null
+    },
+    {
+      "at_utc": "2026-09-30T22:51:55Z",
+      "event": "start",
+      "detail": "start #1"
+    },
+    {
+      "at_utc": "2026-09-30T22:52:35Z",
+      "event": "close",
+      "detail": null
+    }
+  ],
+  "log_excerpt": [
+    "[17:51:55] start #1",
+    "[h264_videotoolbox @ 0x143f056d0] Color range not set for yuv420p. Using MPEG range."
+  ],
+  "viewer_note": "remote viewers unknowable; see measure runs in this window"
+}
